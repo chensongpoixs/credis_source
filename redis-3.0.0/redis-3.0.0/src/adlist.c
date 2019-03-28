@@ -149,15 +149,18 @@ list *listInsertNode(list *list, listNode *old_node, void *value, int after) {
     node->value = value;
     if (after) 
 	{
-        node->prev = old_node;
+		//  // old_node <- new_node -> old_node->next
+		// 放到 old_node 节点后面
+        node->prev = old_node; 
         node->next = old_node->next;
         if (list->tail == old_node) 
 		{
-            list->tail = node;
+            list->tail = node;  // 放到双端链表的后面
         }
     } 
 	else 
 	{
+		// 
         node->next = old_node;
         node->prev = old_node->prev;
         if (list->head == old_node) 
