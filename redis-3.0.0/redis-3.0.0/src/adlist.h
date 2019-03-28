@@ -41,8 +41,8 @@ typedef struct listNode {
 
 typedef struct listIter {
     listNode *next;
-    int direction;
-} listIter;
+    int direction;  //方向
+} listIter;  // // 迭代器的使用   directoion 指定左右遍历
 
 typedef struct list {
     listNode *head;

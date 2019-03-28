@@ -1,183 +1,183 @@
-### Ò»¡¢¸ÅÊö
+ï»¿### ä¸€ã€æ¦‚è¿°
 
-     ÔÚRedisÖÐ£¬ListÀàÐÍÊÇ°´ÕÕ²åÈëË³ÐòÅÅÐòµÄ×Ö·û´®Á´±í¡£ºÍÊý¾Ý½á¹¹ÖÐµÄÆÕÍ¨Á´±íÒ»Ñù£¬ÎÒÃÇ¿ÉÒÔÔÚÆäÍ·²¿(left)ºÍÎ²²¿(right)Ìí¼ÓÐÂµÄÔªËØ¡£ÔÚ²åÈëÊ±£¬Èç¹û¸Ã¼ü²¢²»´æÔÚ£¬Redis½«Îª¸Ã¼ü´´½¨Ò»¸öÐÂµÄÁ´±í¡£Óë´ËÏà·´£¬Èç¹ûÁ´±íÖÐËùÓÐµÄÔªËØ¾ù±»ÒÆ³ý£¬ÄÇÃ´¸Ã¼üÒ²½«»á±»´ÓÊý¾Ý¿âÖÐÉ¾³ý¡£ListÖÐ¿ÉÒÔ°üº¬µÄ×î´óÔªËØÊýÁ¿ÊÇ4294967295¡£
-      ´ÓÔªËØ²åÈëºÍÉ¾³ýµÄÐ§ÂÊÊÓ½ÇÀ´¿´£¬Èç¹ûÎÒÃÇÊÇÔÚÁ´±íµÄÁ½Í·²åÈë»òÉ¾³ýÔªËØ£¬Õâ½«»áÊÇ·Ç³£¸ßÐ§µÄ²Ù×÷£¬¼´Ê¹Á´±íÖÐÒÑ¾­´æ´¢ÁË°ÙÍòÌõ¼ÇÂ¼£¬¸Ã²Ù×÷Ò²¿ÉÒÔÔÚ³£Á¿Ê±¼äÄÚÍê³É¡£È»¶øÐèÒªËµÃ÷µÄÊÇ£¬Èç¹ûÔªËØ²åÈë»òÉ¾³ý²Ù×÷ÊÇ×÷ÓÃÓÚÁ´±íÖÐ¼ä£¬ÄÇ½«»áÊÇ·Ç³£µÍÐ§µÄ¡£ÏàÐÅ¶ÔÓÚÓÐÁ¼ºÃÊý¾Ý½á¹¹»ù´¡µÄ¿ª·¢Õß¶øÑÔ£¬ÕâÒ»µã²¢²»ÄÑÀí½â¡£
+     åœ¨Redisä¸­ï¼ŒListç±»åž‹æ˜¯æŒ‰ç…§æ’å…¥é¡ºåºæŽ’åºçš„å­—ç¬¦ä¸²é“¾è¡¨ã€‚å’Œæ•°æ®ç»“æž„ä¸­çš„æ™®é€šé“¾è¡¨ä¸€æ ·ï¼Œæˆ‘ä»¬å¯ä»¥åœ¨å…¶å¤´éƒ¨(left)å’Œå°¾éƒ¨(right)æ·»åŠ æ–°çš„å…ƒç´ ã€‚åœ¨æ’å…¥æ—¶ï¼Œå¦‚æžœè¯¥é”®å¹¶ä¸å­˜åœ¨ï¼ŒRediså°†ä¸ºè¯¥é”®åˆ›å»ºä¸€ä¸ªæ–°çš„é“¾è¡¨ã€‚ä¸Žæ­¤ç›¸åï¼Œå¦‚æžœé“¾è¡¨ä¸­æ‰€æœ‰çš„å…ƒç´ å‡è¢«ç§»é™¤ï¼Œé‚£ä¹ˆè¯¥é”®ä¹Ÿå°†ä¼šè¢«ä»Žæ•°æ®åº“ä¸­åˆ é™¤ã€‚Listä¸­å¯ä»¥åŒ…å«çš„æœ€å¤§å…ƒç´ æ•°é‡æ˜¯4294967295ã€‚
+      ä»Žå…ƒç´ æ’å…¥å’Œåˆ é™¤çš„æ•ˆçŽ‡è§†è§’æ¥çœ‹ï¼Œå¦‚æžœæˆ‘ä»¬æ˜¯åœ¨é“¾è¡¨çš„ä¸¤å¤´æ’å…¥æˆ–åˆ é™¤å…ƒç´ ï¼Œè¿™å°†ä¼šæ˜¯éžå¸¸é«˜æ•ˆçš„æ“ä½œï¼Œå³ä½¿é“¾è¡¨ä¸­å·²ç»å­˜å‚¨äº†ç™¾ä¸‡æ¡è®°å½•ï¼Œè¯¥æ“ä½œä¹Ÿå¯ä»¥åœ¨å¸¸é‡æ—¶é—´å†…å®Œæˆã€‚ç„¶è€Œéœ€è¦è¯´æ˜Žçš„æ˜¯ï¼Œå¦‚æžœå…ƒç´ æ’å…¥æˆ–åˆ é™¤æ“ä½œæ˜¯ä½œç”¨äºŽé“¾è¡¨ä¸­é—´ï¼Œé‚£å°†ä¼šæ˜¯éžå¸¸ä½Žæ•ˆçš„ã€‚ç›¸ä¿¡å¯¹äºŽæœ‰è‰¯å¥½æ•°æ®ç»“æž„åŸºç¡€çš„å¼€å‘è€…è€Œè¨€ï¼Œè¿™ä¸€ç‚¹å¹¶ä¸éš¾ç†è§£ã€‚
 
-### ¶þ¡¢Ïà¹ØÃüÁî
+### äºŒã€ç›¸å…³å‘½ä»¤
 
-1¡¢ÏòÁÐ±í×ó±ßÌí¼ÓÔªËØ
+1ã€å‘åˆ—è¡¨å·¦è¾¹æ·»åŠ å…ƒç´ 
 
-ÃüÁîÔ­ÐÍ£ºLPUSH key value [value ...] 
+å‘½ä»¤åŽŸåž‹ï¼šLPUSH key value [value ...] 
 
-Ê±¼ä¸´ÔÓ¶È£ºO(1)
+æ—¶é—´å¤æ‚åº¦ï¼šO(1)
 
-ÃüÁîÃèÊö£ºÔÚÖ¸¶¨KeyËù¹ØÁªµÄList ValueµÄÍ·²¿²åÈë²ÎÊýÖÐ¸ø³öµÄËùÓÐValues¡£Èç¹û¸ÃKey²»´æÔÚ£¬¸ÃÃüÁî½«ÔÚ²åÈëÖ®Ç°´´½¨Ò»¸öÓë¸ÃKey¹ØÁªµÄ¿ÕÁ´±í£¬Ö®ºóÔÙ½«Êý¾Ý´ÓÁ´±íµÄÍ·²¿²åÈë¡£Èç¹û¸Ã¼üµÄValue²»ÊÇÁ´±íÀàÐÍ£¬¸ÃÃüÁî½«·µ»ØÏà¹ØµÄ´íÎóÐÅÏ¢¡£
+å‘½ä»¤æè¿°ï¼šåœ¨æŒ‡å®šKeyæ‰€å…³è”çš„List Valueçš„å¤´éƒ¨æ’å…¥å‚æ•°ä¸­ç»™å‡ºçš„æ‰€æœ‰Valuesã€‚å¦‚æžœè¯¥Keyä¸å­˜åœ¨ï¼Œè¯¥å‘½ä»¤å°†åœ¨æ’å…¥ä¹‹å‰åˆ›å»ºä¸€ä¸ªä¸Žè¯¥Keyå…³è”çš„ç©ºé“¾è¡¨ï¼Œä¹‹åŽå†å°†æ•°æ®ä»Žé“¾è¡¨çš„å¤´éƒ¨æ’å…¥ã€‚å¦‚æžœè¯¥é”®çš„Valueä¸æ˜¯é“¾è¡¨ç±»åž‹ï¼Œè¯¥å‘½ä»¤å°†è¿”å›žç›¸å…³çš„é”™è¯¯ä¿¡æ¯ã€‚
 
-·µ»ØÖµ£º²åÈëºóÁ´±íÖÐÔªËØµÄÊýÁ¿¡£
+è¿”å›žå€¼ï¼šæ’å…¥åŽé“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡ã€‚
 
-2¡¢ÏòÁÐ±íÓÒ±ßÌí¼ÓÔªËØ
+2ã€å‘åˆ—è¡¨å³è¾¹æ·»åŠ å…ƒç´ 
 
-ÃüÁîÔ­ÐÍ£ºRPUSH key value [value ...] 
+å‘½ä»¤åŽŸåž‹ï¼šRPUSH key value [value ...] 
 
-Ê±¼ä¸´ÔÓ¶È£ºO(1)
+æ—¶é—´å¤æ‚åº¦ï¼šO(1)
 
-ÃüÁîÃèÊö£ºÔÚÖ¸¶¨KeyËù¹ØÁªµÄList ValueµÄÎ²²¿²åÈë²ÎÊýÖÐ¸ø³öµÄËùÓÐValues¡£Èç¹û¸ÃKey²»´æÔÚ£¬¸ÃÃüÁî½«ÔÚ²åÈëÖ®Ç°´´½¨Ò»¸öÓë¸ÃKey¹ØÁªµÄ¿ÕÁ´±í£¬Ö®ºóÔÙ½«Êý¾Ý´ÓÁ´±íµÄÎ²²¿²åÈë¡£Èç¹û¸Ã¼üµÄValue²»ÊÇÁ´±íÀàÐÍ£¬¸ÃÃüÁî½«·µ»ØÏà¹ØµÄ´íÎóÐÅÏ¢¡£ 
+å‘½ä»¤æè¿°ï¼šåœ¨æŒ‡å®šKeyæ‰€å…³è”çš„List Valueçš„å°¾éƒ¨æ’å…¥å‚æ•°ä¸­ç»™å‡ºçš„æ‰€æœ‰Valuesã€‚å¦‚æžœè¯¥Keyä¸å­˜åœ¨ï¼Œè¯¥å‘½ä»¤å°†åœ¨æ’å…¥ä¹‹å‰åˆ›å»ºä¸€ä¸ªä¸Žè¯¥Keyå…³è”çš„ç©ºé“¾è¡¨ï¼Œä¹‹åŽå†å°†æ•°æ®ä»Žé“¾è¡¨çš„å°¾éƒ¨æ’å…¥ã€‚å¦‚æžœè¯¥é”®çš„Valueä¸æ˜¯é“¾è¡¨ç±»åž‹ï¼Œè¯¥å‘½ä»¤å°†è¿”å›žç›¸å…³çš„é”™è¯¯ä¿¡æ¯ã€‚ 
 
-·µ»ØÖµ£º²åÈëºóÁ´±íÖÐÔªËØµÄÊýÁ¿¡£
+è¿”å›žå€¼ï¼šæ’å…¥åŽé“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡ã€‚
 
-3¡¢LPUSHXÃüÁî
+3ã€LPUSHXå‘½ä»¤
 
-ÃüÁîÔ­ÐÍ£ºLPUSHX key value 
+å‘½ä»¤åŽŸåž‹ï¼šLPUSHX key value 
 
-Ê±¼ä¸´ÔÓ¶È£ºO(1)
+æ—¶é—´å¤æ‚åº¦ï¼šO(1)
 
-ÃüÁîÃèÊö£º½öÓÐµ±²ÎÊýÖÐÖ¸¶¨µÄKey´æÔÚÊ±£¬¸ÃÃüÁî²Å»áÔÚÆäËù¹ØÁªµÄList ValueµÄÍ·²¿²åÈë²ÎÊýÖÐ¸ø³öµÄValue£¬·ñÔò½«²»»áÓÐÈÎºÎ²Ù×÷·¢Éú¡£
+å‘½ä»¤æè¿°ï¼šä»…æœ‰å½“å‚æ•°ä¸­æŒ‡å®šçš„Keyå­˜åœ¨æ—¶ï¼Œè¯¥å‘½ä»¤æ‰ä¼šåœ¨å…¶æ‰€å…³è”çš„List Valueçš„å¤´éƒ¨æ’å…¥å‚æ•°ä¸­ç»™å‡ºçš„Valueï¼Œå¦åˆ™å°†ä¸ä¼šæœ‰ä»»ä½•æ“ä½œå‘ç”Ÿã€‚
 
-·µ»ØÖµ£º²åÈëºóÁ´±íÖÐÔªËØµÄÊýÁ¿¡£
+è¿”å›žå€¼ï¼šæ’å…¥åŽé“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡ã€‚
 
-4¡¢RPUSHXÃüÁî
+4ã€RPUSHXå‘½ä»¤
 
-ÃüÁîÔ­ÐÍ£ºRPUSHX key value 
+å‘½ä»¤åŽŸåž‹ï¼šRPUSHX key value 
 
-Ê±¼ä¸´ÔÓ¶È£ºO(1)
+æ—¶é—´å¤æ‚åº¦ï¼šO(1)
 
-ÃüÁîÃèÊö£º½öÓÐµ±²ÎÊýÖÐÖ¸¶¨µÄKey´æÔÚÊ±£¬¸ÃÃüÁî²Å»áÔÚÆäËù¹ØÁªµÄList ValueµÄÎ²²¿²åÈë²ÎÊýÖÐ¸ø³öµÄValue£¬·ñÔò½«²»»áÓÐÈÎºÎ²Ù×÷·¢Éú¡£ 
+å‘½ä»¤æè¿°ï¼šä»…æœ‰å½“å‚æ•°ä¸­æŒ‡å®šçš„Keyå­˜åœ¨æ—¶ï¼Œè¯¥å‘½ä»¤æ‰ä¼šåœ¨å…¶æ‰€å…³è”çš„List Valueçš„å°¾éƒ¨æ’å…¥å‚æ•°ä¸­ç»™å‡ºçš„Valueï¼Œå¦åˆ™å°†ä¸ä¼šæœ‰ä»»ä½•æ“ä½œå‘ç”Ÿã€‚ 
 
-·µ»ØÖµ£º²åÈëºóÁ´±íÖÐÔªËØµÄÊýÁ¿¡£
+è¿”å›žå€¼ï¼šæ’å…¥åŽé“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡ã€‚
 
-5¡¢´ÓÁÐ±í×ó±ßµ¯³öÔªËØ
+5ã€ä»Žåˆ—è¡¨å·¦è¾¹å¼¹å‡ºå…ƒç´ 
 
-ÃüÁîÔ­ÐÍ£ºLPOP key 
+å‘½ä»¤åŽŸåž‹ï¼šLPOP key 
 
-Ê±¼ä¸´ÔÓ¶È£ºO(1)
+æ—¶é—´å¤æ‚åº¦ï¼šO(1)
 
-ÃüÁîÃèÊö£º·µ»Ø²¢µ¯³öÖ¸¶¨Key¹ØÁªµÄÁ´±íÖÐµÄµÚÒ»¸öÔªËØ£¬¼´Í·²¿ÔªËØ¡£Èç¹û¸ÃKey²»´æÔÚ£¬·µ»Ønil¡£LPOPÃüÁîÖ´ÐÐÁ½²½²Ù×÷£ºµÚÒ»²½ÊÇ½«ÁÐ±í×ó±ßµÄÔªËØ´ÓÁÐ±íÖÐÒÆ³ý£¬µÚ¶þ²½ÊÇ·µ»Ø±»ÒÆ³ýµÄÔªËØÖµ¡£
+å‘½ä»¤æè¿°ï¼šè¿”å›žå¹¶å¼¹å‡ºæŒ‡å®šKeyå…³è”çš„é“¾è¡¨ä¸­çš„ç¬¬ä¸€ä¸ªå…ƒç´ ï¼Œå³å¤´éƒ¨å…ƒç´ ã€‚å¦‚æžœè¯¥Keyä¸å­˜åœ¨ï¼Œè¿”å›žnilã€‚LPOPå‘½ä»¤æ‰§è¡Œä¸¤æ­¥æ“ä½œï¼šç¬¬ä¸€æ­¥æ˜¯å°†åˆ—è¡¨å·¦è¾¹çš„å…ƒç´ ä»Žåˆ—è¡¨ä¸­ç§»é™¤ï¼Œç¬¬äºŒæ­¥æ˜¯è¿”å›žè¢«ç§»é™¤çš„å…ƒç´ å€¼ã€‚
 
-·µ»ØÖµ£ºÁ´±íÍ·²¿µÄÔªËØ¡£
+è¿”å›žå€¼ï¼šé“¾è¡¨å¤´éƒ¨çš„å…ƒç´ ã€‚
 
-6¡¢´ÓÁÐ±íÓÒ±ßµ¯³öÔªËØ
+6ã€ä»Žåˆ—è¡¨å³è¾¹å¼¹å‡ºå…ƒç´ 
 
-ÃüÁîÔ­ÐÍ£ºRPOP key 
+å‘½ä»¤åŽŸåž‹ï¼šRPOP key 
 
-Ê±¼ä¸´ÔÓ¶È£ºO(1)
+æ—¶é—´å¤æ‚åº¦ï¼šO(1)
 
-ÃüÁîÃèÊö£º·µ»Ø²¢µ¯³öÖ¸¶¨Key¹ØÁªµÄÁ´±íÖÐµÄ×îºóÒ»¸öÔªËØ£¬¼´Î²²¿ÔªËØ¡£Èç¹û¸ÃKey²»´æÔÚ£¬·µ»Ønil¡£
+å‘½ä»¤æè¿°ï¼šè¿”å›žå¹¶å¼¹å‡ºæŒ‡å®šKeyå…³è”çš„é“¾è¡¨ä¸­çš„æœ€åŽä¸€ä¸ªå…ƒç´ ï¼Œå³å°¾éƒ¨å…ƒç´ ã€‚å¦‚æžœè¯¥Keyä¸å­˜åœ¨ï¼Œè¿”å›žnilã€‚
 
-·µ»ØÖµ£ºÁ´±íÎ²²¿µÄÔªËØ¡£
+è¿”å›žå€¼ï¼šé“¾è¡¨å°¾éƒ¨çš„å…ƒç´ ã€‚
 
-7¡¢»ñÈ¡ÁÐ±íÖÐÔªËØµÄ¸öÊý
+7ã€èŽ·å–åˆ—è¡¨ä¸­å…ƒç´ çš„ä¸ªæ•°
 
-ÃüÁîÔ­ÐÍ£ºLLEN key 
+å‘½ä»¤åŽŸåž‹ï¼šLLEN key 
 
-Ê±¼ä¸´ÔÓ¶È£ºO(1)
+æ—¶é—´å¤æ‚åº¦ï¼šO(1)
 
-ÃüÁîÃèÊö£º·µ»ØÖ¸¶¨Key¹ØÁªµÄÁ´±íÖÐÔªËØµÄÊýÁ¿£¬Èç¹û¸ÃKey²»´æÔÚ£¬Ôò·µ»Ø0¡£Èç¹ûÓë¸ÃKey¹ØÁªµÄValueµÄÀàÐÍ²»ÊÇÁ´±í£¬Ôò·µ»ØÏà¹ØµÄ´íÎóÐÅÏ¢¡£
+å‘½ä»¤æè¿°ï¼šè¿”å›žæŒ‡å®šKeyå…³è”çš„é“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡ï¼Œå¦‚æžœè¯¥Keyä¸å­˜åœ¨ï¼Œåˆ™è¿”å›ž0ã€‚å¦‚æžœä¸Žè¯¥Keyå…³è”çš„Valueçš„ç±»åž‹ä¸æ˜¯é“¾è¡¨ï¼Œåˆ™è¿”å›žç›¸å…³çš„é”™è¯¯ä¿¡æ¯ã€‚
 
-·µ»ØÖµ£ºÁ´±íÖÐÔªËØµÄÊýÁ¿¡£
+è¿”å›žå€¼ï¼šé“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡ã€‚
 
-8¡¢»ñµÃÁÐ±íÆ¬¶Î
+8ã€èŽ·å¾—åˆ—è¡¨ç‰‡æ®µ
 
-ÃüÁîÔ­ÐÍ£ºLRANGE key start stop 
+å‘½ä»¤åŽŸåž‹ï¼šLRANGE key start stop 
 
-Ê±¼ä¸´ÔÓ¶È£ºO(S+N)
+æ—¶é—´å¤æ‚åº¦ï¼šO(S+N)
 
-ÃüÁîÃèÊö£ºÊ±¼ä¸´ÔÓ¶ÈÖÐµÄSÎªstart²ÎÊý±íÊ¾µÄÆ«ÒÆÁ¿£¬N±íÊ¾ÔªËØµÄÊýÁ¿¡£¸ÃÃüÁîµÄ²ÎÊýstartºÍend¶¼ÊÇ0-based¡£¼´0±íÊ¾Á´±íÍ·²¿(leftmost)µÄµÚÒ»¸öÔªËØ¡£ÆäÖÐstartµÄÖµÒ²¿ÉÒÔÎª¸ºÖµ£¬-1½«±íÊ¾Á´±íÖÐµÄ×îºóÒ»¸öÔªËØ£¬¼´Î²²¿ÔªËØ£¬-2±íÊ¾µ¹ÊýµÚ¶þ¸ö²¢ÒÔ´ËÀàÍÆ¡£¸ÃÃüÁîÔÚ»ñÈ¡ÔªËØÊ±£¬startºÍendÎ»ÖÃÉÏµÄÔªËØÒ²»á±»È¡³ö¡£Èç¹ûstartµÄÖµ´óÓÚÁ´±íÖÐÔªËØµÄÊýÁ¿£¬¿ÕÁ´±í½«»á±»·µ»Ø¡£Èç¹ûendµÄÖµ´óÓÚÔªËØµÄÊýÁ¿£¬¸ÃÃüÁîÔò»ñÈ¡´Óstart(°üÀ¨start)¿ªÊ¼£¬Á´±íÖÐÊ£ÓàµÄËùÓÐÔªËØ¡£×¢£ºRedisµÄÁÐ±íÆðÊ¼Ë÷ÒýÎª0¡£ÏÔÈ»£¬LRANGE numbers 0 -1 ¿ÉÒÔ»ñÈ¡ÁÐ±íÖÐµÄËùÓÐÔªËØ¡£
+å‘½ä»¤æè¿°ï¼šæ—¶é—´å¤æ‚åº¦ä¸­çš„Sä¸ºstartå‚æ•°è¡¨ç¤ºçš„åç§»é‡ï¼ŒNè¡¨ç¤ºå…ƒç´ çš„æ•°é‡ã€‚è¯¥å‘½ä»¤çš„å‚æ•°startå’Œendéƒ½æ˜¯0-basedã€‚å³0è¡¨ç¤ºé“¾è¡¨å¤´éƒ¨(leftmost)çš„ç¬¬ä¸€ä¸ªå…ƒç´ ã€‚å…¶ä¸­startçš„å€¼ä¹Ÿå¯ä»¥ä¸ºè´Ÿå€¼ï¼Œ-1å°†è¡¨ç¤ºé“¾è¡¨ä¸­çš„æœ€åŽä¸€ä¸ªå…ƒç´ ï¼Œå³å°¾éƒ¨å…ƒç´ ï¼Œ-2è¡¨ç¤ºå€’æ•°ç¬¬äºŒä¸ªå¹¶ä»¥æ­¤ç±»æŽ¨ã€‚è¯¥å‘½ä»¤åœ¨èŽ·å–å…ƒç´ æ—¶ï¼Œstartå’Œendä½ç½®ä¸Šçš„å…ƒç´ ä¹Ÿä¼šè¢«å–å‡ºã€‚å¦‚æžœstartçš„å€¼å¤§äºŽé“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡ï¼Œç©ºé“¾è¡¨å°†ä¼šè¢«è¿”å›žã€‚å¦‚æžœendçš„å€¼å¤§äºŽå…ƒç´ çš„æ•°é‡ï¼Œè¯¥å‘½ä»¤åˆ™èŽ·å–ä»Žstart(åŒ…æ‹¬start)å¼€å§‹ï¼Œé“¾è¡¨ä¸­å‰©ä½™çš„æ‰€æœ‰å…ƒç´ ã€‚æ³¨ï¼šRedisçš„åˆ—è¡¨èµ·å§‹ç´¢å¼•ä¸º0ã€‚æ˜¾ç„¶ï¼ŒLRANGE numbers 0 -1 å¯ä»¥èŽ·å–åˆ—è¡¨ä¸­çš„æ‰€æœ‰å…ƒç´ ã€‚
 
-·µ»ØÖµ£º·µ»ØÖ¸¶¨·¶Î§ÄÚÔªËØµÄÁÐ±í¡£
+è¿”å›žå€¼ï¼šè¿”å›žæŒ‡å®šèŒƒå›´å†…å…ƒç´ çš„åˆ—è¡¨ã€‚
 
-9¡¢É¾³ýÁÐ±íÖÐÖ¸¶¨µÄÖµ
+9ã€åˆ é™¤åˆ—è¡¨ä¸­æŒ‡å®šçš„å€¼
 
-ÃüÁîÔ­ÐÍ£ºLREM key count value 
+å‘½ä»¤åŽŸåž‹ï¼šLREM key count value 
 
-Ê±¼ä¸´ÔÓ¶È£ºO(N)
+æ—¶é—´å¤æ‚åº¦ï¼šO(N)
 
-ÃüÁîÃèÊö£ºÊ±¼ä¸´ÔÓ¶ÈÖÐN±íÊ¾Á´±íÖÐÔªËØµÄÊýÁ¿¡£ÔÚÖ¸¶¨Key¹ØÁªµÄÁ´±íÖÐ£¬É¾³ýÇ°count¸öÖµµÈÓÚvalueµÄÔªËØ¡£Èç¹ûcount´óÓÚ0£¬´ÓÍ·ÏòÎ²±éÀú²¢É¾³ý£¬Èç¹ûcountÐ¡ÓÚ0£¬Ôò´ÓÎ²ÏòÍ·±éÀú²¢É¾³ý¡£Èç¹ûcountµÈÓÚ0£¬ÔòÉ¾³ýÁ´±íÖÐËùÓÐµÈÓÚvalueµÄÔªËØ¡£Èç¹ûÖ¸¶¨µÄKey²»´æÔÚ£¬ÔòÖ±½Ó·µ»Ø0¡£
+å‘½ä»¤æè¿°ï¼šæ—¶é—´å¤æ‚åº¦ä¸­Nè¡¨ç¤ºé“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡ã€‚åœ¨æŒ‡å®šKeyå…³è”çš„é“¾è¡¨ä¸­ï¼Œåˆ é™¤å‰countä¸ªå€¼ç­‰äºŽvalueçš„å…ƒç´ ã€‚å¦‚æžœcountå¤§äºŽ0ï¼Œä»Žå¤´å‘å°¾éåŽ†å¹¶åˆ é™¤ï¼Œå¦‚æžœcountå°äºŽ0ï¼Œåˆ™ä»Žå°¾å‘å¤´éåŽ†å¹¶åˆ é™¤ã€‚å¦‚æžœcountç­‰äºŽ0ï¼Œåˆ™åˆ é™¤é“¾è¡¨ä¸­æ‰€æœ‰ç­‰äºŽvalueçš„å…ƒç´ ã€‚å¦‚æžœæŒ‡å®šçš„Keyä¸å­˜åœ¨ï¼Œåˆ™ç›´æŽ¥è¿”å›ž0ã€‚
 
-·µ»ØÖµ£º·µ»Ø±»É¾³ýµÄÔªËØÊýÁ¿¡£
+è¿”å›žå€¼ï¼šè¿”å›žè¢«åˆ é™¤çš„å…ƒç´ æ•°é‡ã€‚
 
-10¡¢ÉèÖÃÖ¸¶¨Ë÷ÒýµÄÔªËØÖµ
+10ã€è®¾ç½®æŒ‡å®šç´¢å¼•çš„å…ƒç´ å€¼
 
-ÃüÁîÔ­ÐÍ£ºLSET key index value 
+å‘½ä»¤åŽŸåž‹ï¼šLSET key index value 
 
-Ê±¼ä¸´ÔÓ¶È£ºO(N)
+æ—¶é—´å¤æ‚åº¦ï¼šO(N)
 
-ÃüÁîÃèÊö£ºÊ±¼ä¸´ÔÓ¶ÈÖÐN±íÊ¾Á´±íÖÐÔªËØµÄÊýÁ¿¡£µ«ÊÇÉè¶¨Í·²¿»òÎ²²¿µÄÔªËØÊ±£¬ÆäÊ±¼ä¸´ÔÓ¶ÈÎªO(1)¡£Éè¶¨Á´±íÖÐÖ¸¶¨Î»ÖÃµÄÖµÎªÐÂÖµ£¬ÆäÖÐ0±íÊ¾µÚÒ»¸öÔªËØ£¬¼´Í·²¿ÔªËØ£¬-1±íÊ¾Î²²¿ÔªËØ¡£Èç¹ûË÷ÒýÖµIndex³¬³öÁËÁ´±íÖÐÔªËØµÄÊýÁ¿·¶Î§£¬¸ÃÃüÁî½«·µ»ØÏà¹ØµÄ´íÎóÐÅÏ¢¡£
+å‘½ä»¤æè¿°ï¼šæ—¶é—´å¤æ‚åº¦ä¸­Nè¡¨ç¤ºé“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡ã€‚ä½†æ˜¯è®¾å®šå¤´éƒ¨æˆ–å°¾éƒ¨çš„å…ƒç´ æ—¶ï¼Œå…¶æ—¶é—´å¤æ‚åº¦ä¸ºO(1)ã€‚è®¾å®šé“¾è¡¨ä¸­æŒ‡å®šä½ç½®çš„å€¼ä¸ºæ–°å€¼ï¼Œå…¶ä¸­0è¡¨ç¤ºç¬¬ä¸€ä¸ªå…ƒç´ ï¼Œå³å¤´éƒ¨å…ƒç´ ï¼Œ-1è¡¨ç¤ºå°¾éƒ¨å…ƒç´ ã€‚å¦‚æžœç´¢å¼•å€¼Indexè¶…å‡ºäº†é“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡èŒƒå›´ï¼Œè¯¥å‘½ä»¤å°†è¿”å›žç›¸å…³çš„é”™è¯¯ä¿¡æ¯ã€‚
 
-·µ»ØÖµ£º 
+è¿”å›žå€¼ï¼š 
 
-11¡¢»ñÈ¡Ö¸¶¨Ë÷ÒýµÄÔªËØÖµ
+11ã€èŽ·å–æŒ‡å®šç´¢å¼•çš„å…ƒç´ å€¼
 
-ÃüÁîÔ­ÐÍ£ºLINDEX key index 
+å‘½ä»¤åŽŸåž‹ï¼šLINDEX key index 
 
-Ê±¼ä¸´ÔÓ¶È£ºO(N)
+æ—¶é—´å¤æ‚åº¦ï¼šO(N)
 
-ÃüÁîÃèÊö£ºÊ±¼ä¸´ÔÓ¶ÈÖÐN±íÊ¾ÔÚÕÒµ½¸ÃÔªËØÊ±ÐèÒª±éÀúµÄÔªËØÊýÁ¿¡£¶ÔÓÚÍ·²¿»òÎ²²¿ÔªËØ£¬ÆäÊ±¼ä¸´ÔÓ¶ÈÎªO(1)¡£¸ÃÃüÁî½«·µ»ØÁ´±íÖÐÖ¸¶¨Î»ÖÃ(index)µÄÔªËØ£¬indexÊÇ0-based£¬±íÊ¾Í·²¿ÔªËØ£¬Èç¹ûindexÎª-1£¬±íÊ¾Î²²¿ÔªËØ¡£Èç¹ûÓë¸ÃKey¹ØÁªµÄ²»ÊÇÁ´±í£¬¸ÃÃüÁî½«·µ»ØÏà¹ØµÄ´íÎóÐÅÏ¢¡£ 
+å‘½ä»¤æè¿°ï¼šæ—¶é—´å¤æ‚åº¦ä¸­Nè¡¨ç¤ºåœ¨æ‰¾åˆ°è¯¥å…ƒç´ æ—¶éœ€è¦éåŽ†çš„å…ƒç´ æ•°é‡ã€‚å¯¹äºŽå¤´éƒ¨æˆ–å°¾éƒ¨å…ƒç´ ï¼Œå…¶æ—¶é—´å¤æ‚åº¦ä¸ºO(1)ã€‚è¯¥å‘½ä»¤å°†è¿”å›žé“¾è¡¨ä¸­æŒ‡å®šä½ç½®(index)çš„å…ƒç´ ï¼Œindexæ˜¯0-basedï¼Œè¡¨ç¤ºå¤´éƒ¨å…ƒç´ ï¼Œå¦‚æžœindexä¸º-1ï¼Œè¡¨ç¤ºå°¾éƒ¨å…ƒç´ ã€‚å¦‚æžœä¸Žè¯¥Keyå…³è”çš„ä¸æ˜¯é“¾è¡¨ï¼Œè¯¥å‘½ä»¤å°†è¿”å›žç›¸å…³çš„é”™è¯¯ä¿¡æ¯ã€‚ 
 
-·µ»ØÖµ£º·µ»ØÇëÇóµÄÔªËØ£¬Èç¹ûindex³¬³ö·¶Î§£¬Ôò·µ»Ønil¡£
+è¿”å›žå€¼ï¼šè¿”å›žè¯·æ±‚çš„å…ƒç´ ï¼Œå¦‚æžœindexè¶…å‡ºèŒƒå›´ï¼Œåˆ™è¿”å›žnilã€‚
 
-12¡¢Ö»±£ÁôÁÐ±íÖ¸¶¨Æ¬¶Î
+12ã€åªä¿ç•™åˆ—è¡¨æŒ‡å®šç‰‡æ®µ
 
-ÃüÁîÔ­ÐÍ£ºLTRIM key start stop 
+å‘½ä»¤åŽŸåž‹ï¼šLTRIM key start stop 
 
-Ê±¼ä¸´ÔÓ¶È£ºO(N)
+æ—¶é—´å¤æ‚åº¦ï¼šO(N)
 
-ÃüÁîÃèÊö£ºN±íÊ¾±»É¾³ýµÄÔªËØÊýÁ¿¡£¸ÃÃüÁî½«½ö±£ÁôÖ¸¶¨·¶Î§ÄÚµÄÔªËØ£¬´Ó¶ø±£Ö¤Á´½ÓÖÐµÄÔªËØÊýÁ¿Ïà¶Ôºã¶¨¡£startºÍstop²ÎÊý¶¼ÊÇ0-based£¬0±íÊ¾Í·²¿ÔªËØ¡£ºÍÆäËûÃüÁîÒ»Ñù£¬startºÍstopÒ²¿ÉÒÔÎª¸ºÖµ£¬-1±íÊ¾Î²²¿ÔªËØ¡£Èç¹ûstart´óÓÚÁ´±íµÄÎ²²¿£¬»òstart´óÓÚstop£¬¸ÃÃüÁî²»±¨´í£¬¶øÊÇ·µ»ØÒ»¸ö¿ÕµÄÁ´±í£¬Óë´ËÍ¬Ê±¸ÃKeyÒ²½«±»É¾³ý¡£Èç¹ûstop´óÓÚÔªËØµÄÊýÁ¿£¬Ôò±£Áô´Óstart¿ªÊ¼Ê£ÓàµÄËùÓÐÔªËØ¡£ 
+å‘½ä»¤æè¿°ï¼šNè¡¨ç¤ºè¢«åˆ é™¤çš„å…ƒç´ æ•°é‡ã€‚è¯¥å‘½ä»¤å°†ä»…ä¿ç•™æŒ‡å®šèŒƒå›´å†…çš„å…ƒç´ ï¼Œä»Žè€Œä¿è¯é“¾æŽ¥ä¸­çš„å…ƒç´ æ•°é‡ç›¸å¯¹æ’å®šã€‚startå’Œstopå‚æ•°éƒ½æ˜¯0-basedï¼Œ0è¡¨ç¤ºå¤´éƒ¨å…ƒç´ ã€‚å’Œå…¶ä»–å‘½ä»¤ä¸€æ ·ï¼Œstartå’Œstopä¹Ÿå¯ä»¥ä¸ºè´Ÿå€¼ï¼Œ-1è¡¨ç¤ºå°¾éƒ¨å…ƒç´ ã€‚å¦‚æžœstartå¤§äºŽé“¾è¡¨çš„å°¾éƒ¨ï¼Œæˆ–startå¤§äºŽstopï¼Œè¯¥å‘½ä»¤ä¸æŠ¥é”™ï¼Œè€Œæ˜¯è¿”å›žä¸€ä¸ªç©ºçš„é“¾è¡¨ï¼Œä¸Žæ­¤åŒæ—¶è¯¥Keyä¹Ÿå°†è¢«åˆ é™¤ã€‚å¦‚æžœstopå¤§äºŽå…ƒç´ çš„æ•°é‡ï¼Œåˆ™ä¿ç•™ä»Žstartå¼€å§‹å‰©ä½™çš„æ‰€æœ‰å…ƒç´ ã€‚ 
 
-·µ»ØÖµ£º 
+è¿”å›žå€¼ï¼š 
 
-13¡¢ÏòÁÐ±íÖÐ²åÈëÔªËØ
+13ã€å‘åˆ—è¡¨ä¸­æ’å…¥å…ƒç´ 
 
-ÃüÁîÔ­ÐÍ£ºLINSERT key BEFORE|AFTER pivot value
+å‘½ä»¤åŽŸåž‹ï¼šLINSERT key BEFORE|AFTER pivot value
 
-Ê±¼ä¸´ÔÓ¶È£ºO(N)
+æ—¶é—´å¤æ‚åº¦ï¼šO(N)
 
-ÃüÁîÃèÊö£ºÊ±¼ä¸´ÔÓ¶ÈÖÐN±íÊ¾ÔÚÕÒµ½¸ÃÔªËØpivotÖ®Ç°ÐèÒª±éÀúµÄÔªËØÊýÁ¿¡£ÕâÑùÒâÎ¶×ÅÈç¹ûpivotÎ»ÓÚÁ´±íµÄÍ·²¿»òÎ²²¿Ê±£¬¸ÃÃüÁîµÄÊ±¼ä¸´ÔÓ¶ÈÎªO(1)¡£¸ÃÃüÁîµÄ¹¦ÄÜÊÇÔÚpivotÔªËØµÄÇ°Ãæ»òºóÃæ²åÈë²ÎÊýÖÐµÄÔªËØvalue¡£Èç¹ûKey²»´æÔÚ£¬¸ÃÃüÁî½«²»Ö´ÐÐÈÎºÎ²Ù×÷¡£Èç¹ûÓëKey¹ØÁªµÄValueÀàÐÍ²»ÊÇÁ´±í£¬Ïà¹ØµÄ´íÎóÐÅÏ¢½«±»·µ»Ø¡£
+å‘½ä»¤æè¿°ï¼šæ—¶é—´å¤æ‚åº¦ä¸­Nè¡¨ç¤ºåœ¨æ‰¾åˆ°è¯¥å…ƒç´ pivotä¹‹å‰éœ€è¦éåŽ†çš„å…ƒç´ æ•°é‡ã€‚è¿™æ ·æ„å‘³ç€å¦‚æžœpivotä½äºŽé“¾è¡¨çš„å¤´éƒ¨æˆ–å°¾éƒ¨æ—¶ï¼Œè¯¥å‘½ä»¤çš„æ—¶é—´å¤æ‚åº¦ä¸ºO(1)ã€‚è¯¥å‘½ä»¤çš„åŠŸèƒ½æ˜¯åœ¨pivotå…ƒç´ çš„å‰é¢æˆ–åŽé¢æ’å…¥å‚æ•°ä¸­çš„å…ƒç´ valueã€‚å¦‚æžœKeyä¸å­˜åœ¨ï¼Œè¯¥å‘½ä»¤å°†ä¸æ‰§è¡Œä»»ä½•æ“ä½œã€‚å¦‚æžœä¸ŽKeyå…³è”çš„Valueç±»åž‹ä¸æ˜¯é“¾è¡¨ï¼Œç›¸å…³çš„é”™è¯¯ä¿¡æ¯å°†è¢«è¿”å›žã€‚
 
-·µ»ØÖµ£º³É¹¦²åÈëºóÁ´±íÖÐÔªËØµÄÊýÁ¿£¬Èç¹ûÃ»ÓÐÕÒµ½pivot£¬·µ»Ø-1£¬Èç¹ûkey²»´æÔÚ£¬·µ»Ø0¡£
+è¿”å›žå€¼ï¼šæˆåŠŸæ’å…¥åŽé“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡ï¼Œå¦‚æžœæ²¡æœ‰æ‰¾åˆ°pivotï¼Œè¿”å›ž-1ï¼Œå¦‚æžœkeyä¸å­˜åœ¨ï¼Œè¿”å›ž0ã€‚
 
-14¡¢½«ÔªËØ´ÓÒ»¸öÁÐ±í×ªµ½ÁíÒ»¸öÁÐ±í
+14ã€å°†å…ƒç´ ä»Žä¸€ä¸ªåˆ—è¡¨è½¬åˆ°å¦ä¸€ä¸ªåˆ—è¡¨
 
-ÃüÁîÔ­ÐÍ£ºRPOPLPUSH source destination  
+å‘½ä»¤åŽŸåž‹ï¼šRPOPLPUSH source destination  
 
-Ê±¼ä¸´ÔÓ¶È£ºO(1)
+æ—¶é—´å¤æ‚åº¦ï¼šO(1)
 
-ÃüÁîÃèÊö£ºÔ­×ÓÐÔµÄ´ÓÓësource¼ü¹ØÁªµÄÁ´±íÎ²²¿µ¯³öÒ»¸öÔªËØ£¬Í¬Ê±ÔÙ½«µ¯³öµÄÔªËØ²åÈëµ½Óëdestination¼ü¹ØÁªµÄÁ´±íµÄÍ·²¿¡£Èç¹ûsource¼ü²»´æÔÚ£¬¸ÃÃüÁî½«·µ»Ønil£¬Í¬Ê±²»ÔÙ×öÈÎºÎÆäËüµÄ²Ù×÷ÁË¡£Èç¹ûsourceºÍdestinationÊÇÍ¬Ò»¸ö¼ü£¬ÔòÏàµ±ÓÚÔ­×ÓÐÔµÄ½«Æä¹ØÁªÁ´±íÖÐµÄÎ²²¿ÔªËØÒÆµ½¸ÃÁ´±íµÄÍ·²¿¡£ 
+å‘½ä»¤æè¿°ï¼šåŽŸå­æ€§çš„ä»Žä¸Žsourceé”®å…³è”çš„é“¾è¡¨å°¾éƒ¨å¼¹å‡ºä¸€ä¸ªå…ƒç´ ï¼ŒåŒæ—¶å†å°†å¼¹å‡ºçš„å…ƒç´ æ’å…¥åˆ°ä¸Ždestinationé”®å…³è”çš„é“¾è¡¨çš„å¤´éƒ¨ã€‚å¦‚æžœsourceé”®ä¸å­˜åœ¨ï¼Œè¯¥å‘½ä»¤å°†è¿”å›žnilï¼ŒåŒæ—¶ä¸å†åšä»»ä½•å…¶å®ƒçš„æ“ä½œäº†ã€‚å¦‚æžœsourceå’Œdestinationæ˜¯åŒä¸€ä¸ªé”®ï¼Œåˆ™ç›¸å½“äºŽåŽŸå­æ€§çš„å°†å…¶å…³è”é“¾è¡¨ä¸­çš„å°¾éƒ¨å…ƒç´ ç§»åˆ°è¯¥é“¾è¡¨çš„å¤´éƒ¨ã€‚ 
 
-RPOPLPUSHÊÇ¸öºÜÓÐÒâË¼µÄÃüÁî£¬´ÓÃû×Ö¾Í¿ÉÒÔ¿´³öËüµÄ¹¦ÄÜ£ºÏÈÖ´ÐÐRPOPÃüÁîÔÙÖ´ÐÐLPUSHÃüÁî¡£RPOPLPUSHÃüÁî»áÏÈ´Ósource ÁÐ±íÀàÐÍ¼üµÄÓÒ±ßµ¯³öÒ»¸öÔªËØ£¬È»ºó½«Æä¼ÓÈëµ½destination ÁÐ±íÀàÐÍ¼üµÄ×ó±ß£¬²¢·µ»ØÕâ¸öÔªËØµÄÖµ£¬Õû¸ö¹ý³ÌÊÇÔ­×ÓµÄ¡£
+RPOPLPUSHæ˜¯ä¸ªå¾ˆæœ‰æ„æ€çš„å‘½ä»¤ï¼Œä»Žåå­—å°±å¯ä»¥çœ‹å‡ºå®ƒçš„åŠŸèƒ½ï¼šå…ˆæ‰§è¡ŒRPOPå‘½ä»¤å†æ‰§è¡ŒLPUSHå‘½ä»¤ã€‚RPOPLPUSHå‘½ä»¤ä¼šå…ˆä»Žsource åˆ—è¡¨ç±»åž‹é”®çš„å³è¾¹å¼¹å‡ºä¸€ä¸ªå…ƒç´ ï¼Œç„¶åŽå°†å…¶åŠ å…¥åˆ°destination åˆ—è¡¨ç±»åž‹é”®çš„å·¦è¾¹ï¼Œå¹¶è¿”å›žè¿™ä¸ªå…ƒç´ çš„å€¼ï¼Œæ•´ä¸ªè¿‡ç¨‹æ˜¯åŽŸå­çš„ã€‚
 
-·µ»ØÖµ£º·µ»Øµ¯³öºÍ²åÈëµÄÔªËØ¡£
+è¿”å›žå€¼ï¼šè¿”å›žå¼¹å‡ºå’Œæ’å…¥çš„å…ƒç´ ã€‚
 
-### Èý¡¢ÃüÁîÊ¾Àý
+### ä¸‰ã€å‘½ä»¤ç¤ºä¾‹
 
 1. LPUSH/LPUSHX/LRANGE:
 
-/> redis-cli    #ÔÚShellÌáÊ¾·ûÏÂÆô¶¯redis¿Í»§¶Ë¹¤¾ß¡£
+/> redis-cli    #åœ¨Shellæç¤ºç¬¦ä¸‹å¯åŠ¨rediså®¢æˆ·ç«¯å·¥å…·ã€‚
     redis 127.0.0.1:6379> del mykey
     (integer) 1
-    #mykey¼ü²¢²»´æÔÚ£¬¸ÃÃüÁî»á´´½¨¸Ã¼ü¼°ÓëÆä¹ØÁªµÄList£¬Ö®ºóÔÚ½«²ÎÊýÖÐµÄvalues´Ó×óµ½ÓÒÒÀ´Î²åÈë¡£
+    #mykeyé”®å¹¶ä¸å­˜åœ¨ï¼Œè¯¥å‘½ä»¤ä¼šåˆ›å»ºè¯¥é”®åŠä¸Žå…¶å…³è”çš„Listï¼Œä¹‹åŽåœ¨å°†å‚æ•°ä¸­çš„valuesä»Žå·¦åˆ°å³ä¾æ¬¡æ’å…¥ã€‚
     redis 127.0.0.1:6379> lpush mykey a b c d
     (integer) 4
-    #È¡´ÓÎ»ÖÃ0¿ªÊ¼µ½Î»ÖÃ2½áÊøµÄ3¸öÔªËØ¡£
+    #å–ä»Žä½ç½®0å¼€å§‹åˆ°ä½ç½®2ç»“æŸçš„3ä¸ªå…ƒç´ ã€‚
     redis 127.0.0.1:6379> lrange mykey 0 2
     1) "d"
     2) "c"
     3) "b"
-    #È¡Á´±íÖÐµÄÈ«²¿ÔªËØ£¬ÆäÖÐ0±íÊ¾µÚÒ»¸öÔªËØ£¬-1±íÊ¾×îºóÒ»¸öÔªËØ¡£
+    #å–é“¾è¡¨ä¸­çš„å…¨éƒ¨å…ƒç´ ï¼Œå…¶ä¸­0è¡¨ç¤ºç¬¬ä¸€ä¸ªå…ƒç´ ï¼Œ-1è¡¨ç¤ºæœ€åŽä¸€ä¸ªå…ƒç´ ã€‚
     redis 127.0.0.1:6379> lrange mykey 0 -1
     1) "d"
     2) "c"
     3) "b"
     4) "a"
-    #mykey2¼ü´ËÊ±²¢²»´æÔÚ£¬Òò´Ë¸ÃÃüÁî½«²»»á½øÐÐÈÎºÎ²Ù×÷£¬Æä·µ»ØÖµÎª0¡£
+    #mykey2é”®æ­¤æ—¶å¹¶ä¸å­˜åœ¨ï¼Œå› æ­¤è¯¥å‘½ä»¤å°†ä¸ä¼šè¿›è¡Œä»»ä½•æ“ä½œï¼Œå…¶è¿”å›žå€¼ä¸º0ã€‚
     redis 127.0.0.1:6379> lpushx mykey2 e
     (integer) 0
-    #¿ÉÒÔ¿´µ½mykey2Ã»ÓÐ¹ØÁªÈÎºÎList Value¡£
+    #å¯ä»¥çœ‹åˆ°mykey2æ²¡æœ‰å…³è”ä»»ä½•List Valueã€‚
     redis 127.0.0.1:6379> lrange mykey2 0 -1
     (empty list or set)
-    #mykey¼ü´ËÊ±ÒÑ¾­´æÔÚ£¬ËùÒÔ¸ÃÃüÁî²åÈë³É¹¦£¬²¢·µ»ØÁ´±íÖÐµ±Ç°ÔªËØµÄÊýÁ¿¡£
+    #mykeyé”®æ­¤æ—¶å·²ç»å­˜åœ¨ï¼Œæ‰€ä»¥è¯¥å‘½ä»¤æ’å…¥æˆåŠŸï¼Œå¹¶è¿”å›žé“¾è¡¨ä¸­å½“å‰å…ƒç´ çš„æ•°é‡ã€‚
     redis 127.0.0.1:6379> lpushx mykey e
     (integer) 5
-    #»ñÈ¡¸Ã¼üµÄList ValueµÄÍ·²¿ÔªËØ¡£
+    #èŽ·å–è¯¥é”®çš„List Valueçš„å¤´éƒ¨å…ƒç´ ã€‚
     redis 127.0.0.1:6379> lrange mykey 0 0
     1) "e"
 
@@ -191,45 +191,45 @@ RPOPLPUSHÊÇ¸öºÜÓÐÒâË¼µÄÃüÁî£¬´ÓÃû×Ö¾Í¿ÉÒÔ¿´³öËüµÄ¹¦ÄÜ£ºÏÈÖ´ÐÐRPOPÃüÁîÔÙÖ´ÐÐLPUSH
     "d"
     redis 127.0.0.1:6379> lpop mykey
     "c"
-    #ÔÚÖ´ÐÐlpopÃüÁîÁ½´Îºó£¬Á´±íÍ·²¿µÄÁ½¸öÔªËØÒÑ¾­±»µ¯³ö£¬´ËÊ±Á´±íÖÐÔªËØµÄÊýÁ¿ÊÇ2
+    #åœ¨æ‰§è¡Œlpopå‘½ä»¤ä¸¤æ¬¡åŽï¼Œé“¾è¡¨å¤´éƒ¨çš„ä¸¤ä¸ªå…ƒç´ å·²ç»è¢«å¼¹å‡ºï¼Œæ­¤æ—¶é“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡æ˜¯2
     redis 127.0.0.1:6379> llen mykey
     (integer) 2
 
 3. LREM/LSET/LINDEX/LTRIM:
 
-¡¡ redis 127.0.0.1:6379> del mykey
+ã€€ redis 127.0.0.1:6379> del mykey
     (integer) 1
-    #ÎªºóÃæµÄÊ¾Àý×¼±¸²âÊÔÊý¾Ý¡£
+    #ä¸ºåŽé¢çš„ç¤ºä¾‹å‡†å¤‡æµ‹è¯•æ•°æ®ã€‚
     redis 127.0.0.1:6379> lpush mykey a b c d a c
     (integer) 6
-    #´ÓÍ·²¿(left)ÏòÎ²²¿(right)±äÁ¿Á´±í£¬É¾³ý2¸öÖµµÈÓÚaµÄÔªËØ£¬·µ»ØÖµÎªÊµ¼ÊÉ¾³ýµÄÊýÁ¿¡£
+    #ä»Žå¤´éƒ¨(left)å‘å°¾éƒ¨(right)å˜é‡é“¾è¡¨ï¼Œåˆ é™¤2ä¸ªå€¼ç­‰äºŽaçš„å…ƒç´ ï¼Œè¿”å›žå€¼ä¸ºå®žé™…åˆ é™¤çš„æ•°é‡ã€‚
     redis 127.0.0.1:6379> lrem mykey 2 a
     (integer) 2
-    #¿´³öÉ¾³ýºóÁ´±íÖÐµÄÈ«²¿ÔªËØ¡£
+    #çœ‹å‡ºåˆ é™¤åŽé“¾è¡¨ä¸­çš„å…¨éƒ¨å…ƒç´ ã€‚
     redis 127.0.0.1:6379> lrange mykey 0 -1
     1) "c"
     2) "d"
     3) "c"
     4) "b"
-    #»ñÈ¡Ë÷ÒýÖµÎª1(Í·²¿µÄµÚ¶þ¸öÔªËØ)µÄÔªËØÖµ¡£
+    #èŽ·å–ç´¢å¼•å€¼ä¸º1(å¤´éƒ¨çš„ç¬¬äºŒä¸ªå…ƒç´ )çš„å…ƒç´ å€¼ã€‚
     redis 127.0.0.1:6379> lindex mykey 1
     "d"
-    #½«Ë÷ÒýÖµÎª1(Í·²¿µÄµÚ¶þ¸öÔªËØ)µÄÔªËØÖµÉèÖÃÎªÐÂÖµe¡£
+    #å°†ç´¢å¼•å€¼ä¸º1(å¤´éƒ¨çš„ç¬¬äºŒä¸ªå…ƒç´ )çš„å…ƒç´ å€¼è®¾ç½®ä¸ºæ–°å€¼eã€‚
     redis 127.0.0.1:6379> lset mykey 1 e
     OK
-    #²é¿´ÊÇ·ñÉèÖÃ³É¹¦¡£
+    #æŸ¥çœ‹æ˜¯å¦è®¾ç½®æˆåŠŸã€‚
     redis 127.0.0.1:6379> lindex mykey 1
     "e"
-    #Ë÷ÒýÖµ6³¬¹ýÁËÁ´±íÖÐÔªËØµÄÊýÁ¿£¬¸ÃÃüÁî·µ»Ønil¡£
+    #ç´¢å¼•å€¼6è¶…è¿‡äº†é“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡ï¼Œè¯¥å‘½ä»¤è¿”å›žnilã€‚
     redis 127.0.0.1:6379> lindex mykey 6
     (nil)
-    #ÉèÖÃµÄË÷ÒýÖµ6³¬¹ýÁËÁ´±íÖÐÔªËØµÄÊýÁ¿£¬ÉèÖÃÊ§°Ü£¬¸ÃÃüÁî·µ»Ø´íÎóÐÅÏ¢¡£
+    #è®¾ç½®çš„ç´¢å¼•å€¼6è¶…è¿‡äº†é“¾è¡¨ä¸­å…ƒç´ çš„æ•°é‡ï¼Œè®¾ç½®å¤±è´¥ï¼Œè¯¥å‘½ä»¤è¿”å›žé”™è¯¯ä¿¡æ¯ã€‚
     redis 127.0.0.1:6379> lset mykey 6 hh
     (error) ERR index out of range
-    #½ö±£ÁôË÷ÒýÖµ0µ½2Ö®¼äµÄ3¸öÔªËØ£¬×¢ÒâµÚ0¸öºÍµÚ2¸öÔªËØ¾ù±»±£Áô¡£
+    #ä»…ä¿ç•™ç´¢å¼•å€¼0åˆ°2ä¹‹é—´çš„3ä¸ªå…ƒç´ ï¼Œæ³¨æ„ç¬¬0ä¸ªå’Œç¬¬2ä¸ªå…ƒç´ å‡è¢«ä¿ç•™ã€‚
     redis 127.0.0.1:6379> ltrim mykey 0 2
     OK
-    #²é¿´trimºóµÄ½á¹û¡£
+    #æŸ¥çœ‹trimåŽçš„ç»“æžœã€‚
     redis 127.0.0.1:6379> lrange mykey 0 -1
     1) "c"
     2) "e"
@@ -237,84 +237,84 @@ RPOPLPUSHÊÇ¸öºÜÓÐÒâË¼µÄÃüÁî£¬´ÓÃû×Ö¾Í¿ÉÒÔ¿´³öËüµÄ¹¦ÄÜ£ºÏÈÖ´ÐÐRPOPÃüÁîÔÙÖ´ÐÐLPUSH
 
 4. LINSERT:
 
-    #É¾³ý¸Ã¼ü±ãÓÚºóÃæµÄ²âÊÔ¡£
+    #åˆ é™¤è¯¥é”®ä¾¿äºŽåŽé¢çš„æµ‹è¯•ã€‚
     redis 127.0.0.1:6379> del mykey
     (integer) 1
-    #ÎªºóÃæµÄÊ¾Àý×¼±¸²âÊÔÊý¾Ý¡£
+    #ä¸ºåŽé¢çš„ç¤ºä¾‹å‡†å¤‡æµ‹è¯•æ•°æ®ã€‚
     redis 127.0.0.1:6379> lpush mykey a b c d e
     (integer) 5
-    #ÔÚaµÄÇ°Ãæ²åÈëÐÂÔªËØa1¡£
+    #åœ¨açš„å‰é¢æ’å…¥æ–°å…ƒç´ a1ã€‚
     redis 127.0.0.1:6379> linsert mykey before a a1
     (integer) 6
-    #²é¿´ÊÇ·ñ²åÈë³É¹¦£¬´Ó½á¹û¿´ÒÑ¾­²åÈë¡£×¢ÒâlindexµÄindexÖµÊÇ0-based¡£
+    #æŸ¥çœ‹æ˜¯å¦æ’å…¥æˆåŠŸï¼Œä»Žç»“æžœçœ‹å·²ç»æ’å…¥ã€‚æ³¨æ„lindexçš„indexå€¼æ˜¯0-basedã€‚
     redis 127.0.0.1:6379> lindex mykey 0
     "e"
-    #ÔÚeµÄºóÃæ²åÈëÐÂÔªËØe2£¬´Ó·µ»Ø½á¹û¿´ÒÑ¾­²åÈë³É¹¦¡£
+    #åœ¨eçš„åŽé¢æ’å…¥æ–°å…ƒç´ e2ï¼Œä»Žè¿”å›žç»“æžœçœ‹å·²ç»æ’å…¥æˆåŠŸã€‚
     redis 127.0.0.1:6379> linsert mykey after e e2
     (integer) 7
-    #ÔÙ´Î²é¿´ÊÇ·ñ²åÈë³É¹¦¡£
+    #å†æ¬¡æŸ¥çœ‹æ˜¯å¦æ’å…¥æˆåŠŸã€‚
     redis 127.0.0.1:6379> lindex mykey 1
     "e2"
-    #ÔÚ²»´æÔÚµÄÔªËØÖ®Ç°»òÖ®ºó²åÈëÐÂÔªËØ£¬¸ÃÃüÁî²Ù×÷Ê§°Ü£¬²¢·µ»Ø-1¡£
+    #åœ¨ä¸å­˜åœ¨çš„å…ƒç´ ä¹‹å‰æˆ–ä¹‹åŽæ’å…¥æ–°å…ƒç´ ï¼Œè¯¥å‘½ä»¤æ“ä½œå¤±è´¥ï¼Œå¹¶è¿”å›ž-1ã€‚
     redis 127.0.0.1:6379> linsert mykey after k a
     (integer) -1
-    #Îª²»´æÔÚµÄKey²åÈëÐÂÔªËØ£¬¸ÃÃüÁî²Ù×÷Ê§°Ü£¬·µ»Ø0¡£
+    #ä¸ºä¸å­˜åœ¨çš„Keyæ’å…¥æ–°å…ƒç´ ï¼Œè¯¥å‘½ä»¤æ“ä½œå¤±è´¥ï¼Œè¿”å›ž0ã€‚
     redis 127.0.0.1:6379> linsert mykey1 after a a2
     (integer) 0
 
 5. RPUSH/RPUSHX/RPOP/RPOPLPUSH:
 
-    #É¾³ý¸Ã¼ü£¬ÒÔ±ãÓÚºóÃæµÄ²âÊÔ¡£
+    #åˆ é™¤è¯¥é”®ï¼Œä»¥ä¾¿äºŽåŽé¢çš„æµ‹è¯•ã€‚
     redis 127.0.0.1:6379> del mykey
     (integer) 1
-    #´ÓÁ´±íµÄÎ²²¿²åÈë²ÎÊýÖÐ¸ø³öµÄvalues£¬²åÈëË³ÐòÊÇ´Ó×óµ½ÓÒÒÀ´Î²åÈë¡£
+    #ä»Žé“¾è¡¨çš„å°¾éƒ¨æ’å…¥å‚æ•°ä¸­ç»™å‡ºçš„valuesï¼Œæ’å…¥é¡ºåºæ˜¯ä»Žå·¦åˆ°å³ä¾æ¬¡æ’å…¥ã€‚
     redis 127.0.0.1:6379> rpush mykey a b c d
     (integer) 4
-    #Í¨¹ýlrangeµÄ¿ÉÒÔ»ñÏ¤rpushÔÚ²åÈë¶àÖµÊ±µÄ²åÈëË³Ðò¡£
+    #é€šè¿‡lrangeçš„å¯ä»¥èŽ·æ‚‰rpushåœ¨æ’å…¥å¤šå€¼æ—¶çš„æ’å…¥é¡ºåºã€‚
     redis 127.0.0.1:6379> lrange mykey 0 -1
     1) "a"
     2) "b"
     3) "c"
     4) "d"
-    #¸Ã¼üÒÑ¾­´æÔÚ²¢ÇÒ°üº¬4¸öÔªËØ£¬rpushxÃüÁî½«Ö´ÐÐ³É¹¦£¬²¢½«ÔªËØe²åÈëµ½Á´±íµÄÎ²²¿¡£
+    #è¯¥é”®å·²ç»å­˜åœ¨å¹¶ä¸”åŒ…å«4ä¸ªå…ƒç´ ï¼Œrpushxå‘½ä»¤å°†æ‰§è¡ŒæˆåŠŸï¼Œå¹¶å°†å…ƒç´ eæ’å…¥åˆ°é“¾è¡¨çš„å°¾éƒ¨ã€‚
     redis 127.0.0.1:6379> rpushx mykey e
     (integer) 5
-    #Í¨¹ýlindexÃüÁî¿ÉÒÔ¿´³öÖ®Ç°µÄrpushxÃüÁîÈ·ÊµÖ´ÐÐ³É¹¦£¬ÒòÎªË÷ÒýÖµÎª4µÄÔªËØÒÑ¾­ÊÇÐÂÔªËØÁË¡£
+    #é€šè¿‡lindexå‘½ä»¤å¯ä»¥çœ‹å‡ºä¹‹å‰çš„rpushxå‘½ä»¤ç¡®å®žæ‰§è¡ŒæˆåŠŸï¼Œå› ä¸ºç´¢å¼•å€¼ä¸º4çš„å…ƒç´ å·²ç»æ˜¯æ–°å…ƒç´ äº†ã€‚
     redis 127.0.0.1:6379> lindex mykey 4
     "e"
-    #ÓÉÓÚmykey2¼ü²¢²»´æÔÚ£¬Òò´Ë¸ÃÃüÁî²»»á²åÈëÊý¾Ý£¬Æä·µ»ØÖµÎª0¡£
+    #ç”±äºŽmykey2é”®å¹¶ä¸å­˜åœ¨ï¼Œå› æ­¤è¯¥å‘½ä»¤ä¸ä¼šæ’å…¥æ•°æ®ï¼Œå…¶è¿”å›žå€¼ä¸º0ã€‚
     redis 127.0.0.1:6379> rpushx mykey2 e
     (integer) 0
-    #ÔÚÖ´ÐÐrpoplpushÃüÁîÇ°£¬ÏÈ¿´Ò»ÏÂmykeyÖÐÁ´±íµÄÔªËØÓÐÄÄÐ©£¬×¢ÒâËûÃÇµÄÎ»ÖÃ¹ØÏµ¡£
+    #åœ¨æ‰§è¡Œrpoplpushå‘½ä»¤å‰ï¼Œå…ˆçœ‹ä¸€ä¸‹mykeyä¸­é“¾è¡¨çš„å…ƒç´ æœ‰å“ªäº›ï¼Œæ³¨æ„ä»–ä»¬çš„ä½ç½®å…³ç³»ã€‚
     redis 127.0.0.1:6379> lrange mykey 0 -1
     1) "a"
     2) "b"
     3) "c"
     4) "d"
     5) "e"
-    #½«mykeyµÄÎ²²¿ÔªËØeµ¯³ö£¬Í¬Ê±ÔÙ²åÈëµ½mykey2µÄÍ·²¿(Ô­×ÓÐÔµÄÍê³ÉÕâÁ½²½²Ù×÷)¡£
+    #å°†mykeyçš„å°¾éƒ¨å…ƒç´ eå¼¹å‡ºï¼ŒåŒæ—¶å†æ’å…¥åˆ°mykey2çš„å¤´éƒ¨(åŽŸå­æ€§çš„å®Œæˆè¿™ä¸¤æ­¥æ“ä½œ)ã€‚
     redis 127.0.0.1:6379> rpoplpush mykey mykey2
     "e"
-    #Í¨¹ýlrangeÃüÁî²é¿´mykeyÔÚµ¯³öÎ²²¿ÔªËØºóµÄ½á¹û¡£
+    #é€šè¿‡lrangeå‘½ä»¤æŸ¥çœ‹mykeyåœ¨å¼¹å‡ºå°¾éƒ¨å…ƒç´ åŽçš„ç»“æžœã€‚
     redis 127.0.0.1:6379> lrange mykey 0 -1
     1) "a"
     2) "b"
     3) "c"
     4) "d"
-    #Í¨¹ýlrangeÃüÁî²é¿´mykey2ÔÚ²åÈëÔªËØºóµÄ½á¹û¡£
+    #é€šè¿‡lrangeå‘½ä»¤æŸ¥çœ‹mykey2åœ¨æ’å…¥å…ƒç´ åŽçš„ç»“æžœã€‚
     redis 127.0.0.1:6379> lrange mykey2 0 -1
     1) "e"
-    #½«sourceºÍdestinationÉèÎªÍ¬Ò»¼ü£¬½«mykeyÖÐµÄÎ²²¿ÔªËØÒÆµ½ÆäÍ·²¿¡£
+    #å°†sourceå’Œdestinationè®¾ä¸ºåŒä¸€é”®ï¼Œå°†mykeyä¸­çš„å°¾éƒ¨å…ƒç´ ç§»åˆ°å…¶å¤´éƒ¨ã€‚
     redis 127.0.0.1:6379> rpoplpush mykey mykey
     "d"
-    #²é¿´ÒÆ¶¯½á¹û¡£
+    #æŸ¥çœ‹ç§»åŠ¨ç»“æžœã€‚
     redis 127.0.0.1:6379> lrange mykey 0 -1
     1) "d"
     2) "a"
     3) "b"
     4) "c"
 
-### ËÄ¡¢Á´±í½á¹¹µÄÐ¡¼¼ÇÉ
+### å››ã€é“¾è¡¨ç»“æž„çš„å°æŠ€å·§
 
-     Õë¶ÔÁ´±í½á¹¹µÄValue£¬RedisÔÚÆä¹Ù·½ÎÄµµÖÐ¸ø³öÁËÒ»Ð©ÊµÓÃ¼¼ÇÉ£¬ÈçRPOPLPUSHÃüÁî£¬ÏÂÃæ¸ø³ö¾ßÌåµÄ½âÊÍ¡£
-     RedisÁ´±í¾­³£»á±»ÓÃÓÚÏûÏ¢¶ÓÁÐµÄ·þÎñ£¬ÒÔÍê³É¶à³ÌÐòÖ®¼äµÄÏûÏ¢½»»»¡£¼ÙÉèÒ»¸öÓ¦ÓÃ³ÌÐòÕýÔÚÖ´ÐÐLPUSH²Ù×÷ÏòÁ´±íÖÐÌí¼ÓÐÂµÄÔªËØ£¬ÎÒÃÇÍ¨³£½«ÕâÑùµÄ³ÌÐò³ÆÖ®Îª"Éú²úÕß(Producer)"£¬¶øÁíÍâÒ»¸öÓ¦ÓÃ³ÌÐòÕýÔÚÖ´ÐÐRPOP²Ù×÷´ÓÁ´±íÖÐÈ¡³öÔªËØ£¬ÎÒÃÇ³ÆÕâÑùµÄ³ÌÐòÎª"Ïû·ÑÕß(Consumer)"¡£Èç¹û´ËÊ±£¬Ïû·ÑÕß³ÌÐòÔÚÈ¡³öÏûÏ¢ÔªËØºóÁ¢¿Ì±ÀÀ££¬ÓÉÓÚ¸ÃÏûÏ¢ÒÑ¾­±»È¡³öÇÒÃ»ÓÐ±»Õý³£´¦Àí£¬ÄÇÃ´ÎÒÃÇ¾Í¿ÉÒÔÈÏÎª¸ÃÏûÏ¢ÒÑ¾­¶ªÊ§£¬ÓÉ´Ë¿ÉÄÜ»áµ¼ÖÂÒµÎñÊý¾Ý¶ªÊ§£¬»òÒµÎñ×´Ì¬µÄ²»Ò»ÖÂµÈÏÖÏóµÄ·¢Éú¡£È»¶øÍ¨¹ýÊ¹ÓÃRPOPLPUSHÃüÁî£¬Ïû·ÑÕß³ÌÐòÔÚ´ÓÖ÷ÏûÏ¢¶ÓÁÐÖÐÈ¡³öÏûÏ¢Ö®ºóÔÙ½«Æä²åÈëµ½±¸·Ý¶ÓÁÐÖÐ£¬Ö±µ½Ïû·ÑÕß³ÌÐòÍê³ÉÕý³£µÄ´¦ÀíÂß¼­ºóÔÙ½«¸ÃÏûÏ¢´Ó±¸·Ý¶ÓÁÐÖÐÉ¾³ý¡£Í¬Ê±ÎÒÃÇ»¹¿ÉÒÔÌá¹©Ò»¸öÊØ»¤½ø³Ì£¬µ±·¢ÏÖ±¸·Ý¶ÓÁÐÖÐµÄÏûÏ¢¹ýÆÚÊ±£¬¿ÉÒÔÖØÐÂ½«ÆäÔÙ·Å»Øµ½Ö÷ÏûÏ¢¶ÓÁÐÖÐ£¬ÒÔ±ãÆäËüµÄÏû·ÑÕß³ÌÐò¼ÌÐø´¦Àí¡£
+     é’ˆå¯¹é“¾è¡¨ç»“æž„çš„Valueï¼ŒRedisåœ¨å…¶å®˜æ–¹æ–‡æ¡£ä¸­ç»™å‡ºäº†ä¸€äº›å®žç”¨æŠ€å·§ï¼Œå¦‚RPOPLPUSHå‘½ä»¤ï¼Œä¸‹é¢ç»™å‡ºå…·ä½“çš„è§£é‡Šã€‚
+     Redisé“¾è¡¨ç»å¸¸ä¼šè¢«ç”¨äºŽæ¶ˆæ¯é˜Ÿåˆ—çš„æœåŠ¡ï¼Œä»¥å®Œæˆå¤šç¨‹åºä¹‹é—´çš„æ¶ˆæ¯äº¤æ¢ã€‚å‡è®¾ä¸€ä¸ªåº”ç”¨ç¨‹åºæ­£åœ¨æ‰§è¡ŒLPUSHæ“ä½œå‘é“¾è¡¨ä¸­æ·»åŠ æ–°çš„å…ƒç´ ï¼Œæˆ‘ä»¬é€šå¸¸å°†è¿™æ ·çš„ç¨‹åºç§°ä¹‹ä¸º"ç”Ÿäº§è€…(Producer)"ï¼Œè€Œå¦å¤–ä¸€ä¸ªåº”ç”¨ç¨‹åºæ­£åœ¨æ‰§è¡ŒRPOPæ“ä½œä»Žé“¾è¡¨ä¸­å–å‡ºå…ƒç´ ï¼Œæˆ‘ä»¬ç§°è¿™æ ·çš„ç¨‹åºä¸º"æ¶ˆè´¹è€…(Consumer)"ã€‚å¦‚æžœæ­¤æ—¶ï¼Œæ¶ˆè´¹è€…ç¨‹åºåœ¨å–å‡ºæ¶ˆæ¯å…ƒç´ åŽç«‹åˆ»å´©æºƒï¼Œç”±äºŽè¯¥æ¶ˆæ¯å·²ç»è¢«å–å‡ºä¸”æ²¡æœ‰è¢«æ­£å¸¸å¤„ç†ï¼Œé‚£ä¹ˆæˆ‘ä»¬å°±å¯ä»¥è®¤ä¸ºè¯¥æ¶ˆæ¯å·²ç»ä¸¢å¤±ï¼Œç”±æ­¤å¯èƒ½ä¼šå¯¼è‡´ä¸šåŠ¡æ•°æ®ä¸¢å¤±ï¼Œæˆ–ä¸šåŠ¡çŠ¶æ€çš„ä¸ä¸€è‡´ç­‰çŽ°è±¡çš„å‘ç”Ÿã€‚ç„¶è€Œé€šè¿‡ä½¿ç”¨RPOPLPUSHå‘½ä»¤ï¼Œæ¶ˆè´¹è€…ç¨‹åºåœ¨ä»Žä¸»æ¶ˆæ¯é˜Ÿåˆ—ä¸­å–å‡ºæ¶ˆæ¯ä¹‹åŽå†å°†å…¶æ’å…¥åˆ°å¤‡ä»½é˜Ÿåˆ—ä¸­ï¼Œç›´åˆ°æ¶ˆè´¹è€…ç¨‹åºå®Œæˆæ­£å¸¸çš„å¤„ç†é€»è¾‘åŽå†å°†è¯¥æ¶ˆæ¯ä»Žå¤‡ä»½é˜Ÿåˆ—ä¸­åˆ é™¤ã€‚åŒæ—¶æˆ‘ä»¬è¿˜å¯ä»¥æä¾›ä¸€ä¸ªå®ˆæŠ¤è¿›ç¨‹ï¼Œå½“å‘çŽ°å¤‡ä»½é˜Ÿåˆ—ä¸­çš„æ¶ˆæ¯è¿‡æœŸæ—¶ï¼Œå¯ä»¥é‡æ–°å°†å…¶å†æ”¾å›žåˆ°ä¸»æ¶ˆæ¯é˜Ÿåˆ—ä¸­ï¼Œä»¥ä¾¿å…¶å®ƒçš„æ¶ˆè´¹è€…ç¨‹åºç»§ç»­å¤„ç†ã€‚

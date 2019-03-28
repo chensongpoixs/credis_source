@@ -266,7 +266,7 @@ void listRewindTail(list *list, listIter *li) {
  * */
 listNode *listNext(listIter *iter)
 {
-    listNode *current = iter->next;
+    listNode *current = iter->next;  //单项链表遍历
 
     if (current != NULL) 
 	{
@@ -348,7 +348,7 @@ listNode *listSearchKey(list *list, void *key)
     listNode *node;
 
     iter = listGetIterator(list, AL_START_HEAD);
-    while((node = listNext(iter)) != NULL) 
+    while(!(node = listNext(iter))) 
 	{
         if (list->match) 
 		{
