@@ -44,21 +44,24 @@
 /* Unused arguments generate annoying warnings... */
 #define DICT_NOTUSED(V) ((void) V)
 
-typedef struct dictEntry {
-    void *key;
-    union {
+typedef struct dictEntry 
+{
+    void *key; 
+    union 
+	{
         void *val;
         uint64_t u64;
         int64_t s64;
         double d;
-    } v;
+    } v; 
     struct dictEntry *next;
 } dictEntry;
 
-typedef struct dictType {
-    uint64_t (*hashFunction)(const void *key);
+typedef struct dictType 
+{
+    uint64_t (*hashFunction)(const void *key); 
     void *(*keyDup)(void *privdata, const void *key);
-    void *(*valDup)(void *privdata, const void *obj);
+    void *(*valDup)(void *privdata, const void *obj); 
     int (*keyCompare)(void *privdata, const void *key1, const void *key2);
     void (*keyDestructor)(void *privdata, void *key);
     void (*valDestructor)(void *privdata, void *obj);
@@ -66,11 +69,13 @@ typedef struct dictType {
 
 /* This is our hash table structure. Every dictionary has two of this as we
  * implement incremental rehashing, for the old to the new table. */
-typedef struct dictht {
-    dictEntry **table;
-    unsigned long size;
-    unsigned long sizemask;
-    unsigned long used;
+
+typedef struct dictht 
+{
+    dictEntry **table; //可以看做字典数组，俗称桶bucket
+    unsigned long size; /* 哈希表大小 */
+    unsigned long sizemask;   // sizemask == size - 1;
+    unsigned long used;  //已经存放多少bucket
 } dictht;
 
 typedef struct dict {
@@ -145,7 +150,8 @@ typedef void (dictScanBucketFunction)(void *privdata, dictEntry **bucketref);
 #define dictGetDoubleVal(he) ((he)->v.d)
 #define dictSlots(d) ((d)->ht[0].size+(d)->ht[1].size)
 #define dictSize(d) ((d)->ht[0].used+(d)->ht[1].used)
-#define dictIsRehashing(d) ((d)->rehashidx != -1)
+//判断哈希表算法在刷新
+#define dictIsRehashing(d) ((d)->rehashidx != -1)  // 2
 
 /* API */
 dict *dictCreate(dictType *type, void *privDataPtr);

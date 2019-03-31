@@ -597,7 +597,10 @@ void getRandomHexChars(char *p, size_t len) {
     size_t j;
 
     getRandomBytes((unsigned char*)p,len);
-    for (j = 0; j < len; j++) p[j] = charset[p[j] & 0x0F];
+	for (j = 0; j < len; j++)
+	{
+		p[j] = charset[p[j] & 0x0F];
+	}
 }
 
 /* Given the filename, return the absolute path as an SDS string, or NULL
