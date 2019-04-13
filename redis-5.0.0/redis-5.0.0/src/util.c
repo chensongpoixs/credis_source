@@ -324,7 +324,10 @@ int ll2string(char *dst, size_t dstlen, long long svalue) {
     }
 
     /* Add sign. */
-    if (negative) dst[0] = '-';
+	if (negative)
+	{
+		dst[0] = '-';
+	}
     return length;
 }
 
@@ -340,7 +343,8 @@ int ll2string(char *dst, size_t dstlen, long long svalue) {
  * Because of its strictness, it is safe to use this function to check if
  * you can convert a string into a long long, and obtain back the string
  * from the number without any loss in the string representation. */
-int string2ll(const char *s, size_t slen, long long *value) {
+int string2ll(const char *s, size_t slen, long long *value) 
+{
     const char *p = s;
     size_t plen = 0;
     int negative = 0;
@@ -358,20 +362,28 @@ int string2ll(const char *s, size_t slen, long long *value) {
 
     /* Handle negative numbers: just set a flag and continue like if it
      * was a positive number. Later convert into negative. */
-    if (p[0] == '-') {
+    if (p[0] == '-') 
+	{
         negative = 1;
-        p++; plen++;
+        p++;
+		plen++;
 
         /* Abort on only a negative sign. */
-        if (plen == slen)
-            return 0;
+		if (plen == slen)
+		{
+			return 0;
+		}
     }
 
     /* First digit should be 1-9, otherwise the string should just be 0. */
-    if (p[0] >= '1' && p[0] <= '9') {
+    if (p[0] >= '1' && p[0] <= '9') 
+	{
         v = p[0]-'0';
-        p++; plen++;
-    } else {
+        p++; 
+		plen++;
+    } 
+	else 
+	{
         return 0;
     }
 

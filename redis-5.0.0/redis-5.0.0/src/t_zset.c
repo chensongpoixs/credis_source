@@ -70,24 +70,24 @@ int zslLexValueLteMax(sds value, zlexrangespec *spec);
  * The SDS string 'ele' is referenced by the node after the call. */
 zskiplistNode *zslCreateNode(int level, double score, sds ele) {
     zskiplistNode *zn =
-        zmalloc(sizeof(*zn)+level*sizeof(struct zskiplistLevel));
-    zn->score = score;
-    zn->ele = ele;
-    return zn;
+        zmalloc(sizeof(*zn) + level * sizeof(struct zskiplistLevel));
+    zn->score	=	score;
+    zn->ele		=	ele;
+    return	zn;
 }
 
 /* Create a new skiplist. */
 zskiplist *zslCreate(void) 
 {
-    int j;
-    zskiplist *zsl;
+    int			j;
+    zskiplist *·zsl;
 
     zsl = zmalloc(sizeof(*zsl));
     zsl->level = 1;
     zsl->length = 0;
 	/*初始化创建一个头节点, 初始化节点信息*/
     zsl->header = zslCreateNode(ZSKIPLIST_MAXLEVEL,0,NULL);
-    for (j = 0; j < ZSKIPLIST_MAXLEVEL; j++) 
+    for (j = 0; j < ZSKIPLIST_MAXLEVEL; ++j)
 	{
         zsl->header->level[j].forward = NULL;
         zsl->header->level[j].span = 0;
@@ -124,11 +124,11 @@ void zslFree(zskiplist *zsl) {
  * levels are less likely to be returned. */
 int zslRandomLevel(void) {
     int level = 1;
-	while ((random() & 0xFFFF) < (ZSKIPLIST_P * 0xFFFF))
+	while ((random() & 0xFFFF) < (ZSKIPLIST_P * 0xFFFF))// 1638.75
 	{
 		level += 1;
 	}
-    return (level<ZSKIPLIST_MAXLEVEL) ? level : ZSKIPLIST_MAXLEVEL;
+    return (level<ZSKIPLIST_MAXLEVEL) ? level : ZSKIPLIST_MAXLEVEL;// 64
 }
 
 /* Insert a new node in the skiplist. Assumes the element does not already
@@ -136,41 +136,51 @@ int zslRandomLevel(void) {
  * of the passed SDS string 'ele'. */
 zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele) 
 {
+    // updata[]数组记录每一层位于插入节点的前一个节点
     zskiplistNode *update[ZSKIPLIST_MAXLEVEL], *x;
+    // rank[]记录每一层位于插入节点的前一个节点的排名
+    //在查找某个节点的过程中，将沿途访问过的所有层的跨度累计起来，得到的结果就是目标节点在跳跃表中的排位
     unsigned int rank[ZSKIPLIST_MAXLEVEL];
     int i, level;
 
     serverAssert(!isnan(score));
+    //表头节点
     x = zsl->header;
 	/*从头节点开始搜索, 一层一层向下搜索, 直到直到最后一层, update数组中保存着每层应该插入的位置*/
     for (i = zsl->level - 1; i >= 0; i--) 
 	{
-        /* store rank that is crossed to reach the insert position */
-        rank[i] = i == (zsl->level - 1) ? 0 : rank[i+1];
-        while (x->level[i].forward &&
-                (x->level[i].forward->score < score ||
-                    (x->level[i].forward->score == score && sdscmp(x->level[i].forward->ele,   ele) < 0)))
+		// 注意观察 '=='  节点 [node] ---> 区分层 [level] ---> 是否是下一个节点
+        rank[i] = i == (zsl->level - 1) ? 0 : rank[i + 1];  
+        while (x->level[i].forward && (x->level[i].forward->score < score ||
+                    (x->level[i].forward->score == score &&  sdscmp(x->level[i].forward->ele,   ele) < 0)))
         {
+			//记录跨越了多少个节点  
             rank[i] += x->level[i].span;
+			//查找下一个节点
             x = x->level[i].forward;
         }
-        update[i] = x;
+        // 存储当前层上位于插入节点的前一个节点,找下一层的插入节点
+        update[i] = x; // _ptr
     }
-    /* we assume the element is not already inside, since we allow duplicated
-     * scores, reinserting the same element should never happen since the
-     * caller of zslInsert() should test in the hash table if the element is
-     * already inside or not. */
-	 /* 随机一个层数, 如果随机的层数是新的层数, 则需要给update数组中新的层数赋值*/
-    level = zslRandomLevel();
+    
+	/* 随机一个层数, 如果随机的层数是新的层数, 则需要给update数组中新的层数赋值*/
+    level = zslRandomLevel();// [00-64]
+    // 如果level大于当前存储的最大level值
+    // 设定rank数组中大于原level层以上的值为0--为什么设置为0
+    // 同时设定update数组大于原level层以上的数据
     if (level > zsl->level) 
 	{
         for (i = zsl->level; i < level; i++) 
 		{
+            //因为这一层没有节点，所以重置rank[i]为0
             rank[i] = 0;
-			/*新的一层上一个指针肯定是header*/
+            //因为这一层还没有节点，所以节点的前一个节点都是头节点
             update[i] = zsl->header;
+            //在未添加新节点之前，需要更新的节点跨越的节点数目自然就是zsl->length---
+			//因为整个层只有一个头结点----->言外之意头结点的span都是链表长度
             update[i]->level[i].span = zsl->length;
         }
+        // 更新level值（max层数）
         zsl->level = level;
     }
 	/*创建新的节点插入到update数组对应的层*/
@@ -188,12 +198,9 @@ zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele)
 
 		更新update数组中span值和新插入元素span值, rank[0]存储的是x元素距离头部的距离, rank[i]存储的是update[i]距离头部的距离, 上面给出了示意图
 		*/
-        /* update span covered by update[i] as x is inserted here */
         x->level[i].span = update[i]->level[i].span - (rank[0] - rank[i]);
         update[i]->level[i].span = (rank[0] - rank[i]) + 1;
     }
-
-    /* increment span for untouched levels */
 	/* level可能小zsl->level, 无变动的元素span依次增加1*/
     for (i = level; i < zsl->level; i++) 
 	{
@@ -210,6 +217,7 @@ zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele)
 		/*下一个元素为空,则表示x为尾部元素*/
 		zsl->tail = x;
 	}
+	// 跳跃表长度+1
     zsl->length++;
     return x;
 }
