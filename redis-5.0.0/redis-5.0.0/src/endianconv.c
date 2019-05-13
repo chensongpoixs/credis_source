@@ -58,13 +58,13 @@ void memrev16(void *p) {
  * big endian */
 void memrev32(void *p) {
     unsigned char *x = p, t;
-
+	
     t = x[0];
-    x[0] = x[3];
-    x[3] = t;
+    x[0] = x[3]; //   [3][1][2][3]
+    x[3] = t;    //   [3][1][2][0]
     t = x[1];
-    x[1] = x[2];
-    x[2] = t;
+    x[1] = x[2]; //   [3][2][2][0]
+    x[2] = t;    //   [3][2][1][0]  ----> // std::reverse(p, x);
 }
 
 /* Toggle the 64 bit unsigned integer pointed by *p from little endian to
