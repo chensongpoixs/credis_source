@@ -3997,7 +3997,8 @@ int redisIsSupervised(int mode) {
 }
 
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv) 
+{
     struct timeval tv;
     int j;
 
@@ -4039,6 +4040,7 @@ int main(int argc, char **argv) {
     srand(time(NULL)^getpid());
     gettimeofday(&tv,NULL);
 
+	// …Ë÷√hash “Ú◊”
     char hashseed[16];
     getRandomHexChars(hashseed,sizeof(hashseed));
     dictSetHashFunctionSeed((uint8_t*)hashseed);
@@ -4051,12 +4053,16 @@ int main(int argc, char **argv) {
     server.executable = getAbsolutePath(argv[0]);
     server.exec_argv = zmalloc(sizeof(char*)*(argc+1));
     server.exec_argv[argc] = NULL;
-    for (j = 0; j < argc; j++) server.exec_argv[j] = zstrdup(argv[j]);
+	for (j = 0; j < argc; j++) 
+	{
+		server.exec_argv[j] = zstrdup(argv[j]);
+	}
 
     /* We need to init sentinel right now as parsing the configuration file
      * in sentinel mode will have the effect of populating the sentinel
      * data structures with master nodes to monitor. */
-    if (server.sentinel_mode) {
+    if (server.sentinel_mode) 
+	{
         initSentinelConfig();
         initSentinel();
     }
@@ -4064,26 +4070,39 @@ int main(int argc, char **argv) {
     /* Check if we need to start in redis-check-rdb/aof mode. We just execute
      * the program main. However the program is part of the Redis executable
      * so that we can easily execute an RDB check on loading errors. */
-    if (strstr(argv[0],"redis-check-rdb") != NULL)
-        redis_check_rdb_main(argc,argv,NULL);
-    else if (strstr(argv[0],"redis-check-aof") != NULL)
-        redis_check_aof_main(argc,argv);
+	if (strstr(argv[0], "redis-check-rdb") != NULL)
+	{
+		redis_check_rdb_main(argc, argv, NULL);
+	}
+	else if (strstr(argv[0], "redis-check-aof") != NULL)
+	{
+		redis_check_aof_main(argc, argv);
+	}
 
-    if (argc >= 2) {
+    if (argc >= 2)
+	{
         j = 1; /* First option to parse in argv[] */
         sds options = sdsempty();
         char *configfile = NULL;
 
         /* Handle special options --help and --version */
-        if (strcmp(argv[1], "-v") == 0 ||
-            strcmp(argv[1], "--version") == 0) version();
-        if (strcmp(argv[1], "--help") == 0 ||
-            strcmp(argv[1], "-h") == 0) usage();
-        if (strcmp(argv[1], "--test-memory") == 0) {
-            if (argc == 3) {
+		if (strcmp(argv[1], "-v") == 0 || strcmp(argv[1], "--version") == 0)
+		{
+			version();
+		}
+		if (strcmp(argv[1], "--help") == 0 || strcmp(argv[1], "-h") == 0)
+		{
+			usage();
+		}
+        if (strcmp(argv[1], "--test-memory") == 0) 
+		{
+            if (argc == 3) 
+			{
                 memtest(atoi(argv[2]),50);
                 exit(0);
-            } else {
+            } 
+			else 
+			{
                 fprintf(stderr,"Please specify the amount of memory to test in megabytes.\n");
                 fprintf(stderr,"Example: ./redis-server --test-memory 4096\n\n");
                 exit(1);
@@ -4091,7 +4110,8 @@ int main(int argc, char **argv) {
         }
 
         /* First argument is the config file name? */
-        if (argv[j][0] != '-' || argv[j][1] != '-') {
+        if (argv[j][0] != '-' || argv[j][1] != '-') 
+		{
             configfile = argv[j];
             server.configfile = getAbsolutePath(configfile);
             /* Replace the config file in server.exec_argv with
@@ -4105,25 +4125,34 @@ int main(int argc, char **argv) {
          * configuration file. For instance --port 6380 will generate the
          * string "port 6380\n" to be parsed after the actual file name
          * is parsed, if any. */
-        while(j != argc) {
-            if (argv[j][0] == '-' && argv[j][1] == '-') {
+        while(j != argc) 
+		{
+            if (argv[j][0] == '-' && argv[j][1] == '-') 
+			{
                 /* Option name */
-                if (!strcmp(argv[j], "--check-rdb")) {
+                if (!strcmp(argv[j], "--check-rdb")) 
+				{
                     /* Argument has no options, need to skip for parsing. */
                     j++;
                     continue;
                 }
-                if (sdslen(options)) options = sdscat(options,"\n");
+				if (sdslen(options)) 
+				{
+					options = sdscat(options, "\n");
+				}
                 options = sdscat(options,argv[j]+2);
                 options = sdscat(options," ");
-            } else {
+            } 
+			else 
+			{
                 /* Option argument */
                 options = sdscatrepr(options,argv[j],strlen(argv[j]));
                 options = sdscat(options," ");
             }
             j++;
         }
-        if (server.sentinel_mode && configfile && *configfile == '-') {
+        if (server.sentinel_mode && configfile && *configfile == '-') 
+		{
             serverLog(LL_WARNING,
                 "Sentinel config from STDIN not allowed.");
             serverLog(LL_WARNING,
@@ -4144,23 +4173,33 @@ int main(int argc, char **argv) {
             strtol(redisGitDirty(),NULL,10) > 0,
             (int)getpid());
 
-    if (argc == 1) {
+    if (argc == 1) 
+	{
         serverLog(LL_WARNING, "Warning: no config file specified, using the default config. In order to specify a config file use %s /path/to/%s.conf", argv[0], server.sentinel_mode ? "sentinel" : "redis");
-    } else {
+    }
+	else 
+	{
         serverLog(LL_WARNING, "Configuration loaded");
     }
 
     server.supervised = redisIsSupervised(server.supervised_mode);
     int background = server.daemonize && !server.supervised;
-    if (background) daemonize();
+	if (background)
+	{
+		daemonize();
+	}
 
     initServer();
-    if (background || server.pidfile) createPidFile();
+	if (background || server.pidfile)
+	{
+		createPidFile();
+	}
     redisSetProcTitle(argv[0]);
     redisAsciiArt();
     checkTcpBacklogSettings();
 
-    if (!server.sentinel_mode) {
+    if (!server.sentinel_mode)
+	{
         /* Things not needed when running in Sentinel mode. */
         serverLog(LL_WARNING,"Server initialized");
     #ifdef __linux__
@@ -4168,7 +4207,8 @@ int main(int argc, char **argv) {
     #endif
         moduleLoadFromQueue();
         loadDataFromDisk();
-        if (server.cluster_enabled) {
+        if (server.cluster_enabled)
+		{
             if (verifyClusterConfigWithData() == C_ERR) {
                 serverLog(LL_WARNING,
                     "You can't have keys in a DB different than DB 0 when in "
@@ -4176,16 +4216,23 @@ int main(int argc, char **argv) {
                 exit(1);
             }
         }
-        if (server.ipfd_count > 0)
-            serverLog(LL_NOTICE,"Ready to accept connections");
-        if (server.sofd > 0)
-            serverLog(LL_NOTICE,"The server is now ready to accept connections at %s", server.unixsocket);
-    } else {
+		if (server.ipfd_count > 0)
+		{
+			serverLog(LL_NOTICE, "Ready to accept connections");
+		}
+		if (server.sofd > 0)
+		{
+			serverLog(LL_NOTICE, "The server is now ready to accept connections at %s", server.unixsocket);
+		}
+    } 
+	else 
+	{
         sentinelIsRunning();
     }
 
     /* Warning the user about suspicious maxmemory setting. */
-    if (server.maxmemory > 0 && server.maxmemory < 1024*1024) {
+    if (server.maxmemory > 0 && server.maxmemory < 1024*1024)
+	{
         serverLog(LL_WARNING,"WARNING: You specified a maxmemory value that is less than 1MB (current value is %llu bytes). Are you sure this is what you really want?", server.maxmemory);
     }
 

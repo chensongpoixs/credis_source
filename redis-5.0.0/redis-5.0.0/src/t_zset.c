@@ -131,9 +131,6 @@ int zslRandomLevel(void) {
     return (level<ZSKIPLIST_MAXLEVEL) ? level : ZSKIPLIST_MAXLEVEL;// 64
 }
 
-/* Insert a new node in the skiplist. Assumes the element does not already
- * exist (up to the caller to enforce that). The skiplist takes ownership
- * of the passed SDS string 'ele'. */
 zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele) 
 {
     // updata[]数组记录每一层位于插入节点的前一个节点
@@ -170,6 +167,7 @@ zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele)
     // 同时设定update数组大于原level层以上的数据
     if (level > zsl->level) 
 	{
+		//是从增加的层数开始增加的
         for (i = zsl->level; i < level; i++) 
 		{
             //因为这一层没有节点，所以重置rank[i]为0
@@ -187,8 +185,10 @@ zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele)
     x = zslCreateNode(level,score,ele);
     for (i = 0; i < level; i++) 
 	{
-        x->level[i].forward = update[i]->level[i].forward;
-        update[i]->level[i].forward = x;
+		// next
+        x->level[i].forward = update[i]->level[i].forward;// _ptr
+        // 
+		update[i]->level[i].forward = x;
 		/*
 		header                update[i]     x    update[i]->forward
 		|-----------|-----------|-----------|-----------|-----------|-----------|
@@ -198,7 +198,15 @@ zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele)
 
 		更新update数组中span值和新插入元素span值, rank[0]存储的是x元素距离头部的距离, rank[i]存储的是update[i]距离头部的距离, 上面给出了示意图
 		*/
+		//x->level[i].span = 从x到update[i]->forword的span数目， 
+		//原来的update[i]->level[i].span = 从update[i]到update[i]->level[i]->forward的span数目 
+		//所以x->level[i].span = 原来的update[i]->level[i].span - (rank[0] - rank[i]); 
         x->level[i].span = update[i]->level[i].span - (rank[0] - rank[i]);
+		//对于update[i]->level[i].span值的更新由于在update[i]与update[i]->level[i]->forward之间又添加了x， 
+		//update[i]->level[i].span = 从update[i]到x的span数目， 
+		//由于update[0]后面肯定是新添加的x，所以自然新的update[i]->level[i].span = (rank[0] - rank[i]) + 1; 
+
+		//提示： update[i]和x[i]之间肯定没有节点了
         update[i]->level[i].span = (rank[0] - rank[i]) + 1;
     }
 	/* level可能小zsl->level, 无变动的元素span依次增加1*/
@@ -225,21 +233,30 @@ zskiplistNode *zslInsert(zskiplist *zsl, double score, sds ele)
 /* Internal function used by zslDelete, zslDeleteByScore and zslDeleteByRank */
 void zslDeleteNode(zskiplist *zsl, zskiplistNode *x, zskiplistNode **update) {
     int i;
-    for (i = 0; i < zsl->level; i++) {
-        if (update[i]->level[i].forward == x) {
+    for (i = 0; i < zsl->level; i++) 
+	{
+        if (update[i]->level[i].forward == x) 
+		{
             update[i]->level[i].span += x->level[i].span - 1;
             update[i]->level[i].forward = x->level[i].forward;
-        } else {
+        }
+		else 
+		{
             update[i]->level[i].span -= 1;
         }
     }
-    if (x->level[0].forward) {
+    if (x->level[0].forward) 
+	{
         x->level[0].forward->backward = x->backward;
-    } else {
+    }
+	else 
+	{
         zsl->tail = x->backward;
     }
-    while(zsl->level > 1 && zsl->header->level[zsl->level-1].forward == NULL)
-        zsl->level--;
+	while (zsl->level > 1 && zsl->header->level[zsl->level - 1].forward == NULL)
+	{
+		zsl->level--;
+	}
     zsl->length--;
 }
 
@@ -527,6 +544,13 @@ unsigned long zslDeleteRangeByRank(zskiplist *zsl, unsigned int start, unsigned 
  * Returns 0 when the element cannot be found, rank otherwise.
  * Note that the rank is 1-based due to the span of zsl->header to the
  * first element. */
+/************************************************************************
+ * 函 数 名  : zslGetRank
+ * 函数功能  : 获取指定分数和成员数据对象确定节点的排名
+ * 输入参数  : zskiplist *zsl  跳跃表指针
+			   double score    节点分数
+			   sds ele        成员数据对象                                
+/************************************************************************/
 unsigned long zslGetRank(zskiplist *zsl, double score, sds ele) 
 {
     zskiplistNode *x;
@@ -816,11 +840,14 @@ double zzlGetScore(unsigned char *sptr) {
     serverAssert(sptr != NULL);
     serverAssert(ziplistGet(sptr,&vstr,&vlen,&vlong));
 
-    if (vstr) {
+    if (vstr) 
+	{
         memcpy(buf,vstr,vlen);
         buf[vlen] = '\0';
         score = strtod(buf,NULL);
-    } else {
+    }
+	else 
+	{
         score = vlong;
     }
 
@@ -1625,7 +1652,12 @@ long zsetRank(robj *zobj, sds ele, int reverse) {
  *----------------------------------------------------------------------------*/
 
 /* This generic command implements both ZADD and ZINCRBY. */
-void zaddGenericCommand(client *c, int flags) {
+/************************************************************************
+ zset-max-ziplist-entries 128
+ zset-max-ziplist-value 64                                                                     
+************************************************************************/
+void zaddGenericCommand(client *c, int flags) 
+{
     static char *nanerr = "resulting score is not a number (NaN)";
     robj *key = c->argv[1];
     robj *zobj;
@@ -1644,13 +1676,29 @@ void zaddGenericCommand(client *c, int flags) {
     /* Parse options. At the end 'scoreidx' is set to the argument position
      * of the score of the first score-element pair. */
     scoreidx = 2;
-    while(scoreidx < c->argc) {
+    while(scoreidx < c->argc) 
+	{
         char *opt = c->argv[scoreidx]->ptr;
-        if (!strcasecmp(opt,"nx")) flags |= ZADD_NX;
-        else if (!strcasecmp(opt,"xx")) flags |= ZADD_XX;
-        else if (!strcasecmp(opt,"ch")) flags |= ZADD_CH;
-        else if (!strcasecmp(opt,"incr")) flags |= ZADD_INCR;
-        else break;
+		if (!strcasecmp(opt, "nx"))
+		{
+			flags |= ZADD_NX;
+		}
+		else if (!strcasecmp(opt, "xx"))
+		{
+			flags |= ZADD_XX;
+		}
+		else if (!strcasecmp(opt, "ch"))
+		{
+			flags |= ZADD_CH;
+		}
+		else if (!strcasecmp(opt, "incr"))
+		{
+			flags |= ZADD_INCR;
+		}
+		else
+		{
+			break;
+		}
         scoreidx++;
     }
 
@@ -1663,20 +1711,23 @@ void zaddGenericCommand(client *c, int flags) {
     /* After the options, we expect to have an even number of args, since
      * we expect any number of score-element pairs. */
     elements = c->argc-scoreidx;
-    if (elements % 2 || !elements) {
+    if (elements % 2 || !elements) 
+	{
         addReply(c,shared.syntaxerr);
         return;
     }
     elements /= 2; /* Now this holds the number of score-element pairs. */
 
     /* Check for incompatible options. */
-    if (nx && xx) {
+    if (nx && xx) 
+	{
         addReplyError(c,
             "XX and NX options at the same time are not compatible");
         return;
     }
 
-    if (incr && elements > 1) {
+    if (incr && elements > 1) 
+	{
         addReplyError(c,
             "INCR option supports a single increment-element pair");
         return;
@@ -1686,55 +1737,85 @@ void zaddGenericCommand(client *c, int flags) {
      * before executing additions to the sorted set, as the command should
      * either execute fully or nothing at all. */
     scores = zmalloc(sizeof(double)*elements);
-    for (j = 0; j < elements; j++) {
-        if (getDoubleFromObjectOrReply(c,c->argv[scoreidx+j*2],&scores[j],NULL)
-            != C_OK) goto cleanup;
+    for (j = 0; j < elements; j++) 
+	{
+		if (getDoubleFromObjectOrReply(c, c->argv[scoreidx + j * 2], &scores[j], NULL) != C_OK)
+		{
+			goto cleanup;
+		}
     }
 
     /* Lookup the key and create the sorted set if does not exist. */
     zobj = lookupKeyWrite(c->db,key);
-    if (zobj == NULL) {
-        if (xx) goto reply_to_client; /* No key + XX option: nothing to do. */
+    if (zobj == NULL) 
+	{
+		if (xx)
+		{
+			goto reply_to_client; /* No key + XX option: nothing to do. */
+		}
         if (server.zset_max_ziplist_entries == 0 ||
             server.zset_max_ziplist_value < sdslen(c->argv[scoreidx+1]->ptr))
         {
             zobj = createZsetObject();
-        } else {
+        }
+		else 
+		{
             zobj = createZsetZiplistObject();
         }
         dbAdd(c->db,key,zobj);
-    } else {
-        if (zobj->type != OBJ_ZSET) {
+    }
+	else 
+	{
+        if (zobj->type != OBJ_ZSET) 
+		{
             addReply(c,shared.wrongtypeerr);
             goto cleanup;
         }
     }
 
-    for (j = 0; j < elements; j++) {
+    for (j = 0; j < elements; j++) 
+	{
         double newscore;
         score = scores[j];
         int retflags = flags;
 
         ele = c->argv[scoreidx+1+j*2]->ptr;
         int retval = zsetAdd(zobj, score, ele, &retflags, &newscore);
-        if (retval == 0) {
+        if (retval == 0) 
+		{
             addReplyError(c,nanerr);
             goto cleanup;
         }
-        if (retflags & ZADD_ADDED) added++;
-        if (retflags & ZADD_UPDATED) updated++;
-        if (!(retflags & ZADD_NOP)) processed++;
+		if (retflags & ZADD_ADDED)
+		{
+			added++;
+		}
+		if (retflags & ZADD_UPDATED)
+		{
+			updated++;
+		}
+		if (!(retflags & ZADD_NOP))
+		{
+			processed++;
+		}
         score = newscore;
     }
     server.dirty += (added+updated);
 
 reply_to_client:
-    if (incr) { /* ZINCRBY or INCR option. */
-        if (processed)
-            addReplyDouble(c,score);
-        else
-            addReply(c,shared.nullbulk);
-    } else { /* ZADD. */
+    if (incr) 
+	{ /* ZINCRBY or INCR option. */
+		if (processed)
+		{
+			addReplyDouble(c, score);
+		}
+		else
+		{
+			addReply(c, shared.nullbulk);
+		}
+    }
+	else 
+	{ /* ZADD. */
         addReplyLongLong(c,ch ? added+updated : added);
     }
 
