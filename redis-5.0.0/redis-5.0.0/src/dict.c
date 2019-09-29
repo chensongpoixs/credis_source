@@ -70,16 +70,14 @@ static long _dictKeyIndex(dict *ht, const void *key, uint64_t hash, dictEntry **
 static int _dictInit(dict *ht, dictType *type, void *privDataPtr);
 
 /* -------------------------- hash functions -------------------------------- */
-/* 哈希函数，设置和获取哈希因子 */
+
 static uint8_t dict_hash_function_seed[16];
 
-void dictSetHashFunctionSeed(uint8_t *seed) 
-{
+void dictSetHashFunctionSeed(uint8_t *seed) {
     memcpy(dict_hash_function_seed,seed,sizeof(dict_hash_function_seed));
 }
 
-uint8_t *dictGetHashFunctionSeed(void) 
-{
+uint8_t *dictGetHashFunctionSeed(void) {
     return dict_hash_function_seed;
 }
 
@@ -89,13 +87,11 @@ uint8_t *dictGetHashFunctionSeed(void)
 uint64_t siphash(const uint8_t *in, const size_t inlen, const uint8_t *k);
 uint64_t siphash_nocase(const uint8_t *in, const size_t inlen, const uint8_t *k);
 
-uint64_t dictGenHashFunction(const void *key, int len) 
-{
+uint64_t dictGenHashFunction(const void *key, int len) {
     return siphash(key,len,dict_hash_function_seed);
 }
 
-uint64_t dictGenCaseHashFunction(const unsigned char *buf, int len) 
-{
+uint64_t dictGenCaseHashFunction(const unsigned char *buf, int len) {
     return siphash_nocase(buf,len,dict_hash_function_seed);
 }
 
@@ -112,7 +108,8 @@ static void _dictReset(dictht *ht)
 }
 
 /* Create a new hash table */
-dict *dictCreate(dictType *type, void *privDataPtr)
+dict *dictCreate(dictType *type,
+        void *privDataPtr)
 {
     dict *d = zmalloc(sizeof(*d));
 
@@ -121,7 +118,8 @@ dict *dictCreate(dictType *type, void *privDataPtr)
 }
 
 /* Initialize the hash table */
-int _dictInit(dict *d, dictType *type, void *privDataPtr)
+int _dictInit(dict *d, dictType *type,
+        void *privDataPtr)
 {
     _dictReset(&d->ht[0]);
     _dictReset(&d->ht[1]);
@@ -138,15 +136,10 @@ int dictResize(dict *d)
 {
     int minimal;
 
-	if (!dict_can_resize || dictIsRehashing(d))
-	{
-		return DICT_ERR;
-	}
+    if (!dict_can_resize || dictIsRehashing(d)) return DICT_ERR;
     minimal = d->ht[0].used;
-	if (minimal < DICT_HT_INITIAL_SIZE)
-	{
-		minimal = DICT_HT_INITIAL_SIZE;
-	}
+    if (minimal < DICT_HT_INITIAL_SIZE)
+        minimal = DICT_HT_INITIAL_SIZE;
     return dictExpand(d, minimal);
 }
 
@@ -155,19 +148,14 @@ int dictExpand(dict *d, unsigned long size)
 {
     /* the size is invalid if it is smaller than the number of
      * elements already inside the hash table */
-	if (dictIsRehashing(d) || d->ht[0].used > size)
-	{
-		return DICT_ERR;
-	}
+    if (dictIsRehashing(d) || d->ht[0].used > size)
+        return DICT_ERR;
 
     dictht n; /* the new hash table */
     unsigned long realsize = _dictNextPower(size);
 
     /* Rehashing to the same table size is not useful. */
-	if (realsize == d->ht[0].size)
-	{
-		return DICT_ERR;
-	}
+    if (realsize == d->ht[0].size) return DICT_ERR;
 
     /* Allocate the new hash table and initialize all pointers to NULL */
     n.size = realsize;
@@ -177,8 +165,7 @@ int dictExpand(dict *d, unsigned long size)
 
     /* Is this the first initialization? If so it's not really a rehashing
      * we just set the first hash table so that it can accept keys. */
-    if (d->ht[0].table == NULL) 
-	{
+    if (d->ht[0].table == NULL) {
         d->ht[0] = n;
         return DICT_OK;
     }
@@ -198,39 +185,28 @@ int dictExpand(dict *d, unsigned long size)
  * guaranteed that this function will rehash even a single bucket, since it
  * will visit at max N*10 empty buckets in total, otherwise the amount of
  * work it does would be unbound and the function may block for a long time. */
-int dictRehash(dict *d, int n) 
-{
+int dictRehash(dict *d, int n) {
     int empty_visits = n*10; /* Max number of empty buckets to visit. */
-	if (!dictIsRehashing(d))
-	{
-		return 0;
-	}
+    if (!dictIsRehashing(d)) return 0;
 
-    while(n-- && d->ht[0].used != 0) 
-	{
+    while(n-- && d->ht[0].used != 0) {
         dictEntry *de, *nextde;
 
         /* Note that rehashidx can't overflow as we are sure there are more
          * elements because ht[0].used != 0 */
         assert(d->ht[0].size > (unsigned long)d->rehashidx);
-		// rehashidx ---> 找到 哈希表的不为空的数据
-        while(d->ht[0].table[d->rehashidx] == NULL) 
-		{
+        while(d->ht[0].table[d->rehashidx] == NULL) {
             d->rehashidx++;
-			if (--empty_visits == 0)
-			{
-				return 1;
-			}
+            if (--empty_visits == 0) return 1;
         }
         de = d->ht[0].table[d->rehashidx];
         /* Move all the keys in this bucket from the old to the new hash HT */
-        while(de) 
-		{
+        while(de) {
             uint64_t h;
 
             nextde = de->next;
             /* Get the index in the new hash table */
-            h = dictHashKey(d, de->key) & d->ht[1].sizemask;  // sizemask == size - 1 ？
+            h = dictHashKey(d, de->key) & d->ht[1].sizemask;
             de->next = d->ht[1].table[h];
             d->ht[1].table[h] = de;
             d->ht[0].used--;
@@ -242,8 +218,7 @@ int dictRehash(dict *d, int n)
     }
 
     /* Check if we already rehashed the whole table... */
-    if (d->ht[0].used == 0) 
-	{
+    if (d->ht[0].used == 0) {
         zfree(d->ht[0].table);
         d->ht[0] = d->ht[1];
         _dictReset(&d->ht[1]);
@@ -267,13 +242,9 @@ int dictRehashMilliseconds(dict *d, int ms) {
     long long start = timeInMilliseconds();
     int rehashes = 0;
 
-    while(dictRehash(d,100))
-	{
+    while(dictRehash(d,100)) {
         rehashes += 100;
-		if (timeInMilliseconds() - start > ms)
-		{
-			break;
-		}
+        if (timeInMilliseconds()-start > ms) break;
     }
     return rehashes;
 }
@@ -287,10 +258,7 @@ int dictRehashMilliseconds(dict *d, int ms) {
  * dictionary so that the hash table automatically migrates from H1 to H2
  * while it is actively used. */
 static void _dictRehashStep(dict *d) {
-	if (d->iterators == 0)
-	{
-		dictRehash(d, 1);
-	}
+    if (d->iterators == 0) dictRehash(d,1);
 }
 
 /* Add an element to the target hash table */
@@ -298,10 +266,7 @@ int dictAdd(dict *d, void *key, void *val)
 {
     dictEntry *entry = dictAddRaw(d,key,NULL);
 
-	if (!entry)
-	{
-		return DICT_ERR;
-	}
+    if (!entry) return DICT_ERR;
     dictSetVal(d, entry, val);
     return DICT_OK;
 }
@@ -330,23 +295,18 @@ dictEntry *dictAddRaw(dict *d, void *key, dictEntry **existing)
     dictEntry *entry;
     dictht *ht;
 
-	if (dictIsRehashing(d))
-	{
-		_dictRehashStep(d);
-	}
+    if (dictIsRehashing(d)) _dictRehashStep(d);
 
     /* Get the index of the new element, or -1 if
      * the element already exists. */
-	if ((index = _dictKeyIndex(d, key, dictHashKey(d, key), existing)) == -1)
-	{
-		return NULL;
-	}
+    if ((index = _dictKeyIndex(d, key, dictHashKey(d,key), existing)) == -1)
+        return NULL;
 
     /* Allocate the memory and store the new entry.
      * Insert the element in top, with the assumption that in a database
      * system it is more likely that recently added entries are accessed
      * more frequently. */
-    ht = dictIsRehashing(d) ? &d->ht[1] : &d->ht[0]; //判断现在是否在交换桶的 的选择
+    ht = dictIsRehashing(d) ? &d->ht[1] : &d->ht[0];
     entry = zmalloc(sizeof(*entry));
     entry->next = ht->table[index];
     ht->table[index] = entry;
@@ -406,37 +366,23 @@ static dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {
     dictEntry *he, *prevHe;
     int table;
 
-	if (d->ht[0].used == 0 && d->ht[1].used == 0)
-	{
-		return NULL;
-	}
+    if (d->ht[0].used == 0 && d->ht[1].used == 0) return NULL;
 
-	if (dictIsRehashing(d))
-	{
-		_dictRehashStep(d);
-	}
+    if (dictIsRehashing(d)) _dictRehashStep(d);
     h = dictHashKey(d, key);
 
-    for (table = 0; table <= 1; table++) 
-	{
+    for (table = 0; table <= 1; table++) {
         idx = h & d->ht[table].sizemask;
         he = d->ht[table].table[idx];
         prevHe = NULL;
-        while(he) 
-		{
-            if (key==he->key || dictCompareKeys(d, key, he->key)) 
-			{
+        while(he) {
+            if (key==he->key || dictCompareKeys(d, key, he->key)) {
                 /* Unlink the element from the list */
-				if (prevHe)
-				{
-					prevHe->next = he->next;
-				}
-				else
-				{
-					d->ht[table].table[idx] = he->next;
-				}
-                if (!nofree) 
-				{
+                if (prevHe)
+                    prevHe->next = he->next;
+                else
+                    d->ht[table].table[idx] = he->next;
+                if (!nofree) {
                     dictFreeKey(d, he);
                     dictFreeVal(d, he);
                     zfree(he);
@@ -454,8 +400,7 @@ static dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {
 
 /* Remove an element, returning DICT_OK on success or DICT_ERR if the
  * element was not found. */
-int dictDelete(dict *ht, const void *key) 
-{
+int dictDelete(dict *ht, const void *key) {
     return dictGenericDelete(ht,key,0) ? DICT_OK : DICT_ERR;
 }
 
@@ -533,31 +478,18 @@ dictEntry *dictFind(dict *d, const void *key)
     dictEntry *he;
     uint64_t h, idx, table;
 
-	if (d->ht[0].used + d->ht[1].used == 0)
-	{
-		return NULL; /* dict is empty */
-	}
-	if (dictIsRehashing(d))
-	{
-		_dictRehashStep(d);
-	}
+    if (d->ht[0].used + d->ht[1].used == 0) return NULL; /* dict is empty */
+    if (dictIsRehashing(d)) _dictRehashStep(d);
     h = dictHashKey(d, key);
-    for (table = 0; table <= 1; table++) 
-	{
+    for (table = 0; table <= 1; table++) {
         idx = h & d->ht[table].sizemask;
-        he = d->ht[table].table[idx]; // 得到bucket的链表
-        while(he) 
-		{
-			if (key == he->key || dictCompareKeys(d, key, he->key))
-			{
-				return he;
-			}
+        he = d->ht[table].table[idx];
+        while(he) {
+            if (key==he->key || dictCompareKeys(d, key, he->key))
+                return he;
             he = he->next;
         }
-		if (!dictIsRehashing(d))
-		{
-			return NULL;
-		}
+        if (!dictIsRehashing(d)) return NULL;
     }
     return NULL;
 }
@@ -664,16 +596,11 @@ dictEntry *dictNext(dictIterator *iter)
 
 void dictReleaseIterator(dictIterator *iter)
 {
-    if (!(iter->index == -1 && iter->table == 0)) 
-	{
-		if (iter->safe)
-		{
-			iter->d->iterators--;
-		}
-		else
-		{
-			assert(iter->fingerprint == dictFingerprint(iter->d));
-		}
+    if (!(iter->index == -1 && iter->table == 0)) {
+        if (iter->safe)
+            iter->d->iterators--;
+        else
+            assert(iter->fingerprint == dictFingerprint(iter->d));
     }
     zfree(iter);
 }
@@ -686,16 +613,9 @@ dictEntry *dictGetRandomKey(dict *d)
     unsigned long h;
     int listlen, listele;
 
-	if (dictSize(d) == 0)
-	{
-		return NULL;
-	}
-	if (dictIsRehashing(d))
-	{
-		_dictRehashStep(d);
-	}
-    if (dictIsRehashing(d)) 
-	{
+    if (dictSize(d) == 0) return NULL;
+    if (dictIsRehashing(d)) _dictRehashStep(d);
+    if (dictIsRehashing(d)) {
         do {
             /* We are sure there are no elements in indexes from 0
              * to rehashidx-1 */
@@ -718,17 +638,13 @@ dictEntry *dictGetRandomKey(dict *d)
      * select a random index. */
     listlen = 0;
     orighe = he;
-    while(he) 
-	{
+    while(he) {
         he = he->next;
         listlen++;
     }
     listele = random() % listlen;
     he = orighe;
-	while (listele--)
-	{
-		he = he->next;
-	}
+    while(listele--) he = he->next;
     return he;
 }
 
@@ -754,96 +670,67 @@ dictEntry *dictGetRandomKey(dict *d)
  * of continuous elements to run some kind of algorithm or to produce
  * statistics. However the function is much faster than dictGetRandomKey()
  * at producing N elements. */
-unsigned int dictGetSomeKeys(dict *d, dictEntry **des, unsigned int count) 
-{
+unsigned int dictGetSomeKeys(dict *d, dictEntry **des, unsigned int count) {
     unsigned long j; /* internal hash table id, 0 or 1. */
     unsigned long tables; /* 1 or 2 tables? */
     unsigned long stored = 0, maxsizemask;
     unsigned long maxsteps;
 
-	if (dictSize(d) < count)
-	{
-		count = dictSize(d);
-	}
+    if (dictSize(d) < count) count = dictSize(d);
     maxsteps = count*10;
 
     /* Try to do a rehashing work proportional to 'count'. */
-    for (j = 0; j < count; j++) 
-	{
-		if (dictIsRehashing(d))
-		{
-			_dictRehashStep(d);
-		}
-		else
-		{
-			break;
-		}
+    for (j = 0; j < count; j++) {
+        if (dictIsRehashing(d))
+            _dictRehashStep(d);
+        else
+            break;
     }
 
     tables = dictIsRehashing(d) ? 2 : 1;
     maxsizemask = d->ht[0].sizemask;
-	if (tables > 1 && maxsizemask < d->ht[1].sizemask)
-	{
-		maxsizemask = d->ht[1].sizemask;
-	}
+    if (tables > 1 && maxsizemask < d->ht[1].sizemask)
+        maxsizemask = d->ht[1].sizemask;
 
     /* Pick a random point inside the larger table. */
     unsigned long i = random() & maxsizemask;
     unsigned long emptylen = 0; /* Continuous empty entries so far. */
-    while(stored < count && maxsteps--) 
-	{
-        for (j = 0; j < tables; j++) 
-		{
+    while(stored < count && maxsteps--) {
+        for (j = 0; j < tables; j++) {
             /* Invariant of the dict.c rehashing: up to the indexes already
              * visited in ht[0] during the rehashing, there are no populated
              * buckets, so we can skip ht[0] for indexes between 0 and idx-1. */
-            if (tables == 2 && j == 0 && i < (unsigned long) d->rehashidx) 
-			{
+            if (tables == 2 && j == 0 && i < (unsigned long) d->rehashidx) {
                 /* Moreover, if we are currently out of range in the second
                  * table, there will be no elements in both tables up to
                  * the current rehashing index, so we jump if possible.
                  * (this happens when going from big to small table). */
-				if (i >= d->ht[1].size)
-				{
-					i = d->rehashidx;
-				}
-				else
-				{
-					continue;
-				}
+                if (i >= d->ht[1].size)
+                    i = d->rehashidx;
+                else
+                    continue;
             }
-			if (i >= d->ht[j].size)
-			{
-				continue; /* Out of range for this table. */
-			}
+            if (i >= d->ht[j].size) continue; /* Out of range for this table. */
             dictEntry *he = d->ht[j].table[i];
 
             /* Count contiguous empty buckets, and jump to other
              * locations if they reach 'count' (with a minimum of 5). */
-            if (he == NULL) 
-			{
+            if (he == NULL) {
                 emptylen++;
-                if (emptylen >= 5 && emptylen > count) 
-				{
+                if (emptylen >= 5 && emptylen > count) {
                     i = random() & maxsizemask;
                     emptylen = 0;
                 }
-            } 
-			else 
-			{
+            } else {
                 emptylen = 0;
-                while (he) 
-				{
+                while (he) {
                     /* Collect all the elements of the buckets found non
                      * empty while iterating. */
                     *des = he;
                     des++;
                     he = he->next;
                     stored++;
-					if (stored == count)
-					{
-						return stored;
-					}
+                    if (stored == count) return stored;
                 }
             }
         }
@@ -857,8 +744,7 @@ unsigned int dictGetSomeKeys(dict *d, dictEntry **des, unsigned int count)
 static unsigned long rev(unsigned long v) {
     unsigned long s = 8 * sizeof(v); // bit size; must be power of 2
     unsigned long mask = ~0;
-    while ((s >>= 1) > 0) 
-	{
+    while ((s >>= 1) > 0) {
         mask ^= (mask << s);
         v = ((v >> s) & mask) | ((v << s) & ~mask);
     }
@@ -966,13 +852,9 @@ unsigned long dictScan(dict *d,
         m0 = t0->sizemask;
 
         /* Emit entries at cursor */
-		if (bucketfn)
-		{
-			bucketfn(privdata, &t0->table[v & m0]);
-		}
+        if (bucketfn) bucketfn(privdata, &t0->table[v & m0]);
         de = t0->table[v & m0];
-        while (de) 
-		{
+        while (de) {
             next = de->next;
             fn(privdata, de);
             de = next;
@@ -1013,13 +895,9 @@ unsigned long dictScan(dict *d,
          * of the index pointed to by the cursor in the smaller table */
         do {
             /* Emit entries at cursor */
-			if (bucketfn)
-			{
-				bucketfn(privdata, &t1->table[v & m1]);
-			}
+            if (bucketfn) bucketfn(privdata, &t1->table[v & m1]);
             de = t1->table[v & m1];
-            while (de) 
-			{
+            while (de) {
                 next = de->next;
                 fn(privdata, de);
                 de = next;
@@ -1044,16 +922,10 @@ unsigned long dictScan(dict *d,
 static int _dictExpandIfNeeded(dict *d)
 {
     /* Incremental rehashing already in progress. Return. */
-	if (dictIsRehashing(d))
-	{
-		return DICT_OK;
-	}
+    if (dictIsRehashing(d)) return DICT_OK;
 
     /* If the hash table is empty expand it to the initial size. */
-	if (d->ht[0].size == 0)
-	{
-		return dictExpand(d, DICT_HT_INITIAL_SIZE);
-	}
+    if (d->ht[0].size == 0) return dictExpand(d, DICT_HT_INITIAL_SIZE);
 
     /* If we reached the 1:1 ratio, and we are allowed to resize the hash
      * table (global setting) or we should avoid it but the ratio between
@@ -1061,7 +933,7 @@ static int _dictExpandIfNeeded(dict *d)
      * the number of buckets. */
     if (d->ht[0].used >= d->ht[0].size &&
         (dict_can_resize ||
-         d->ht[0].used/d->ht[0].size > dict_force_resize_ratio))  // 扩容的算法  
+         d->ht[0].used/d->ht[0].size > dict_force_resize_ratio))
     {
         return dictExpand(d, d->ht[0].used*2);
     }
@@ -1073,16 +945,10 @@ static unsigned long _dictNextPower(unsigned long size)
 {
     unsigned long i = DICT_HT_INITIAL_SIZE;
 
-	if (size >= LONG_MAX)
-	{
-		return LONG_MAX + 1LU;
-	}
-    while(1) 
-	{
-		if (i >= size)
-		{
-			return i;
-		}
+    if (size >= LONG_MAX) return LONG_MAX + 1LU;
+    while(1) {
+        if (i >= size)
+            return i;
         i *= 2;
     }
 }
@@ -1098,37 +964,23 @@ static long _dictKeyIndex(dict *d, const void *key, uint64_t hash, dictEntry **e
 {
     unsigned long idx, table;
     dictEntry *he;
-	if (existing)
-	{
-		*existing = NULL;
-	}
+    if (existing) *existing = NULL;
 
     /* Expand the hash table if needed */
-	if (_dictExpandIfNeeded(d) == DICT_ERR)
-	{
-		return -1;
-	}
-    for (table = 0; table <= 1; table++) 
-	{
+    if (_dictExpandIfNeeded(d) == DICT_ERR)
+        return -1;
+    for (table = 0; table <= 1; table++) {
         idx = hash & d->ht[table].sizemask;
         /* Search if this slot does not already contain the given key */
         he = d->ht[table].table[idx];
-        while(he) 
-		{
-            if (key==he->key || dictCompareKeys(d, key, he->key)) 
-			{
-				if (existing)
-				{
-					*existing = he;
-				}
+        while(he) {
+            if (key==he->key || dictCompareKeys(d, key, he->key)) {
+                if (existing) *existing = he;
                 return -1;
             }
             he = he->next;
         }
-		if (!dictIsRehashing(d))
-		{
-			break;
-		}
+        if (!dictIsRehashing(d)) break;
     }
     return idx;
 }
@@ -1162,24 +1014,17 @@ dictEntry **dictFindEntryRefByPtrAndHash(dict *d, const void *oldptr, uint64_t h
     unsigned long idx, table;
 
     if (d->ht[0].used + d->ht[1].used == 0) return NULL; /* dict is empty */
-    for (table = 0; table <= 1; table++) 
-	{
+    for (table = 0; table <= 1; table++) {
         idx = hash & d->ht[table].sizemask;
         heref = &d->ht[table].table[idx];
         he = *heref;
-        while(he) 
-		{
-			if (oldptr == he->key)
-			{
-				return heref;
-			}
+        while(he) {
+            if (oldptr==he->key)
+                return heref;
             heref = &he->next;
             he = *heref;
         }
-		if (!dictIsRehashing(d))
-		{
-			return NULL;
-		}
+        if (!dictIsRehashing(d)) return NULL;
     }
     return NULL;
 }
@@ -1211,8 +1056,7 @@ size_t _dictGetStatsHt(char *buf, size_t bufsize, dictht *ht, int tableid) {
         /* For each hash entry on this slot... */
         chainlen = 0;
         he = ht->table[i];
-        while(he) 
-		{
+        while(he) {
             chainlen++;
             he = he->next;
         }
@@ -1235,8 +1079,7 @@ size_t _dictGetStatsHt(char *buf, size_t bufsize, dictht *ht, int tableid) {
         ht->size, ht->used, slots, maxchainlen,
         (float)totchainlen/slots, (float)ht->used/slots);
 
-    for (i = 0; i < DICT_STATS_VECTLEN-1; i++) 
-	{
+    for (i = 0; i < DICT_STATS_VECTLEN-1; i++) {
         if (clvector[i] == 0) continue;
         if (l >= bufsize) break;
         l += snprintf(buf+l,bufsize-l,
@@ -1246,10 +1089,7 @@ size_t _dictGetStatsHt(char *buf, size_t bufsize, dictht *ht, int tableid) {
     }
 
     /* Unlike snprintf(), teturn the number of characters actually written. */
-	if (bufsize)
-	{
-		buf[bufsize - 1] = '\0';
-	}
+    if (bufsize) buf[bufsize-1] = '\0';
     return strlen(buf);
 }
 

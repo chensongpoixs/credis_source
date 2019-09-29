@@ -324,10 +324,7 @@ int ll2string(char *dst, size_t dstlen, long long svalue) {
     }
 
     /* Add sign. */
-	if (negative)
-	{
-		dst[0] = '-';
-	}
+    if (negative) dst[0] = '-';
     return length;
 }
 
@@ -343,8 +340,7 @@ int ll2string(char *dst, size_t dstlen, long long svalue) {
  * Because of its strictness, it is safe to use this function to check if
  * you can convert a string into a long long, and obtain back the string
  * from the number without any loss in the string representation. */
-int string2ll(const char *s, size_t slen, long long *value) 
-{
+int string2ll(const char *s, size_t slen, long long *value) {
     const char *p = s;
     size_t plen = 0;
     int negative = 0;
@@ -362,28 +358,20 @@ int string2ll(const char *s, size_t slen, long long *value)
 
     /* Handle negative numbers: just set a flag and continue like if it
      * was a positive number. Later convert into negative. */
-    if (p[0] == '-') 
-	{
+    if (p[0] == '-') {
         negative = 1;
-        p++;
-		plen++;
+        p++; plen++;
 
         /* Abort on only a negative sign. */
-		if (plen == slen)
-		{
-			return 0;
-		}
+        if (plen == slen)
+            return 0;
     }
 
     /* First digit should be 1-9, otherwise the string should just be 0. */
-    if (p[0] >= '1' && p[0] <= '9') 
-	{
+    if (p[0] >= '1' && p[0] <= '9') {
         v = p[0]-'0';
-        p++; 
-		plen++;
-    } 
-	else 
-	{
+        p++; plen++;
+    } else {
         return 0;
     }
 
@@ -562,37 +550,28 @@ void getRandomBytes(unsigned char *p, size_t len) {
     static unsigned char seed[20]; /* The SHA1 seed, from /dev/urandom. */
     static uint64_t counter = 0; /* The counter we hash with the seed. */
 
-    if (!seed_initialized) 
-	{
+    if (!seed_initialized) {
         /* Initialize a seed and use SHA1 in counter mode, where we hash
          * the same seed with a progressive counter. For the goals of this
          * function we just need non-colliding strings, there are no
          * cryptographic security needs. */
         FILE *fp = fopen("/dev/urandom","r");
-        if (fp == NULL || fread(seed,sizeof(seed),1,fp) != 1)
-		{
+        if (fp == NULL || fread(seed,sizeof(seed),1,fp) != 1) {
             /* Revert to a weaker seed, and in this case reseed again
              * at every call.*/
-            for (unsigned int j = 0; j < sizeof(seed); j++)
-			{
+            for (unsigned int j = 0; j < sizeof(seed); j++) {
                 struct timeval tv;
                 gettimeofday(&tv,NULL);
                 pid_t pid = getpid();
                 seed[j] = tv.tv_sec ^ tv.tv_usec ^ pid ^ (long)fp;
             }
-        }
-		else 
-		{
+        } else {
             seed_initialized = 1;
         }
-		if (fp)
-		{
-			fclose(fp);
-		}
+        if (fp) fclose(fp);
     }
 
-    while(len) 
-	{
+    while(len) {
         unsigned char digest[20];
         SHA1_CTX ctx;
         unsigned int copylen = len > 20 ? 20 : len;
@@ -613,16 +592,12 @@ void getRandomBytes(unsigned char *p, size_t len) {
  * given execution of Redis, so that if you are talking with an instance
  * having run_id == A, and you reconnect and it has run_id == B, you can be
  * sure that it is either a different instance or it was restarted. */
-void getRandomHexChars(char *p, size_t len) 
-{
+void getRandomHexChars(char *p, size_t len) {
     char *charset = "0123456789abcdef";
     size_t j;
 
     getRandomBytes((unsigned char*)p,len);
-	for (j = 0; j < len; j++)
-	{
-		p[j] = charset[p[j] & 0x0F];
-	}
+    for (j = 0; j < len; j++) p[j] = charset[p[j] & 0x0F];
 }
 
 /* Given the filename, return the absolute path as an SDS string, or NULL

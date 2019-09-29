@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (c) 2009-2012, Pieter Noordhuis <pcnoordhuis at gmail dot com>
  * Copyright (c) 2009-2012, Salvatore Sanfilippo <antirez at gmail dot com>
  * All rights reserved.
@@ -31,11 +31,11 @@
 #ifndef __INTSET_H
 #define __INTSET_H
 #include <stdint.h>
-//#define  REDIS_TEST 1
+
 typedef struct intset {
-    uint32_t encoding;/*编码*/
+    uint32_t encoding;
     uint32_t length;
-    int8_t contents[];/*集合内容，按升序排列数组*/
+    int8_t contents[];
 } intset;
 
 intset *intsetNew(void);
