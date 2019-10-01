@@ -127,31 +127,42 @@ void SHA1Init(SHA1_CTX* context)
 
 
 /* Run your data through this. */
-
 void SHA1Update(SHA1_CTX* context, const unsigned char* data, uint32_t len)
 {
     uint32_t i, j;
 
     j = context->count[0];
-    if ((context->count[0] += len << 3) < j)
-        context->count[1]++;
-    context->count[1] += (len>>29);
-    j = (j >> 3) & 63;
-    if ((j + len) > 63) {
+	// 0000 0000 0000 0000 0000 0000 0000 0000
+	// 0001 1111 1111 1111 1111 1111 1111 1111 => 536870911 * 4 = 2147483644 ==> 0111 1111 1111 1111 1111 1111 1111 1100
+	//  ====> [例如: 3个字节  3 << 3 = 24位]得到数据的字节大小   [很巧妙方法位操作 << ]
+	if ((context->count[0] += len << 3) < j) 
+	{
+		// 这种情况 ==
+		// 0010 0000 0000 0000 0000 0000 0000 0000  ===转换位 ==>1000 0000 0000 0000 0000 0000 0000 0000 
+		context->count[1]++;  //无论如何都是内存溢出了都需要加放到count[1]++的
+	}
+    context->count[1] += (len>>29); 
+    j = (j >> 3) & 63; // 字节长度===>>这个是因为sha1 一块内存加密需要512位
+    if ((j + len) > 63)//是否满足一块的加密的内存的大小 
+	{
         memcpy(&context->buffer[j], data, (i = 64-j));
         SHA1Transform(context->state, context->buffer);
-        for ( ; i + 63 < len; i += 64) {
+        for ( ; i + 63 < len; i += 64) 
+		{
             SHA1Transform(context->state, &data[i]);
         }
         j = 0;
     }
-    else i = 0;
+	else
+	{
+		i = 0;
+	}
     memcpy(&context->buffer[j], &data[i], len - i);
 }
 
 
 /* Add padding and return the message digest. */
-
+// 不足一块数据补'0'操作
 void SHA1Final(unsigned char digest[20], SHA1_CTX* context)
 {
     unsigned i;
@@ -175,19 +186,23 @@ void SHA1Final(unsigned char digest[20], SHA1_CTX* context)
 	          *--fcp = (unsigned char) t;
     }
 #else
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 8; i++)
+	{
         finalcount[i] = (unsigned char)((context->count[(i >= 4 ? 0 : 1)]
          >> ((3-(i & 3)) * 8) ) & 255);  /* Endian independent */
     }
 #endif
-    c = 0200;
+    c = 0200; // 结束标志位0x80
     SHA1Update(context, &c, 1);
-    while ((context->count[0] & 504) != 448) {
-	c = 0000;
+    while ((context->count[0] & 504) != 448) 
+	{
+		c = 0000; //补'0'操作
         SHA1Update(context, &c, 1);
     }
+	// 数据的长度记录 64位-> 8字节
     SHA1Update(context, finalcount, 8);  /* Should cause a SHA1Transform() */
-    for (i = 0; i < 20; i++) {
+    for (i = 0; i < 20; i++) 
+	{
         digest[i] = (unsigned char)
          ((context->state[i>>2] >> ((3-(i & 3)) * 8) ) & 255);
     }
@@ -210,17 +225,23 @@ int sha1Test(int argc, char **argv)
     UNUSED(argc);
     UNUSED(argv);
 
-    for(i=0;i<BUFSIZE;i++)
-        buf[i] = i;
+	for (i = 0; i < BUFSIZE; i++)
+	{
+		buf[i] = i;
+	}
 
     SHA1Init(&ctx);
-    for(i=0;i<1000;i++)
-        SHA1Update(&ctx, buf, BUFSIZE);
+	for (i = 0; i < 1000; i++)
+	{
+		SHA1Update(&ctx, buf, BUFSIZE);
+	}
     SHA1Final(hash, &ctx);
 
     printf("SHA1=");
-    for(i=0;i<20;i++)
-        printf("%02x", hash[i]);
+	for (i = 0; i < 20; i++)
+	{
+
+	}
     printf("\n");
     return 0;
 }
