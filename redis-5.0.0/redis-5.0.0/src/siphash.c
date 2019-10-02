@@ -111,8 +111,14 @@ int siptlw(int c) {
         v1 ^= v2;                                                              \
         v2 = ROTL(v2, 32);                                                     \
     } while (0)
-
-uint64_t siphash(const uint8_t *in, const size_t inlen, const uint8_t *k) {
+/************************************************************************
+in:key
+inlen: key_len
+k: hash因子
+采用例子来详解simhash的生成规则。simhash的生成划分为五个步骤：分词->hash->加权->合并->降维
+************************************************************************/
+uint64_t siphash(const uint8_t *in, const size_t inlen, const uint8_t *k)
+{
 #ifndef UNALIGNED_LE_CPU
     uint64_t hash;
     uint8_t *out = (uint8_t*) &hash;
@@ -124,6 +130,7 @@ uint64_t siphash(const uint8_t *in, const size_t inlen, const uint8_t *k) {
     uint64_t k0 = U8TO64_LE(k);
     uint64_t k1 = U8TO64_LE(k + 8);
     uint64_t m;
+	// 计算
     const uint8_t *end = in + inlen - (inlen % sizeof(uint64_t));
     const int left = inlen & 7;
     uint64_t b = ((uint64_t)inlen) << 56;
@@ -132,7 +139,8 @@ uint64_t siphash(const uint8_t *in, const size_t inlen, const uint8_t *k) {
     v1 ^= k1;
     v0 ^= k0;
 
-    for (; in != end; in += 8) {
+    for (; in != end; in += 8)
+	{
         m = U8TO64_LE(in);
         v3 ^= m;
 

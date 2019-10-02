@@ -354,6 +354,7 @@ int dictReplace(dict *d, void *key, void *val)
  * See dictAddRaw() for more information. */
 dictEntry *dictAddOrFind(dict *d, void *key) {
     dictEntry *entry, *existing;
+	// 这个就是redis为什么没有的找到key就会插入key原理
     entry = dictAddRaw(d,key,&existing);
     return entry ? entry : existing;
 }
@@ -371,18 +372,26 @@ static dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {
     if (dictIsRehashing(d)) _dictRehashStep(d);
     h = dictHashKey(d, key);
 
-    for (table = 0; table <= 1; table++) {
+    for (table = 0; table <= 1; table++)
+	{
         idx = h & d->ht[table].sizemask;
         he = d->ht[table].table[idx];
         prevHe = NULL;
-        while(he) {
-            if (key==he->key || dictCompareKeys(d, key, he->key)) {
+        while(he) 
+		{
+            if (key==he->key || dictCompareKeys(d, key, he->key))
+			{
                 /* Unlink the element from the list */
-                if (prevHe)
-                    prevHe->next = he->next;
-                else
-                    d->ht[table].table[idx] = he->next;
-                if (!nofree) {
+				if (prevHe)
+				{
+					prevHe->next = he->next;
+				}
+				else
+				{
+					d->ht[table].table[idx] = he->next;
+				}
+                if (!nofree) 
+				{
                     dictFreeKey(d, he);
                     dictFreeVal(d, he);
                     zfree(he);
@@ -969,12 +978,15 @@ static long _dictKeyIndex(dict *d, const void *key, uint64_t hash, dictEntry **e
     /* Expand the hash table if needed */
     if (_dictExpandIfNeeded(d) == DICT_ERR)
         return -1;
-    for (table = 0; table <= 1; table++) {
-        idx = hash & d->ht[table].sizemask;
+    for (table = 0; table <= 1; table++) 
+	{
+        idx = hash & d->ht[table].sizemask;   // 这边hash & mask  ?? 我还没有看懂??
         /* Search if this slot does not already contain the given key */
         he = d->ht[table].table[idx];
-        while(he) {
-            if (key==he->key || dictCompareKeys(d, key, he->key)) {
+        while(he) 
+		{
+            if (key==he->key || dictCompareKeys(d, key, he->key)) 
+			{
                 if (existing) *existing = he;
                 return -1;
             }

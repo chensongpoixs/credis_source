@@ -4041,6 +4041,7 @@ int main(int argc, char **argv) {
 
     char hashseed[16];
     getRandomHexChars(hashseed,sizeof(hashseed));
+	// …Ë÷√hash“Ú◊”
     dictSetHashFunctionSeed((uint8_t*)hashseed);
     server.sentinel_mode = checkForSentinelMode(argc,argv);
     initServerConfig();
