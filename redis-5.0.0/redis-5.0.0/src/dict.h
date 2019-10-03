@@ -68,8 +68,8 @@ typedef struct dictType {
  * implement incremental rehashing, for the old to the new table. */
 typedef struct dictht {
     dictEntry **table;
-    unsigned long size;
-    unsigned long sizemask;
+    unsigned long size;  // 大小生成是有规律的都是4的倍数据
+    unsigned long sizemask;   // 
     unsigned long used;
 } dictht;
 
@@ -89,8 +89,7 @@ typedef struct dictIterator {
     dict *d;
     long index;
     int table, safe;
-    dictEntry *entry, *nextEntry;
-    /* unsafe iterator fingerprint for misuse detection. */
+    dictEntry *entry, *nextEntry;    /* unsafe iterator fingerprint for misuse detection. */
     long long fingerprint;
 } dictIterator;
 
@@ -173,6 +172,7 @@ uint64_t dictGenCaseHashFunction(const unsigned char *buf, int len);
 void dictEmpty(dict *d, void(callback)(void*));
 void dictEnableResize(void);
 void dictDisableResize(void);
+// 异步渐渐移动的
 int dictRehash(dict *d, int n);
 int dictRehashMilliseconds(dict *d, int ms);
 void dictSetHashFunctionSeed(uint8_t *seed);

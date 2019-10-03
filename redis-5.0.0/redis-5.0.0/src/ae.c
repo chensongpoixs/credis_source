@@ -221,8 +221,10 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
     te->clientData = clientData;
     te->prev = NULL;
     te->next = eventLoop->timeEventHead;
-    if (te->next)
-        te->next->prev = te;
+	if (te->next)
+	{
+		te->next->prev = te;
+	}
     eventLoop->timeEventHead = te;
     return id;
 }
@@ -267,7 +269,8 @@ static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop)
 }
 
 /* Process time events */
-static int processTimeEvents(aeEventLoop *eventLoop) {
+static int processTimeEvents(aeEventLoop *eventLoop) 
+{
     int processed = 0;
     aeTimeEvent *te;
     long long maxId;
@@ -292,21 +295,31 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
 
     te = eventLoop->timeEventHead;
     maxId = eventLoop->timeEventNextId-1;
-    while(te) {
+    while(te) 
+	{
         long now_sec, now_ms;
         long long id;
 
         /* Remove events scheduled for deletion. */
-        if (te->id == AE_DELETED_EVENT_ID) {
+        if (te->id == AE_DELETED_EVENT_ID) 
+		{
             aeTimeEvent *next = te->next;
-            if (te->prev)
-                te->prev->next = te->next;
-            else
-                eventLoop->timeEventHead = te->next;
-            if (te->next)
-                te->next->prev = te->prev;
-            if (te->finalizerProc)
-                te->finalizerProc(eventLoop, te->clientData);
+			if (te->prev)
+			{
+				te->prev->next = te->next;
+			}
+			else
+			{
+				eventLoop->timeEventHead = te->next;
+			}
+			if (te->next)
+			{
+				te->next->prev = te->prev;
+			}
+			if (te->finalizerProc)
+			{
+				te->finalizerProc(eventLoop, te->clientData);
+			}
             zfree(te);
             te = next;
             continue;
@@ -317,7 +330,8 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
          * add new timers on the head, however if we change the implementation
          * detail, this check may be useful again: we keep it here for future
          * defense. */
-        if (te->id > maxId) {
+        if (te->id > maxId)
+		{
             te = te->next;
             continue;
         }
@@ -328,11 +342,15 @@ static int processTimeEvents(aeEventLoop *eventLoop) {
             int retval;
 
             id = te->id;
+			//backcall
             retval = te->timeProc(eventLoop, id, te->clientData);
             processed++;
-            if (retval != AE_NOMORE) {
+            if (retval != AE_NOMORE) 
+			{
                 aeAddMillisecondsToNow(retval,&te->when_sec,&te->when_ms);
-            } else {
+            }
+			else 
+			{
                 te->id = AE_DELETED_EVENT_ID;
             }
         }
@@ -465,8 +483,10 @@ int aeProcessEvents(aeEventLoop *eventLoop, int flags)
         }
     }
     /* Check time events */
-    if (flags & AE_TIME_EVENTS)
-        processed += processTimeEvents(eventLoop);
+	if (flags & AE_TIME_EVENTS)
+	{
+		processed += processTimeEvents(eventLoop);
+	}
 
     return processed; /* return the number of processed file/time events */
 }
@@ -495,9 +515,12 @@ int aeWait(int fd, int mask, long long milliseconds) {
 
 void aeMain(aeEventLoop *eventLoop) {
     eventLoop->stop = 0;
-    while (!eventLoop->stop) {
-        if (eventLoop->beforesleep != NULL)
-            eventLoop->beforesleep(eventLoop);
+    while (!eventLoop->stop) 
+	{
+		if (eventLoop->beforesleep != NULL)
+		{
+			eventLoop->beforesleep(eventLoop);
+		}
         aeProcessEvents(eventLoop, AE_ALL_EVENTS|AE_CALL_AFTER_SLEEP);
     }
 }
