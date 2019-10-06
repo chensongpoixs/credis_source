@@ -80,7 +80,7 @@ static int64_t _intsetGet(intset *is, int pos) {
 /* Set the value at pos, using the configured encoding. */
 static void _intsetSet(intset *is, int pos, int64_t value) {
     uint32_t encoding = intrev32ifbe(is->encoding);
-
+	// c语言的指针的偏移量是根据数据的字节大小的偏移
     if (encoding == INTSET_ENC_INT64) {
         ((int64_t*)is->contents)[pos] = value;
         memrev64ifbe(((int64_t*)is->contents)+pos);
@@ -104,7 +104,7 @@ intset *intsetNew(void) {
 /* Resize the intset */
 static intset *intsetResize(intset *is, uint32_t len) {
     uint32_t size = len*intrev32ifbe(is->encoding);
-    is = zrealloc(is,sizeof(intset)+size);
+    is = zrealloc(is,sizeof(intset)+size);// 增加一个数据结构
     return is;
 }
 
@@ -167,7 +167,7 @@ static intset *intsetUpgradeAndAdd(intset *is, int64_t value) {
     /* Upgrade back-to-front so we don't overwrite values.
      * Note that the "prepend" variable is used to make sure we have an empty
      * space at either the beginning or the end of the intset. */
-    while(length--)
+    while(length--)  //为什么这样操作是因为新加入value大于或者小0的重新排列数据
         _intsetSet(is,length+prepend,_intsetGetEncoded(is,length,curenc));
 
     /* Set the value at the beginning or the end. */
