@@ -1122,7 +1122,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 	 * many clients, we want to call serverCron() with an higher frequency. */
 	if (server.dynamic_hz) {
 		while (listLength(server.clients) / server.hz >
-			MAX_CLIENTS_PER_CLOCK_TICK)
+			MAX_CLIENTS_PER_CLOCK_TICK)   // tick----> 处理数据- 数量大于200时
 		{
 			server.hz *= 2;
 			if (server.hz > CONFIG_MAX_HZ) {
@@ -2109,6 +2109,7 @@ void initServer(void) {
 		server.db[j].avg_ttl = 0;
 		server.db[j].defrag_later = listCreate();
 	}
+	// initialize the lru keys pool
 	evictionPoolAlloc(); /* Initialize the LRU keys pool. */
 	server.pubsub_channels = dictCreate(&keylistDictType, NULL);
 	server.pubsub_patterns = listCreate();
@@ -2575,7 +2576,7 @@ int processCommand(client *c) {
 		c->flags |= CLIENT_CLOSE_AFTER_REPLY;
 		return C_ERR;
 	}
-
+	// redis search [cmd] --> [SET][GET][MSET]
 	/* Now lookup the command and check ASAP about trivial error conditions
 	 * such as wrong arity, bad command name and so forth. */
 	c->cmd = c->lastcmd = lookupCommand(c->argv[0]->ptr);
@@ -2643,6 +2644,7 @@ int processCommand(client *c) {
 	 * the event loop since there is a busy Lua script running in timeout
 	 * condition, to avoid mixing the propagation of scripts with the propagation
 	 * of DELs due to eviction. */
+	// 内存淘汰机制更新 在配置是否redis的内存的大小
 	if (server.maxmemory && !server.lua_timedout) {
 		int out_of_memory = freeMemoryIfNeeded() == C_ERR;
 		/* freeMemoryIfNeeded may flush slave output buffers. This may result
