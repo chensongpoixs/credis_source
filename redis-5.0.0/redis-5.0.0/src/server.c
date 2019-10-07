@@ -1225,7 +1225,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 	clientsCron();
 
 	/* Handle background operations on Redis databases. */
-	databasesCron(); // async 刷新dict的数据
+	databasesCron(); // async 刷新dict的数据 -> TTL
 
 	/* Start a scheduled AOF rewrite if this was requested by the user while
 	 * a BGSAVE was in progress. */

@@ -93,6 +93,7 @@ unsigned int LRU_CLOCK(void) {
 unsigned long long estimateObjectIdleTime(robj *o) {
     unsigned long long lruclock = LRU_CLOCK();
     if (lruclock >= o->lru) {
+		// 记录时间戳在o->lru中的呢在每次客户端查询，更新或许插入数据时会更新这个时间戳
         return (lruclock - o->lru) * LRU_CLOCK_RESOLUTION;
     } else {
         return (lruclock + (LRU_CLOCK_MAX - o->lru)) *
@@ -325,8 +326,12 @@ unsigned long LFUTimeElapsed(unsigned long ldt) {
 uint8_t LFULogIncr(uint8_t counter) {
     if (counter == 255) return 255;
     double r = (double)rand()/RAND_MAX;
+	// 小于5
     double baseval = counter - LFU_INIT_VAL;
     if (baseval < 0) baseval = 0;
+	//感觉这个算法有点奇葩啊！！！！???  -->没有看懂哦关键
+	// 大于counter大5的时 r小怕时可能性比较小吧
+	// 当count小于5时 r小可能性也是比较小的吧
     double p = 1.0/(baseval*server.lfu_log_factor+1);
     if (r < p) counter++;
     return counter;
@@ -345,7 +350,9 @@ uint8_t LFULogIncr(uint8_t counter) {
 // 返回是(255-访问次数)
 unsigned long LFUDecrAndReturn(robj *o) {
     unsigned long ldt = o->lru >> 8;
+	// lru最后8位为访问的次数
     unsigned long counter = o->lru & 255;
+	// 秒为单位 减去次数得到num_periods
     unsigned long num_periods = server.lfu_decay_time ? LFUTimeElapsed(ldt) / server.lfu_decay_time : 0;
     if (num_periods)
         counter = (num_periods > counter) ? 0 : counter - num_periods;
@@ -557,6 +564,7 @@ int freeMemoryIfNeeded(void) {
                 dict = (server.maxmemory_policy == MAXMEMORY_ALLKEYS_RANDOM) ?
                         db->dict : db->expires;
                 if (dictSize(dict) != 0) {
+					//随机一个数据
                     de = dictGetRandomKey(dict);
                     bestkey = dictGetKey(de);
                     bestdbid = j;
@@ -580,6 +588,7 @@ int freeMemoryIfNeeded(void) {
              * we only care about memory used by the key space. */
             delta = (long long) zmalloc_used_memory();
             latencyStartMonitor(eviction_latency);
+			// 同步删除数据函数异步删除数据
             if (server.lazyfree_lazy_eviction)
                 dbAsyncDelete(db,keyobj);
             else

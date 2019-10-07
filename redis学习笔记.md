@@ -128,8 +128,14 @@ redis 提供 6种数据淘汰策略：
 
 
 
+淘汰机制有两种情况会触发
+
+1. 客户端的查询或者插入的时会的触发，
+2. 客户端修改内存最大内存的配置时会触发"maxmemory"
+
 
 在evictionPoolPopulate方法中还是随机选择maxmemory_samples个数组的淘汰，
+
 在k的判断idle的大小选择淘汰那个key的值这个使用不同的淘汰的机制[LRU, LFU, TTL]
 
 ```
@@ -138,6 +144,11 @@ redis 提供 6种数据淘汰策略：
                pool[k].key &&
                pool[k].idle < idle) k++;
 ```
+
+
+
+在redis中的数据都是比较正常的
+
 
 
 
