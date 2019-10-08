@@ -32,7 +32,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "server.h"
+//#include "server.h"
 #include "fmacros.h"
 
 #include <stdio.h>
@@ -279,9 +279,9 @@ static void _dictRehashStep(dict *d) {
 /* Add an element to the target hash table */
 int dictAdd(dict *d, void *key, void *val)
 {
-	if (server.debug)
+	//if (server.debug)
 	{
-		printf("[%s][%d]\n", __PRETTY_FUNCTION__, __LINE__);
+		printf("[%s][%d][key = %s][val = %s]\n", __PRETTY_FUNCTION__, __LINE__, key, val);
 	}
     dictEntry *entry = dictAddRaw(d,key,NULL);
 
@@ -320,9 +320,9 @@ dictEntry *dictAddRaw(dict *d, void *key, dictEntry **existing)
      * the element already exists. */
     if ((index = _dictKeyIndex(d, key, dictHashKey(d,key), existing)) == -1)
         return NULL;
-	if (server.debug)
+	//if (server.debug)
 	{
-		printf("[%s][%d]\n", __PRETTY_FUNCTION__, __LINE__);
+		printf("[%s][%d][key = %s]\n", __PRETTY_FUNCTION__, __LINE__, key);
 	}
     /* Allocate the memory and store the new entry.
      * Insert the element in top, with the assumption that in a database
