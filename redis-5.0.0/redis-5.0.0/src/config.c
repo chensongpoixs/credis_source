@@ -202,7 +202,12 @@ void loadServerConfigFromString(char *config) {
         sdstolower(argv[0]);
 
         /* Execute config directives */
-        if (!strcasecmp(argv[0],"timeout") && argc == 2) {
+		if (!strcasecmp(argv[0], "debug") && argc == 2) {
+			server.debug = atoi(argv[1]);
+			if (server.debug < 0) {
+				err = "Invalid chensong debug value"; goto loaderr;
+			}
+		} else if (!strcasecmp(argv[0],"timeout") && argc == 2) {
             server.maxidletime = atoi(argv[1]);
             if (server.maxidletime < 0) {
                 err = "Invalid timeout value"; goto loaderr;
@@ -1142,6 +1147,8 @@ void configSetCommand(client *c) {
       "lfu-decay-time",server.lfu_decay_time,0,INT_MAX) {
     } config_set_numerical_field(
       "timeout",server.maxidletime,0,INT_MAX) {
+	} config_set_numerical_field(
+		"debug", server.debug, 0, INT_MAX) {
     } config_set_numerical_field(
       "active-defrag-threshold-lower",server.active_defrag_threshold_lower,0,1000) {
     } config_set_numerical_field(

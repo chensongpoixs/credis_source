@@ -279,6 +279,10 @@ static void _dictRehashStep(dict *d) {
 /* Add an element to the target hash table */
 int dictAdd(dict *d, void *key, void *val)
 {
+	if (server.debug)
+	{
+		printf("[%s][%d]\n", __PRETTY_FUNCTION__, __LINE__);
+	}
     dictEntry *entry = dictAddRaw(d,key,NULL);
 
     if (!entry) return DICT_ERR;
@@ -316,7 +320,10 @@ dictEntry *dictAddRaw(dict *d, void *key, dictEntry **existing)
      * the element already exists. */
     if ((index = _dictKeyIndex(d, key, dictHashKey(d,key), existing)) == -1)
         return NULL;
-
+	if (server.debug)
+	{
+		printf("[%s][%d]\n", __PRETTY_FUNCTION__, __LINE__);
+	}
     /* Allocate the memory and store the new entry.
      * Insert the element in top, with the assumption that in a database
      * system it is more likely that recently added entries are accessed
