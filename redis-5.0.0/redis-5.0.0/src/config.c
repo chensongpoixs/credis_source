@@ -168,7 +168,7 @@ void queueLoadModule(sds path, sds *argv, int argc) {
     }
     listAddNodeTail(server.loadmodule_queue,loadmod);
 }
-
+// 在redis中读取配置的函数
 void loadServerConfigFromString(char *config) {
     char *err = NULL;
     int linenum = 0, totlines, i;

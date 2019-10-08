@@ -326,9 +326,9 @@ void expireSlaveKeys(void) {
          * of keys with an expire set directly in the writable slave. Otherwise
          * if the bitmap is zero, we no longer need to keep track of it. */
         if (new_dbids)
-            dictSetUnsignedIntegerVal(de,new_dbids);
+            dictSetUnsignedIntegerVal(de,new_dbids);  // 更新 ttl的时间秒
         else
-            dictDelete(slaveKeysWithExpire,keyname);
+            dictDelete(slaveKeysWithExpire,keyname); // 删除ttl的key
 
         /* Stop conditions: found 3 keys we cna't expire in a row or
          * time limit was reached. */

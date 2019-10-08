@@ -58,11 +58,11 @@ static inline int sdsHdrSize(char type) {
 }
 
 static inline char sdsReqType(size_t string_size) {
-    if (string_size < 1<<5)
+    if (string_size < 1<<5)  // 1 0000 -- 16
         return SDS_TYPE_5;
-    if (string_size < 1<<8)
+    if (string_size < 1<<8)  // 1000 0000 --> 128 
         return SDS_TYPE_8;
-    if (string_size < 1<<16)
+    if (string_size < 1<<16) // 2^16
         return SDS_TYPE_16;
 #if (LONG_MAX == LLONG_MAX)
     if (string_size < 1ll<<32)
@@ -127,7 +127,7 @@ sds sdsnewlen(const void *init, size_t initlen) {
             SDS_HDR_VAR(32,s);
             sh->len = initlen;
             sh->alloc = initlen;
-            *fp = type;
+            *fp = type;//”√
             break;
         }
         case SDS_TYPE_64: {
