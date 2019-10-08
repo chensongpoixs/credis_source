@@ -222,11 +222,11 @@ void pushGenericCommand(client *c, int where) {
     }
     server.dirty += pushed;
 }
-
+/* 在链表的头部插入元素 */
 void lpushCommand(client *c) {
     pushGenericCommand(c,LIST_HEAD);
 }
-
+/* 在链表中的尾部插入元素*/
 void rpushCommand(client *c) {
     pushGenericCommand(c,LIST_TAIL);
 }

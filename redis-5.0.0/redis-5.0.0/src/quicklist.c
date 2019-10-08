@@ -404,6 +404,7 @@ _quicklistNodeSizeMeetsOptimizationRequirement(const size_t sz,
         return 0;
 
     size_t offset = (-fill) - 1;
+	// 查看链表中的数据是否被填充了
     if (offset < (sizeof(optimization_level) / sizeof(*optimization_level))) {
         if (sz <= optimization_level[offset]) {
             return 1;
@@ -479,8 +480,9 @@ REDIS_STATIC int _quicklistNodeAllowMerge(const quicklistNode *a,
  * Returns 1 if new head created. */
 int quicklistPushHead(quicklist *quicklist, void *value, size_t sz) {
     quicklistNode *orig_head = quicklist->head;
-    if (likely(
-            _quicklistNodeAllowInsert(quicklist->head, quicklist->fill, sz))) {
+	//链表也分五个大的数组在每个数组没有被填充满时继续添加数据到这个数组中，如果被填充满了就从新申请下一个数组
+	// 其实数组数据结构就是ziplist的结构
+    if (likely( _quicklistNodeAllowInsert(quicklist->head, quicklist->fill, sz))) {
         quicklist->head->zl =
             ziplistPush(quicklist->head->zl, value, sz, ZIPLIST_HEAD);
         quicklistNodeUpdateSz(quicklist->head);
@@ -489,6 +491,7 @@ int quicklistPushHead(quicklist *quicklist, void *value, size_t sz) {
         node->zl = ziplistPush(ziplistNew(), value, sz, ZIPLIST_HEAD);
 
         quicklistNodeUpdateSz(node);
+		// 新的ziplist添加数组中去
         _quicklistInsertNodeBefore(quicklist, quicklist->head, node);
     }
     quicklist->count++;
