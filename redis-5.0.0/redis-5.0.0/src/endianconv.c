@@ -58,7 +58,9 @@ void memrev16(void *p) {
  * big endian */
 void memrev32(void *p) {
     unsigned char *x = p, t;
-
+	// 1 --> 0001
+	// 2 --> 0010
+	// 4 --> 0100
     t = x[0];
     x[0] = x[3];
     x[3] = t;

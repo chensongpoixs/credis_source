@@ -35,7 +35,7 @@
 typedef struct intset {
     uint32_t encoding;
     uint32_t length;
-    int8_t contents[];
+    int8_t contents[];// 指针的大小一个字节就够了
 } intset;
 
 intset *intsetNew(void);

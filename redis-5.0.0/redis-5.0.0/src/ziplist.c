@@ -227,7 +227,7 @@
 /* Utility macros.*/
 
 /* Return total bytes a ziplist is composed of. */
-#define ZIPLIST_BYTES(zl)       (*((uint32_t*)(zl)))
+#define ZIPLIST_BYTES(zl)       (*((uint32_t*)(zl))) // C语言博大精深  这一步只是 [32位赋值list的字节的大小]
 
 /* Return the offset of the last item inside the ziplist. */
 #define ZIPLIST_TAIL_OFFSET(zl) (*((uint32_t*)((zl)+sizeof(uint32_t))))
@@ -578,9 +578,12 @@ void zipEntry(unsigned char *p, zlentry *e) {
 unsigned char *ziplistNew(void) {
     unsigned int bytes = ZIPLIST_HEADER_SIZE+1;
     unsigned char *zl = zmalloc(bytes);
+	//赋值字节的大小
     ZIPLIST_BYTES(zl) = intrev32ifbe(bytes);
+	//开始位置的大小
     ZIPLIST_TAIL_OFFSET(zl) = intrev32ifbe(ZIPLIST_HEADER_SIZE);
     ZIPLIST_LENGTH(zl) = 0;
+	// 结束位置
     zl[bytes-1] = ZIP_END;
     return zl;
 }
