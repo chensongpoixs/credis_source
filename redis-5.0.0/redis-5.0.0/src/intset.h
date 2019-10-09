@@ -38,6 +38,8 @@ typedef struct intset {
     int8_t contents[];// 指针的大小一个字节就够了
 } intset;
 
+// 整数编码中大于0放到一边和小于0得到一边这是在客户端取得数据的过程中方便对数据进行排序
+
 intset *intsetNew(void);
 intset *intsetAdd(intset *is, int64_t value, uint8_t *success);
 intset *intsetRemove(intset *is, int64_t value, int *success);

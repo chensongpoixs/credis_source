@@ -37,9 +37,9 @@
 
 /* Note that these encodings are ordered, so:
  * INTSET_ENC_INT16 < INTSET_ENC_INT32 < INTSET_ENC_INT64. */
-#define INTSET_ENC_INT16 (sizeof(int16_t))
-#define INTSET_ENC_INT32 (sizeof(int32_t))
-#define INTSET_ENC_INT64 (sizeof(int64_t))
+#define INTSET_ENC_INT16 (sizeof(int16_t)) // 2个字节
+#define INTSET_ENC_INT32 (sizeof(int32_t)) // 4个字节
+#define INTSET_ENC_INT64 (sizeof(int64_t)) // 8个字节
 
 /* Return the required encoding for the provided value. */
 static uint8_t _intsetValueEncoding(int64_t v) {
@@ -103,7 +103,7 @@ intset *intsetNew(void) {
 
 /* Resize the intset */
 static intset *intsetResize(intset *is, uint32_t len) {
-    uint32_t size = len*intrev32ifbe(is->encoding);
+    uint32_t size = len * intrev32ifbe(is->encoding);  // 得到每个类型的字节数
     is = zrealloc(is,sizeof(intset)+size);// 增加一个数据结构
     return is;
 }
@@ -123,6 +123,7 @@ static uint8_t intsetSearch(intset *is, int64_t value, uint32_t *pos) {
     } else {
         /* Check for the case where we know we cannot find the value,
          * but do know the insert position. */
+		// 检查数据中最后一个和前一个和要插入的数据比较是否得到相对位置的下标的 -[相对位置的下标是0位置是否大于0或者小0的比较]
         if (value > _intsetGet(is,intrev32ifbe(is->length)-1)) {
             if (pos) *pos = intrev32ifbe(is->length);
             return 0;
@@ -133,6 +134,7 @@ static uint8_t intsetSearch(intset *is, int64_t value, uint32_t *pos) {
     }
 
     while(max >= min) {
+		// 二叉查找法 -> 中位置
         mid = ((unsigned int)min + (unsigned int)max) >> 1;
         cur = _intsetGet(is,mid);
         if (value > cur) {
@@ -167,6 +169,7 @@ static intset *intsetUpgradeAndAdd(intset *is, int64_t value) {
     /* Upgrade back-to-front so we don't overwrite values.
      * Note that the "prepend" variable is used to make sure we have an empty
      * space at either the beginning or the end of the intset. */
+	// 这里一个步骤是数据字节变化所以指针的偏移量就不同了， 所以需要把指针需要数据重新布局
     while(length--)  //为什么这样操作是因为新加入value大于或者小0的重新排列数据
         _intsetSet(is,length+prepend,_intsetGetEncoded(is,length,curenc));
 
@@ -183,7 +186,9 @@ static void intsetMoveTail(intset *is, uint32_t from, uint32_t to) {
     void *src, *dst;
     uint32_t bytes = intrev32ifbe(is->length)-from;
     uint32_t encoding = intrev32ifbe(is->encoding);
-
+	// from ==  3 时 下标   把数据向后移动一个位置好插入新的数据的的下标
+	// 0 1 2 4 5 6 7 8 9
+	// 0 1 2   4 5 6 7 8 9
     if (encoding == INTSET_ENC_INT64) {
         src = (int64_t*)is->contents+from;
         dst = (int64_t*)is->contents+to;
@@ -220,8 +225,9 @@ intset *intsetAdd(intset *is, int64_t value, uint8_t *success) {
             if (success) *success = 0;
             return is;
         }
-
+		// 这里动态增加后面的字节数据的  buf[]  --> 这个是C99的语法中变长数组
         is = intsetResize(is,intrev32ifbe(is->length)+1);
+		// 需要腾出一个位置的来存放一个数据的
         if (pos < intrev32ifbe(is->length)) intsetMoveTail(is,pos,pos+1);
     }
 
