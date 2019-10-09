@@ -96,6 +96,7 @@ static void _intsetSet(intset *is, int pos, int64_t value) {
 /* Create an empty intset. */
 intset *intsetNew(void) {
     intset *is = zmalloc(sizeof(intset));
+	// 默认编码是2个字节
     is->encoding = intrev32ifbe(INTSET_ENC_INT16);
     is->length = 0;
     return is;
@@ -160,18 +161,24 @@ static intset *intsetUpgradeAndAdd(intset *is, int64_t value) {
     uint8_t curenc = intrev32ifbe(is->encoding);
     uint8_t newenc = _intsetValueEncoding(value);
     int length = intrev32ifbe(is->length);
+	// 这个判断当前的数据的大于或小于0是为了数据为了排序时的方便
+	// 大于0的会在一边， 小于0在另一边
     int prepend = value < 0 ? 1 : 0;
 
     /* First set new encoding and resize */
+	// 附上新的编码格式
     is->encoding = intrev32ifbe(newenc);
+	// 增加内存的一个数据的大小
     is = intsetResize(is,intrev32ifbe(is->length)+1);
 
     /* Upgrade back-to-front so we don't overwrite values.
      * Note that the "prepend" variable is used to make sure we have an empty
      * space at either the beginning or the end of the intset. */
 	// 这里一个步骤是数据字节变化所以指针的偏移量就不同了， 所以需要把指针需要数据重新布局
-    while(length--)  //为什么这样操作是因为新加入value大于或者小0的重新排列数据
-        _intsetSet(is,length+prepend,_intsetGetEncoded(is,length,curenc));
+	while (length--)
+	{
+		_intsetSet(is, length + prepend, _intsetGetEncoded(is, length, curenc));
+	}
 
     /* Set the value at the beginning or the end. */
     if (prepend)
@@ -207,6 +214,7 @@ static void intsetMoveTail(intset *is, uint32_t from, uint32_t to) {
 
 /* Insert an integer in the intset */
 intset *intsetAdd(intset *is, int64_t value, uint8_t *success) {
+	// 判断插入的数据的是多少字节的看需不需要的更新intset结构数据编码格式
     uint8_t valenc = _intsetValueEncoding(value);
     uint32_t pos;
     if (success) *success = 1;
@@ -214,13 +222,16 @@ intset *intsetAdd(intset *is, int64_t value, uint8_t *success) {
     /* Upgrade encoding if necessary. If we need to upgrade, we know that
      * this value should be either appended (if > 0) or prepended (if < 0),
      * because it lies outside the range of existing values. */
+	// 判断当前编码格式是否符合要插入的数据的字节数
     if (valenc > intrev32ifbe(is->encoding)) {
         /* This always succeeds, so we don't need to curry *success. */
+		// 关系编码格式并插入
         return intsetUpgradeAndAdd(is,value);
     } else {
         /* Abort if the value is already present in the set.
          * This call will populate "pos" with the right position to insert
          * the value when it cannot be found. */
+		// 插入插入数据的位置 或者已经存在就不要插入了
         if (intsetSearch(is,value,&pos)) {
             if (success) *success = 0;
             return is;
@@ -230,8 +241,9 @@ intset *intsetAdd(intset *is, int64_t value, uint8_t *success) {
 		// 需要腾出一个位置的来存放一个数据的
         if (pos < intrev32ifbe(is->length)) intsetMoveTail(is,pos,pos+1);
     }
-
+	// 插入的操作
     _intsetSet(is,pos,value);
+	// 编码设置数据的个数
     is->length = intrev32ifbe(intrev32ifbe(is->length)+1);
     return is;
 }
@@ -241,7 +253,7 @@ intset *intsetRemove(intset *is, int64_t value, int *success) {
     uint8_t valenc = _intsetValueEncoding(value);
     uint32_t pos;
     if (success) *success = 0;
-
+	// 先查找在删除查找
     if (valenc <= intrev32ifbe(is->encoding) && intsetSearch(is,value,&pos)) {
         uint32_t len = intrev32ifbe(is->length);
 

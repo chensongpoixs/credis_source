@@ -239,7 +239,7 @@
 /* The size of a ziplist header: two 32 bit integers for the total
  * bytes count and last item offset. One 16 bit integer for the number
  * of items field. */
-#define ZIPLIST_HEADER_SIZE     (sizeof(uint32_t)*2+sizeof(uint16_t))
+#define ZIPLIST_HEADER_SIZE     (sizeof(uint32_t) * 2 + sizeof(uint16_t)) // 4 * 2 + 2 = 10个字节
 
 /* Size of the "end of ziplist" entry. Just one byte. */
 #define ZIPLIST_END_SIZE        (sizeof(uint8_t))
@@ -409,6 +409,7 @@ unsigned int zipStorePrevEntryLength(unsigned char *p, unsigned int len) {
     if (p == NULL) {
         return (len < ZIP_BIG_PREVLEN) ? 1 : sizeof(len)+1;
     } else {
+		// 当ziplist数据个数大于255时会扩展一个4个字节个数
         if (len < ZIP_BIG_PREVLEN) {
             p[0] = len;
             return 1;
@@ -420,6 +421,7 @@ unsigned int zipStorePrevEntryLength(unsigned char *p, unsigned int len) {
 
 /* Return the number of bytes used to encode the length of the previous
  * entry. The length is returned by setting the var 'prevlensize'. */
+// 有可能ziplist4个字节的
 #define ZIP_DECODE_PREVLENSIZE(ptr, prevlensize) do {                          \
     if ((ptr)[0] < ZIP_BIG_PREVLEN) {                                          \
         (prevlensize) = 1;                                                     \
@@ -481,6 +483,7 @@ int zipTryEncoding(unsigned char *entry, unsigned int entrylen, long long *v, un
     long long value;
 
     if (entrylen >= 32 || entrylen == 0) return 0;
+	// string类型转longlong类型
     if (string2ll((char*)entry,entrylen,&value)) {
         /* Great, the string can be encoded. Check what's the smallest
          * of our encoding types that can hold this value. */
@@ -575,14 +578,22 @@ void zipEntry(unsigned char *p, zlentry *e) {
 }
 
 /* Create a new empty ziplist. */
+// ziplist相当于 结构体 
+//{
+//	unsigned int m_size; // 结构体的大小
+//	unsigned int m_curr; // 开始位置
+//	unsigned float m_length; // 数据的长度 长度为使用两个字节呢 两个字节最大的数是 255 = (2^8)
+//	unsigned char * contents[];// C99中的变长数组  -> 动态申请的字节
+//	unsigned char m_end; // 结束标记
+//}
 unsigned char *ziplistNew(void) {
-    unsigned int bytes = ZIPLIST_HEADER_SIZE+1;
+    unsigned int bytes = ZIPLIST_HEADER_SIZE+1; // 11个字节
     unsigned char *zl = zmalloc(bytes);
 	//赋值字节的大小
     ZIPLIST_BYTES(zl) = intrev32ifbe(bytes);
 	//开始位置的大小
     ZIPLIST_TAIL_OFFSET(zl) = intrev32ifbe(ZIPLIST_HEADER_SIZE);
-    ZIPLIST_LENGTH(zl) = 0;
+    ZIPLIST_LENGTH(zl) = 0; // 
 	// 结束位置
     zl[bytes-1] = ZIP_END;
     return zl;
@@ -755,7 +766,10 @@ unsigned char *__ziplistInsert(unsigned char *zl, unsigned char *p, unsigned cha
     zlentry tail;
 
     /* Find out prevlen for the entry that is inserted. */
-    if (p[0] != ZIP_END) {
+	// 判断是从头部插入函数还是在尾部差人的数据的
+    if (p[0] != ZIP_END) 
+	{
+		// 
         ZIP_DECODE_PREVLEN(p, prevlensize, prevlen);
     } else {
         unsigned char *ptail = ZIPLIST_ENTRY_TAIL(zl);
@@ -765,6 +779,7 @@ unsigned char *__ziplistInsert(unsigned char *zl, unsigned char *p, unsigned cha
     }
 
     /* See if the entry can be encoded */
+	// 看string类型是否可以转换为longlong主要看string数据的是否能够放到longlong类型中去
     if (zipTryEncoding(s,slen,&value,&encoding)) {
         /* 'encoding' is set to the appropriate integer encoding */
         reqlen = zipIntSize(encoding);
@@ -775,6 +790,7 @@ unsigned char *__ziplistInsert(unsigned char *zl, unsigned char *p, unsigned cha
     }
     /* We need space for both the length of the previous entry and
      * the length of the payload. */
+	//判断存放数据的个数纪录如果大于255个就扩展4字节
     reqlen += zipStorePrevEntryLength(NULL,prevlen);
     reqlen += zipStoreEntryEncoding(NULL,encoding,slen);
 
@@ -894,10 +910,11 @@ unsigned char *ziplistMerge(unsigned char **first, unsigned char **second) {
     }
 
     /* Calculate final bytes (subtract one pair of metadata) */
+	// 拷贝后结构的长度  ->   要减去头信息结构的大小和结束的标记
     size_t zlbytes = first_bytes + second_bytes -
-                     ZIPLIST_HEADER_SIZE - ZIPLIST_END_SIZE;
+                     ZIPLIST_HEADER_SIZE - ZIPLIST_END_SIZE; // 
     size_t zllength = first_len + second_len;
-
+	// short 最大长度为255 即UINT16_MAX  -->纪录最大数据长度为255 但是申请内存时是有多大的数据就申请多大的内存
     /* Combined zl length should be limited within UINT16_MAX */
     zllength = zllength < UINT16_MAX ? zllength : UINT16_MAX;
 
@@ -906,6 +923,7 @@ unsigned char *ziplistMerge(unsigned char **first, unsigned char **second) {
     size_t second_offset = intrev32ifbe(ZIPLIST_TAIL_OFFSET(*second));
 
     /* Extend target to new zlbytes then append or prepend source. */
+	// 申请内存
     target = zrealloc(target, zlbytes);
     if (append) {
         /* append == appending to target */
@@ -926,6 +944,7 @@ unsigned char *ziplistMerge(unsigned char **first, unsigned char **second) {
     }
 
     /* Update header metadata. */
+	// ziplist结构的信息
     ZIPLIST_BYTES(target) = intrev32ifbe(zlbytes);
     ZIPLIST_LENGTH(target) = intrev16ifbe(zllength);
     /* New tail offset is:
@@ -958,6 +977,8 @@ unsigned char *ziplistMerge(unsigned char **first, unsigned char **second) {
 
 unsigned char *ziplistPush(unsigned char *zl, unsigned char *s, unsigned int slen, int where) {
     unsigned char *p;
+	// 在头部插入还是在尾部插入的数据的指针
+	// 如果是头部插入的话就返回当前的数据的intset结构数
     p = (where == ZIPLIST_HEAD) ? ZIPLIST_ENTRY_HEAD(zl) : ZIPLIST_ENTRY_END(zl);
     return __ziplistInsert(zl,p,s,slen);
 }
