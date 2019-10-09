@@ -126,6 +126,7 @@ volatile unsigned long lru_clock; /* Server global current LRU time. */
  */
 struct redisCommand redisCommandTable[] = {
 	{"module",moduleCommand,-2,"as",0,NULL,0,0,0,0,0},
+	// string
 	{"get",getCommand,2,"rF",0,NULL,1,1,1,0,0},
 	{"set",setCommand,-3,"wm",0,NULL,1,1,1,0,0},
 	{"setnx",setnxCommand,3,"wmF",0,NULL,1,1,1,0,0},
@@ -145,11 +146,12 @@ struct redisCommand redisCommandTable[] = {
 	{"incr",incrCommand,2,"wmF",0,NULL,1,1,1,0,0},
 	{"decr",decrCommand,2,"wmF",0,NULL,1,1,1,0,0},
 	{"mget",mgetCommand,-2,"rF",0,NULL,1,-1,1,0,0},
+	// list
 	{"rpush",rpushCommand,-3,"wmF",0,NULL,1,1,1,0,0},
 	{"lpush",lpushCommand,-3,"wmF",0,NULL,1,1,1,0,0},
 	{"rpushx",rpushxCommand,-3,"wmF",0,NULL,1,1,1,0,0},
 	{"lpushx",lpushxCommand,-3,"wmF",0,NULL,1,1,1,0,0},
-	{"linsert",linsertCommand,5,"wm",0,NULL,1,1,1,0,0},
+	{"linsert",linsertCommand,5,"wm",0,NULL,1,1,1,0,0}, // 在指定元素后面插入数据
 	{"rpop",rpopCommand,2,"wF",0,NULL,1,1,1,0,0},
 	{"lpop",lpopCommand,2,"wF",0,NULL,1,1,1,0,0},
 	{"brpop",brpopCommand,-3,"ws",0,NULL,1,-2,1,0,0},
@@ -162,6 +164,7 @@ struct redisCommand redisCommandTable[] = {
 	{"ltrim",ltrimCommand,4,"w",0,NULL,1,1,1,0,0},
 	{"lrem",lremCommand,4,"w",0,NULL,1,1,1,0,0},
 	{"rpoplpush",rpoplpushCommand,3,"wm",0,NULL,1,2,1,0,0},
+	// set
 	{"sadd",saddCommand,-3,"wmF",0,NULL,1,1,1,0,0},
 	{"srem",sremCommand,-3,"wF",0,NULL,1,1,1,0,0},
 	{"smove",smoveCommand,4,"wF",0,NULL,1,2,1,0,0},
@@ -177,6 +180,7 @@ struct redisCommand redisCommandTable[] = {
 	{"sdiffstore",sdiffstoreCommand,-3,"wm",0,NULL,1,-1,1,0,0},
 	{"smembers",sinterCommand,2,"rS",0,NULL,1,1,1,0,0},
 	{"sscan",sscanCommand,-3,"rR",0,NULL,1,1,1,0,0},
+	// zset
 	{"zadd",zaddCommand,-4,"wmF",0,NULL,1,1,1,0,0},
 	{"zincrby",zincrbyCommand,4,"wmF",0,NULL,1,1,1,0,0},
 	{"zrem",zremCommand,-3,"wF",0,NULL,1,1,1,0,0},
@@ -202,6 +206,7 @@ struct redisCommand redisCommandTable[] = {
 	{"zpopmax",zpopmaxCommand,-2,"wF",0,NULL,1,1,1,0,0},
 	{"bzpopmin",bzpopminCommand,-2,"wsF",0,NULL,1,-2,1,0,0},
 	{"bzpopmax",bzpopmaxCommand,-2,"wsF",0,NULL,1,-2,1,0,0},
+	// hash
 	{"hset",hsetCommand,-4,"wmF",0,NULL,1,1,1,0,0},
 	{"hsetnx",hsetnxCommand,4,"wmF",0,NULL,1,1,1,0,0},
 	{"hget",hgetCommand,3,"rF",0,NULL,1,1,1,0,0},
@@ -217,6 +222,7 @@ struct redisCommand redisCommandTable[] = {
 	{"hgetall",hgetallCommand,2,"rR",0,NULL,1,1,1,0,0},
 	{"hexists",hexistsCommand,3,"rF",0,NULL,1,1,1,0,0},
 	{"hscan",hscanCommand,-3,"rR",0,NULL,1,1,1,0,0},
+	// string
 	{"incrby",incrbyCommand,3,"wmF",0,NULL,1,1,1,0,0},
 	{"decrby",decrbyCommand,3,"wmF",0,NULL,1,1,1,0,0},
 	{"incrbyfloat",incrbyfloatCommand,3,"wmF",0,NULL,1,1,1,0,0},

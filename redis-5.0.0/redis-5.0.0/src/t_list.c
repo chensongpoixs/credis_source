@@ -160,7 +160,7 @@ void listTypeInsert(listTypeEntry *entry, robj *value, int where) {
 int listTypeEqual(listTypeEntry *entry, robj *o) {
     if (entry->li->encoding == OBJ_ENCODING_QUICKLIST) {
         serverAssertWithInfo(NULL,o,sdsEncodedObject(o));
-        return quicklistCompare(entry->entry.zi,o->ptr,sdslen(o->ptr));
+        return quicklistCompare(entry->entry.zi, o->ptr, sdslen(o->ptr));
     } else {
         serverPanic("Unknown list encoding");
     }
@@ -204,12 +204,17 @@ void pushGenericCommand(client *c, int where) {
     }
 
     for (j = 2; j < c->argc; j++) {
+		// 第一次时要插入redis的dict中的key即hash值之后都是使用quicktlist连接数据的
         if (!lobj) {
+			// 把链表的数据结构
             lobj = createQuicklistObject();
+			// 设置每个链表的可以存储数据的个数  只是在redis.conf的配置文件中配置的 默认配置的8kb的大小
             quicklistSetOptions(lobj->ptr, server.list_max_ziplist_size,
                                 server.list_compress_depth);
+			// 把hash值插入redis的dict中去
             dbAdd(c->db,c->argv[1],lobj);
         }
+		// 插入链表中的使用
         listTypePush(lobj,c->argv[j],where);
         pushed++;
     }
@@ -281,6 +286,7 @@ void linsertCommand(client *c) {
         checkType(c,subject,OBJ_LIST)) return;
 
     /* Seek pivot from head to tail */
+	//
     iter = listTypeInitIterator(subject,0,LIST_TAIL);
     while (listTypeNext(iter,&entry)) {
         if (listTypeEqual(&entry,c->argv[3])) {
@@ -291,6 +297,7 @@ void linsertCommand(client *c) {
     }
     listTypeReleaseIterator(iter);
 
+	// 通知其它的模块事件类
     if (inserted) {
         signalModifiedKey(c->db,c->argv[1]);
         notifyKeyspaceEvent(NOTIFY_LIST,"linsert",

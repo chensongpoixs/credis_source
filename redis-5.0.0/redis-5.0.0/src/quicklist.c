@@ -482,6 +482,7 @@ int quicklistPushHead(quicklist *quicklist, void *value, size_t sz) {
     quicklistNode *orig_head = quicklist->head;
 	//链表也分五个大的数组在每个数组没有被填充满时继续添加数据到这个数组中，如果被填充满了就从新申请下一个数组
 	// 其实数组数据结构就是ziplist的结构
+	// 这个结构结构中在头节点中纪录所有数组链表中的个数， 而在每个数组的链表中的纪录当前的数组的中的个数
     if (likely( _quicklistNodeAllowInsert(quicklist->head, quicklist->fill, sz))) {
         quicklist->head->zl =
             ziplistPush(quicklist->head->zl, value, sz, ZIPLIST_HEAD);
@@ -494,7 +495,9 @@ int quicklistPushHead(quicklist *quicklist, void *value, size_t sz) {
 		// 新的ziplist添加数组中去
         _quicklistInsertNodeBefore(quicklist, quicklist->head, node);
     }
+	// 每一个链表的数据中都有怎么一个count这个是自己增加的
     quicklist->count++;
+	// 头节点数组中纪录所有数组链表的个数
     quicklist->head->count++;
     return (orig_head != quicklist->head);
 }
@@ -1075,7 +1078,7 @@ quicklistIter *quicklistGetIteratorAtIdx(const quicklist *quicklist,
                                          const int direction,
                                          const long long idx) {
     quicklistEntry entry;
-
+	// check 该链表的是否可以查询   知道当前要查询的下标的偏移量
     if (quicklistIndex(quicklist, idx, &entry)) {
         quicklistIter *base = quicklistGetIterator(quicklist, direction);
         base->zi = NULL;
@@ -1235,6 +1238,7 @@ int quicklistIndex(const quicklist *quicklist, const long long idx,
     initEntry(entry);
     entry->quicklist = quicklist;
 
+	// 取头节点还是尾节点开始
     if (!forward) {
         index = (-idx) - 1;
         n = quicklist->tail;
@@ -1242,11 +1246,12 @@ int quicklistIndex(const quicklist *quicklist, const long long idx,
         index = idx;
         n = quicklist->head;
     }
-
+	// 判断链表的数据的个数是否可以查询 -->链表的头节点纪录所有节点总和的个数
     if (index >= quicklist->count)
         return 0;
 
     while (likely(n)) {
+		// 找到要查询的开始下标
         if ((accum + n->count) > index) {
             break;
         } else {
@@ -1264,6 +1269,7 @@ int quicklistIndex(const quicklist *quicklist, const long long idx,
       accum, index, index - accum, (-index) - 1 + accum);
 
     entry->node = n;
+	// 开始查询的下标的偏移量  --> offset  
     if (forward) {
         /* forward = normal head-to-tail offset. */
         entry->offset = index - accum;

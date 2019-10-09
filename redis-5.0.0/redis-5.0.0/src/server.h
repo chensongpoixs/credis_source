@@ -601,13 +601,13 @@ typedef struct RedisModuleDigest {
 
 #define OBJ_SHARED_REFCOUNT INT_MAX
 typedef struct redisObject {
-    unsigned type:4;
-    unsigned encoding:4;
+    unsigned type:4;		// 数据类型的对象
+    unsigned encoding:4;	//数据编码压缩的格式
     unsigned lru:LRU_BITS; /* LRU time (relative to global lru_clock) or
                             * LFU data (least significant 8 bits frequency
                             * and most significant 16 bits access time). */
-    int refcount;
-    void *ptr;
+    int refcount;       // 类似于java中的引用计数 --> shared
+    void *ptr;      // 保存redis中的五种数据结构的指针
 } robj;
 
 /* Macro used to initialize a Redis object allocated on the stack.
@@ -1562,6 +1562,7 @@ int compareStringObjects(robj *a, robj *b);
 int collateStringObjects(robj *a, robj *b);
 int equalStringObjects(robj *a, robj *b);
 unsigned long long estimateObjectIdleTime(robj *o);
+// 这个两种可能有引用计数在里面使用使用的使用要特别的注意
 #define sdsEncodedObject(objptr) (objptr->encoding == OBJ_ENCODING_RAW || objptr->encoding == OBJ_ENCODING_EMBSTR)
 
 /* Synchronous I/O with timeout */

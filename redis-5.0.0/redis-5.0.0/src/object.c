@@ -42,7 +42,7 @@ robj *createObject(int type, void *ptr) {
     robj *o = zmalloc(sizeof(*o));
     o->type = type;
     o->encoding = OBJ_ENCODING_RAW;
-    o->ptr = ptr;
+    o->ptr = ptr;   //
     o->refcount = 1;
 
     /* Set the LRU to the current lruclock (minutes resolution), or
@@ -87,7 +87,7 @@ robj *createEmbeddedStringObject(const char *ptr, size_t len) {
 
     o->type = OBJ_STRING;
     o->encoding = OBJ_ENCODING_EMBSTR;
-    o->ptr = sh+1;
+    o->ptr = sh+1;  // 空出来buf[]存储数据的地方
     o->refcount = 1;
     if (server.maxmemory_policy & MAXMEMORY_FLAG_LFU) {
         o->lru = (LFUGetTimeInMinutes()<<8) | LFU_INIT_VAL;
@@ -142,6 +142,7 @@ robj *createStringObjectFromLongLongWithOptions(long long value, int valueobj) {
     }
 
     if (value >= 0 && value < OBJ_SHARED_INTEGERS && valueobj == 0) {
+		// 共用一块内存使用引用技术 
         incrRefCount(shared.integers[value]);
         o = shared.integers[value];
     } else {
@@ -674,7 +675,9 @@ int getLongDoubleFromObjectOrReply(client *c, robj *o, long double *target, cons
     *target = value;
     return C_OK;
 }
-
+/**
+* 转换字符串转long long类型 check
+*/
 int getLongLongFromObject(robj *o, long long *target) {
     long long value;
 
