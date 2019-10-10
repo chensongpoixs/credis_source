@@ -860,7 +860,7 @@ unsigned char *__ziplistInsert(unsigned char *zl, unsigned char *p, unsigned cha
     } else {
         zipSaveInteger(p,value,encoding);
     }
-	// 修改ziplist的信息 中zllen 只是2个字节也65535个数 
+	// 修改ziplist的信息 中zllen 只是2个字节也65535个数在这里有个数大于65535时O(N)小于65535时O(1) 
     ZIPLIST_INCR_LENGTH(zl,1);
     return zl;
 }
