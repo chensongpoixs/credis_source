@@ -83,8 +83,10 @@ void setGenericCommand(client *c, int flags, robj *key, robj *val, robj *expire,
         addReply(c, abort_reply ? abort_reply : shared.nullbulk);
         return;
     }
+	// dict
     setKey(c->db,key,val);
     server.dirty++;
+	/// expire 添加的过期hash表中
     if (expire) setExpire(c,c->db,key,mstime()+milliseconds);
     notifyKeyspaceEvent(NOTIFY_STRING,"set",key,c->db->id); // redis中订阅模式使用-->使用事件通知
     if (expire) notifyKeyspaceEvent(NOTIFY_GENERIC,

@@ -1040,7 +1040,7 @@ struct redisMemOverhead *getMemoryOverheadData(void) {
         mh->total_keys += keyscount;
         mh->db = zrealloc(mh->db,sizeof(mh->db[0])*(mh->num_dbs+1));
         mh->db[mh->num_dbs].dbid = j;
-
+		// dict中的已经申请的hasttable内存 + 现在插入内存中年hashtable的内存 + dict申请的hash的对象的内存 
         mem = dictSize(db->dict) * sizeof(dictEntry) +
               dictSlots(db->dict) * sizeof(dictEntry*) +
               dictSize(db->dict) * sizeof(robj);

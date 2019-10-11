@@ -69,7 +69,7 @@ typedef struct dictType {
 typedef struct dictht {
     dictEntry **table;
     unsigned long size;  // 大小生成是有规律的都是4的倍数据
-    unsigned long sizemask;   // 
+    unsigned long sizemask;   //hash中 
     unsigned long used;
 } dictht;
 

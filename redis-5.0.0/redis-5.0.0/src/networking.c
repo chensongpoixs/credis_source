@@ -1496,7 +1496,7 @@ void processInputBufferAndReplicate(client *c) {
         }
     }
 }
-
+// client read  感觉redis中io设计有差了 --没有使用反应堆模式
 void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
     client *c = (client*) privdata;
     int nread, readlen;

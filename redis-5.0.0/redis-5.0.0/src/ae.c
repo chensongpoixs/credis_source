@@ -269,6 +269,7 @@ static aeTimeEvent *aeSearchNearestTimer(aeEventLoop *eventLoop)
 }
 
 /* Process time events */
+// work io timer
 static int processTimeEvents(aeEventLoop *eventLoop) 
 {
     int processed = 0;

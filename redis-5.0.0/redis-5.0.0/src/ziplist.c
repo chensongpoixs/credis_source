@@ -274,7 +274,7 @@ typedef struct zlentry {
     unsigned int lensize;        /* 使用字节的编码 Bytes used to encode this entry type/len.
                                     For example strings have a 1, 2 or 5 bytes
                                     header. Integers always use a single byte.*/
-    unsigned int len;            /* 当前节点的长度Bytes used to represent the actual entry.
+    unsigned int len;            /* 当前节点的数据的长度Bytes used to represent the actual entry.
                                     For strings this is just the string length
                                     while for integers it is 1, 2, 3, 4, 8 or
                                     0 (for 4 bit immediate) depending on the
@@ -465,6 +465,7 @@ unsigned int zipStorePrevEntryLength(unsigned char *p, unsigned int len) {
  * is needed. */
 int zipPrevLenByteDiff(unsigned char *p, unsigned int len) {
     unsigned int prevlensize;
+	// 节点的数据的数据的的长度记录字节记录
     ZIP_DECODE_PREVLENSIZE(p, prevlensize);
     return zipStorePrevEntryLength(NULL, len) - prevlensize;
 }
@@ -853,6 +854,7 @@ unsigned char *__ziplistInsert(unsigned char *zl, unsigned char *p, unsigned cha
 
     /* Write the entry */
 	// 找到要写入节点的数据的位置
+	// 节点头部的字节数
     p += zipStorePrevEntryLength(p,prevlen);
     p += zipStoreEntryEncoding(p,encoding,slen);
     if (ZIP_IS_STR(encoding)) {

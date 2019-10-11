@@ -58,6 +58,7 @@ int activeExpireCycleTryExpire(redisDb *db, dictEntry *de, long long now) {
         robj *keyobj = createStringObject(key,sdslen(key));
 
         propagateExpire(db,keyobj,server.lazyfree_lazy_expire);
+		// redis 删除一次性dict和expare中的hash
         if (server.lazyfree_lazy_expire)
             dbAsyncDelete(db,keyobj);
         else
@@ -147,7 +148,7 @@ void activeExpireCycle(int type) {
     long total_expired = 0;
 
     for (j = 0; j < dbs_per_call && timelimit_exit == 0; j++) {
-        int expired;
+        int expired; // 记录db0中的有多少个hash过期删除的个数
         redisDb *db = server.db+(current_db % server.dbnum);
 
         /* Increment the DB now so we are sure if we run out of time
@@ -192,6 +193,7 @@ void activeExpireCycle(int type) {
 
                 if ((de = dictGetRandomKey(db->expires)) == NULL) break;
                 ttl = dictGetSignedIntegerVal(de)-now;
+				// 过期的hash值删除操作
                 if (activeExpireCycleTryExpire(db,de,now)) expired++;
                 if (ttl > 0) {
                     /* We want the average TTL of keys yet not expired. */
