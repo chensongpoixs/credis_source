@@ -176,6 +176,7 @@ void listTypeDelete(listTypeIterator *iter, listTypeEntry *entry) {
 }
 
 /* Create a quicklist from a single ziplist */
+// 在redis启动的时候加载文件中list数据结构中数据是ziplist结构所以要转换为OBJ_ENCODING_QUICKLIST方便取数据
 void listTypeConvert(robj *subject, int enc) {
     serverAssertWithInfo(NULL,subject,subject->type==OBJ_LIST);
     serverAssertWithInfo(NULL,subject,subject->encoding==OBJ_ENCODING_ZIPLIST);

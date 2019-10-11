@@ -60,6 +60,7 @@ int setTypeAdd(robj *subject, sds value) {
             return 1;
         }
     } else if (subject->encoding == OBJ_ENCODING_INTSET) {
+		// 集合如果intset编码格式会对每一个要插入数据进行检查是否是转换longlong， 不可以就转换hashtable表的编码格式
         if (isSdsRepresentableAsLongLong(value,&llval) == C_OK) {
             uint8_t success = 0;
             subject->ptr = intsetAdd(subject->ptr,llval,&success);
@@ -232,6 +233,7 @@ unsigned long setTypeSize(const robj *subject) {
 /* Convert the set to specified encoding. The resulting dict (when converting
  * to a hash table) is presized to hold the number of elements in the original
  * set. */
+// set中编码格式转换hashtable的格式
 void setTypeConvert(robj *setobj, int enc) {
     setTypeIterator *si;
     serverAssertWithInfo(NULL,setobj,setobj->type == OBJ_SET &&

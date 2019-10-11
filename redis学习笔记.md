@@ -152,7 +152,7 @@ redis 提供 6种数据淘汰策略：
 
 
 
-### 三, redis中的数据类型
+### 三, redis中的数据类型-- 对象系统
 
 #### 1, redis中的数据的类型分为五种的数据类型对象
 
@@ -183,9 +183,20 @@ redis 提供 6种数据淘汰策略：
 #define OBJ_ENCODING_EMBSTR 8  /* Embedded sds string encoding */
 #define OBJ_ENCODING_QUICKLIST 9 /* Encoded as linked list of ziplists */
 #define OBJ_ENCODING_STREAM 10 /* Encoded as a radix tree of listpacks */
+
+
 ```
+编码格式一一对应
 
-
+|redis数据类型|编码格式||||
+|:--:|:--:|:--:|:--:|:--:|
+|OBJ_STRING|OBJ_ENCODING_INT|long类型编码格式|
+|OBJ_STRING|OBJ_ENCODING_EMBSTR|字符串小于44使用该编码格式|
+|OBJ_STRING|OBJ_ENCODING_RAW|字符串大于44的使用该动态申请内存(sds)|
+|OBJ_LIST|OBJ_ENCODING_QUICKLIST|在内存中编码格式quick_list数据结构|
+|OBJ_LIST|OBJ_ENCODING_ZIPLIST|在保存落地文件的时候是以压缩编码ziplist格式保存文件中去的，在redis启动时候要报落地文件中list结构转换quick_list编码格式|
+|OBJ_SET|OBJ_ENCODING_HT|hashtable编码|
+|OBJ_SET|OBJ_ENCODING_INTSET|intset编码每个要插入字符都要检查, 字符过长就是要hashtable编码格式|
 
 
 
