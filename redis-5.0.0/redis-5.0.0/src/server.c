@@ -207,7 +207,7 @@ struct redisCommand redisCommandTable[] = {
 	{"bzpopmin",bzpopminCommand,-2,"wsF",0,NULL,1,-2,1,0,0},
 	{"bzpopmax",bzpopmaxCommand,-2,"wsF",0,NULL,1,-2,1,0,0},
 	// hash
-	{"hset",hsetCommand,-4,"wmF",0,NULL,1,1,1,0,0},
+	{"hset",hsetCommand,-4,"wmF",0,NULL,1,1,1,0,0}, // hset 和 hmset的区别是 hset返回插入成功的字段个数 hmset返回也ok当是不知道插入成功条数
 	{"hsetnx",hsetnxCommand,4,"wmF",0,NULL,1,1,1,0,0},
 	{"hget",hgetCommand,3,"rF",0,NULL,1,1,1,0,0},
 	{"hmset",hsetCommand,-4,"wmF",0,NULL,1,1,1,0,0},

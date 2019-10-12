@@ -473,7 +473,9 @@ int zipPrevLenByteDiff(unsigned char *p, unsigned int len) {
 /* Return the total number of bytes used by the entry pointed to by 'p'. */
 unsigned int zipRawEntryLength(unsigned char *p) {
     unsigned int prevlensize, encoding, lensize, len;
+	// check ziplist head 节点的信息包的是使用1个字节还是5个字节
     ZIP_DECODE_PREVLENSIZE(p, prevlensize);
+	// lensize使用的编码的字节长度
     ZIP_DECODE_LENGTH(p + prevlensize, encoding, lensize, len);
     return prevlensize + lensize + len;
 }

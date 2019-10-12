@@ -46,6 +46,7 @@ void hashTypeTryConversion(robj *o, robj **argv, int start, int end) {
         if (sdsEncodedObject(argv[i]) &&
             sdslen(argv[i]->ptr) > server.hash_max_ziplist_value)
         {
+			// 转换hash表中的vlaue现在是ziplist要修改成hashtable的编码格式即OBJ_ENCODING_HT
             hashTypeConvert(o, OBJ_ENCODING_HT);
             break;
         }
@@ -478,7 +479,7 @@ void hashTypeConvertZiplist(robj *o, int enc) {
 
         while (hashTypeNext(hi) != C_ERR) {
             sds key, value;
-
+			//取出ziplist压缩列表中的key-value的数据的保存到hash_table中的
             key = hashTypeCurrentObjectNewSds(hi,OBJ_HASH_KEY);
             value = hashTypeCurrentObjectNewSds(hi,OBJ_HASH_VALUE);
             ret = dictAdd(dict, key, value);
@@ -537,6 +538,8 @@ void hsetCommand(client *c) {
     }
 
     if ((o = hashTypeLookupWriteOrCreate(c,c->argv[1])) == NULL) return;
+	// 检查hash表的编码hashtable类型
+	// 1. hash的编码格式ziplist -> 不是就要检查客户端发送的数据包key-value是否大于64如果大于就要修改hash表中的编码格式修改hashtable
     hashTypeTryConversion(o,c->argv,2,c->argc-1);
 
 	// 插入元素

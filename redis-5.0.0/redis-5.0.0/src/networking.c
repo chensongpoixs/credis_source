@@ -1188,7 +1188,7 @@ int processInlineBuffer(client *c) {
     querylen = newline-(c->querybuf+c->qb_pos);
     aux = sdsnewlen(c->querybuf+c->qb_pos,querylen);
 	// 命令行 参数分割申请内存  临时的变量存储 cmd
-	printf("[%s][%d][client send -> msg = %s]\n", __PRETTY_FUNCTION__, __LINE__, aux);
+	//printf("[%s][%d][client send -> msg = %s]\n", __PRETTY_FUNCTION__, __LINE__, aux);
     argv = sdssplitargs(aux,&argc);
     sdsfree(aux);
     if (argv == NULL) {
@@ -1293,6 +1293,7 @@ int processMultibulkBuffer(client *c) {
         /* We know for sure there is a whole line since newline != NULL,
          * so go ahead and find out the multi bulk length. */
         serverAssertWithInfo(c,NULL,c->querybuf[c->qb_pos] == '*');
+		// 读取包的大小
         ok = string2ll(c->querybuf+1+c->qb_pos,newline-(c->querybuf+1+c->qb_pos),&ll);
         if (!ok || ll > 1024*1024) {
             addReplyError(c,"Protocol error: invalid multibulk length");
@@ -1386,6 +1387,9 @@ int processMultibulkBuffer(client *c) {
                 c->querybuf = sdsnewlen(SDS_NOINIT,c->bulklen+2);
                 sdsclear(c->querybuf);
             } else {
+				// 对客户端信息包简单封装  
+				// 1. 长度大于 44 使用raw对象
+				// 2. 小于44使用EMBSTR对象
                 c->argv[c->argc++] =
                     createStringObject(c->querybuf+c->qb_pos,c->bulklen);
                 c->qb_pos += c->bulklen+2;
@@ -1548,7 +1552,9 @@ void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
         c->pending_querybuf = sdscatlen(c->pending_querybuf,
                                         c->querybuf+qblen,nread);
     }
-
+	// 打印客户端发送数据包的信息 --> redis是自己对redis信息sds
+	// 很特色 都是以 '*' 开头
+	printf("[%s][%d][client send -> msg = %s]\n", __PRETTY_FUNCTION__, __LINE__, c->querybuf + qblen);
     sdsIncrLen(c->querybuf,nread);
     c->lastinteraction = server.unixtime;
     if (c->flags & CLIENT_MASTER) c->read_reploff += nread;

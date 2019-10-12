@@ -195,8 +195,47 @@ redis 提供 6种数据淘汰策略：
 |OBJ_STRING|OBJ_ENCODING_RAW|字符串大于44的使用该动态申请内存(sds)|
 |OBJ_LIST|OBJ_ENCODING_QUICKLIST|在内存中编码格式quick_list数据结构|
 |OBJ_LIST|OBJ_ENCODING_ZIPLIST|在保存落地文件的时候是以压缩编码ziplist格式保存文件中去的，在redis启动时候要报落地文件中list结构转换quick_list编码格式|
+|OBJ_HASH|OBJ_ENCODING_ZIPLIST|字符或者数字的长度小64时是要ziplist压缩编码|
+|OBJ_HASH|OBJ_ENCODING_HT|字符或者数字的长度大于64时使用hashtable编码|
 |OBJ_SET|OBJ_ENCODING_HT|hashtable编码|
 |OBJ_SET|OBJ_ENCODING_INTSET|intset编码每个要插入字符都要检查, 字符过长就是要hashtable编码格式|
+
+
+
+在set数据结构中的intset编码格式转换为hashtable有两种情况
+
+1. 当保存value值大于long long的最大值时会触发hashtable编码格式 
+2. 当intset格式存储数据的二进制大于配置表中set-max-intset-entries的最大值时会转换为hashtable的数据结构
+
+```
+// 集合如果intset编码格式会对每一个要插入数据进行检查是否是转换longlong， 不可以就转换hashtable表的编码格式
+if (isSdsRepresentableAsLongLong(value,&llval) == C_OK) {
+	uint8_t success = 0;
+	// 这个插入的有一个点讲究哦， 可能要转换编码格式哦 	
+	// intset中的整数编码四种格式
+	// 1. 一个字节
+	// 2. 二个字节
+	// 3. 四个字节
+	// 4. 八个字节
+	subject->ptr = intsetAdd(subject->ptr,llval,&success);
+	if (success) {
+		/* Convert to regular set when the intset contains
+		 * too many entries. */
+		// intset 整数编码格式的长度是否大于配置表的中的大小如果大于就要的修改成hashtable的编码格式了
+		if (intsetLen(subject->ptr) > server.set_max_intset_entries)
+			setTypeConvert(subject,OBJ_ENCODING_HT);
+		return 1;
+	}
+} else {
+	/* Failed to get integer from object, convert to regular set. */
+	setTypeConvert(subject,OBJ_ENCODING_HT);
+
+	/* The set *was* an intset and this value is not integer
+	 * encodable, so dictAdd should always work. */
+	serverAssert(dictAdd(subject->ptr,sdsdup(value),NULL) == DICT_OK);
+	return 1;
+}
+```
 
 
 

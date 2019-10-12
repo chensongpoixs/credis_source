@@ -63,10 +63,17 @@ int setTypeAdd(robj *subject, sds value) {
 		// 集合如果intset编码格式会对每一个要插入数据进行检查是否是转换longlong， 不可以就转换hashtable表的编码格式
         if (isSdsRepresentableAsLongLong(value,&llval) == C_OK) {
             uint8_t success = 0;
+			// 这个插入的有一个点讲究哦， 可能要转换编码格式哦
+			// intset中的整数编码四种格式
+			// 1. 一个字节
+			// 2. 二个字节
+			// 3. 四个字节
+			// 4. 八个字节
             subject->ptr = intsetAdd(subject->ptr,llval,&success);
             if (success) {
                 /* Convert to regular set when the intset contains
                  * too many entries. */
+				// intset 整数编码格式的长度是否大于配置表的中的大小如果大于就要的修改成hashtable的编码格式了
                 if (intsetLen(subject->ptr) > server.set_max_intset_entries)
                     setTypeConvert(subject,OBJ_ENCODING_HT);
                 return 1;
