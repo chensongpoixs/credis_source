@@ -971,7 +971,7 @@ sds *sdssplitargs(const char *line, int *argc) {
                                              is_hex_digit(*(p+3)))
                     {
                         unsigned char byte;
-
+						// 一个字节8位->    1111 1111  ---> 
                         byte = (hex_digit_to_int(*(p+2))*16)+
                                 hex_digit_to_int(*(p+3));
                         current = sdscatlen(current,(char*)&byte,1);
@@ -1022,7 +1022,7 @@ sds *sdssplitargs(const char *line, int *argc) {
                     case '\r':
                     case '\t':
                     case '\0':
-                        done=1;
+                        done=1;  // 一个参数结束时的操作
                         break;
                     case '"':
                         inq=1;

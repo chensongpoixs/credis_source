@@ -1187,6 +1187,8 @@ int processInlineBuffer(client *c) {
     /* Split the input buffer up to the \r\n */
     querylen = newline-(c->querybuf+c->qb_pos);
     aux = sdsnewlen(c->querybuf+c->qb_pos,querylen);
+	// 命令行 参数分割申请内存  临时的变量存储 cmd
+	printf("[%s][%d][client send -> msg = %s]\n", __PRETTY_FUNCTION__, __LINE__, aux);
     argv = sdssplitargs(aux,&argc);
     sdsfree(aux);
     if (argv == NULL) {
@@ -1211,6 +1213,7 @@ int processInlineBuffer(client *c) {
     }
 
     /* Create redis objects for all arguments. */
+	// 删除多余的 没有数据的命令行
     for (c->argc = 0, j = 0; j < argc; j++) {
         if (sdslen(argv[j])) {
             c->argv[c->argc] = createObject(OBJ_STRING,argv[j]);
@@ -1437,6 +1440,7 @@ void processInputBuffer(client *c) {
         }
 
         if (c->reqtype == PROTO_REQ_INLINE) {
+			// 解析命令行参数
             if (processInlineBuffer(c) != C_OK) break;
         } else if (c->reqtype == PROTO_REQ_MULTIBULK) {
             if (processMultibulkBuffer(c) != C_OK) break;

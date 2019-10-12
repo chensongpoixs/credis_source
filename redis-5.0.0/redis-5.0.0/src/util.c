@@ -358,6 +358,7 @@ int string2ll(const char *s, size_t slen, long long *value) {
 
     /* Handle negative numbers: just set a flag and continue like if it
      * was a positive number. Later convert into negative. */
+	// 记录字符串的正负值
     if (p[0] == '-') {
         negative = 1;
         p++; plen++;
@@ -368,6 +369,7 @@ int string2ll(const char *s, size_t slen, long long *value) {
     }
 
     /* First digit should be 1-9, otherwise the string should just be 0. */
+	// 判断字符串是否数字
     if (p[0] >= '1' && p[0] <= '9') {
         v = p[0]-'0';
         p++; plen++;
@@ -376,6 +378,7 @@ int string2ll(const char *s, size_t slen, long long *value) {
     }
 
     /* Parse all the other digits, checking for overflow at every step. */
+	// 字符串转换longlong ->过程判断是否是否有内存溢出的情况
     while (plen < slen && p[0] >= '0' && p[0] <= '9') {
         if (v > (ULLONG_MAX / 10)) /* Overflow. */
             return 0;

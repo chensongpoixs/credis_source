@@ -2226,6 +2226,7 @@ void populateCommandTable(void) {
 
 		while (*f != '\0') {
 			switch (*f) {
+			// redis cmd 权限->
 			case 'w': c->flags |= CMD_WRITE; break;
 			case 'r': c->flags |= CMD_READONLY; break;
 			case 'm': c->flags |= CMD_DENYOOM; break;
@@ -2466,6 +2467,7 @@ void call(client *c, int flags) {
 	/* Call the command. */
 	dirty = server.dirty;
 	start = ustime();
+	// backcall -->cmd    client exec cmd
 	c->cmd->proc(c);
 	duration = ustime() - start;
 	dirty = server.dirty - dirty;
@@ -2599,6 +2601,7 @@ int processCommand(client *c) {
 	}
 	else if ((c->cmd->arity > 0 && c->cmd->arity != c->argc) ||
 		(c->argc < -c->cmd->arity)) {
+		// 检查命令行参数的个数是否符合要求
 		flagTransaction(c);
 		addReplyErrorFormat(c, "wrong number of arguments for '%s' command",
 			c->cmd->name);
