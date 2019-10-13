@@ -53,10 +53,14 @@ robj *setTypeCreate(sds value) {
 int setTypeAdd(robj *subject, sds value) {
     long long llval;
     if (subject->encoding == OBJ_ENCODING_HT) {
+		// 每个set就是一个哈希表
         dict *ht = subject->ptr;
+		// 得到节点的数据插入数据---> value对应就是哈希中索引所以它是不会冲突的
         dictEntry *de = dictAddRaw(ht,value,NULL);
         if (de) {
+			// 保持key-value在set中key就是要保持插入的数据，
             dictSetKey(ht,de,sdsdup(value));
+			// value为空
             dictSetVal(ht,de,NULL);
             return 1;
         }

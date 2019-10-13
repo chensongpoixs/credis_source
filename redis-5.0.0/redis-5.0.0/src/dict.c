@@ -600,6 +600,7 @@ dictEntry *dictNext(dictIterator *iter)
 {
     while (1) {
         if (iter->entry == NULL) {
+			// 判断使用第一个哈希表还是第二个哈希表
             dictht *ht = &iter->d->ht[iter->table];
             if (iter->index == -1 && iter->table == 0) {
                 if (iter->safe)
@@ -609,6 +610,7 @@ dictEntry *dictNext(dictIterator *iter)
             }
             iter->index++;
             if (iter->index >= (long) ht->size) {
+				// 判断是否在异步刷新哈希表的操作
                 if (dictIsRehashing(iter->d) && iter->table == 0) {
                     iter->table++;
                     iter->index = 0;

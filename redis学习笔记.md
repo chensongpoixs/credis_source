@@ -238,6 +238,38 @@ if (isSdsRepresentableAsLongLong(value,&llval) == C_OK) {
 ```
 
 
+redis中迭代器使用
+
+set数据结构使用的迭代器
+
+```
+typedef struct {
+    robj *subject; // redis中对象
+    int encoding; // 编码格式
+    int ii; /* intset iterator */
+    dictIterator *di;
+} setTypeIterator;
+
+// 字典的迭代器
+typedef struct dictIterator {
+    dict *d;  // 哈希表
+    long index;
+    int table, safe; // 哈希表的数组一个有两个 0, 1
+    dictEntry *entry, *nextEntry;    /* unsafe iterator fingerprint for misuse detection. */
+    long long fingerprint;
+} dictIterator;
+
+typedef struct dict {
+    dictType *type;
+    void *privdata;
+    dictht ht[2];
+    long rehashidx; /* rehashing not in progress if rehashidx == -1 */
+    unsigned long iterators; /* number of iterators currently running */
+} dict;
+
+```
+
+
 
 
 

@@ -146,7 +146,7 @@ static uint8_t intsetSearch(intset *is, int64_t value, uint32_t *pos) {
             break;
         }
     }
-
+	// 如果存在就不会在插入数据
     if (value == cur) {
         if (pos) *pos = mid;
         return 1;
