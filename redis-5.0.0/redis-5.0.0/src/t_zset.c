@@ -262,7 +262,9 @@ zskiplistNode *zslUpdateScore(zskiplist *zsl, double curscore, sds ele, double n
     /* We need to seek to element to update to start: this is useful anyway,
      * we'll have to update or remove it. */
     x = zsl->header;
+	// 找到跳跃表的节点指针  跳跃表中分等级的哦每个等级中的数据的个数可能相等哦
     for (i = zsl->level-1; i >= 0; i--) {
+		// 遍历每个等级中的数据的于当前节点的数据的是要修改的节点数据的
         while (x->level[i].forward &&
                 (x->level[i].forward->score < curscore ||
                     (x->level[i].forward->score == curscore &&
@@ -281,6 +283,7 @@ zskiplistNode *zslUpdateScore(zskiplist *zsl, double curscore, sds ele, double n
     /* If the node, after the score update, would be still exactly
      * at the same position, we can just update the score without
      * actually removing and re-inserting the element in the skiplist. */
+	// 判断节点判断保持数据的是否需要的修改位置 跳跃表中的数据的是从小到大的排序的
     if ((x->backward == NULL || x->backward->score < newscore) &&
         (x->level[0].forward == NULL || x->level[0].forward->score > newscore))
     {
@@ -290,7 +293,9 @@ zskiplistNode *zslUpdateScore(zskiplist *zsl, double curscore, sds ele, double n
 
     /* No way to reuse the old node: we need to remove and insert a new
      * one at a different place. */
+	// 说明要修改的数据的score大于当前的节点的score的值的所以需要的删除了当前节点从新插入的节点数据的
     zslDeleteNode(zsl, x, update);
+	// 插入的跳跃表的节点
     zskiplistNode *newnode = zslInsert(zsl,newscore,x->ele);
     /* We reused the old node x->ele SDS string, free the node now
      * since zslInsert created a new one. */

@@ -199,8 +199,8 @@ redis 提供 6种数据淘汰策略：
 |OBJ_HASH|OBJ_ENCODING_HT|字符或者数字的长度大于64时使用hashtable编码|
 |OBJ_SET|OBJ_ENCODING_HT|hashtable编码|
 |OBJ_SET|OBJ_ENCODING_INTSET|intset编码每个要插入字符都要检查, 字符过长就是要hashtable编码格式|
-|OBJ_ZSET|OBJ_ENCODING_ZIPLIST||
-|OBJ_ZSET|OBJ_ENCODING_SKIPLIST||
+|OBJ_ZSET|OBJ_ENCODING_ZIPLIST|有序集合子字符串小于64字节时使用ziplist编码格式,在zset中年使用ziplist是两个节点为一组数据即key-value|
+|OBJ_ZSET|OBJ_ENCODING_SKIPLIST|key是哈希表的插入的数字是使用跳跃表的进行排序的,跳跃表的|
 
 
 在set数据结构中的intset编码格式转换为hashtable有两种情况
