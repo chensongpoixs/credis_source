@@ -186,6 +186,7 @@ int dictExpand(dict *d, unsigned long size)
  * will visit at max N*10 empty buckets in total, otherwise the amount of
  * work it does would be unbound and the function may block for a long time. */
 int dictRehash(dict *d, int n) {
+	// empty_visits == 1000;
     int empty_visits = n*10; /* Max number of empty buckets to visit. */
 	if (!dictIsRehashing(d))
 	{
@@ -199,6 +200,7 @@ int dictRehash(dict *d, int n) {
         /* Note that rehashidx can't overflow as we are sure there are more
          * elements because ht[0].used != 0 */
         assert(d->ht[0].size > (unsigned long)d->rehashidx);
+		// rehashindx每次主线程更新检查1000数据中是否没有数据没有直接符合，下次在上次索引后面继续检查是否有数据有就检查是否有哈希冲突
         while(d->ht[0].table[d->rehashidx] == NULL) 
 		{
             d->rehashidx++;
@@ -209,6 +211,7 @@ int dictRehash(dict *d, int n) {
         }
         de = d->ht[0].table[d->rehashidx];
         /* Move all the keys in this bucket from the old to the new hash HT */
+		// 看见吧把hashtable1中数据移动hashtable2中了还是
         while(de) 
 		{
             uint64_t h;
@@ -225,7 +228,7 @@ int dictRehash(dict *d, int n) {
         d->ht[0].table[d->rehashidx] = NULL;
         d->rehashidx++;
     }
-
+	// 把hashtable2移动hashtable1表 的指针
     /* Check if we already rehashed the whole table... */
     if (d->ht[0].used == 0) 
 	{
@@ -318,6 +321,7 @@ dictEntry *dictAddRaw(dict *d, void *key, dictEntry **existing)
 
     /* Get the index of the new element, or -1 if
      * the element already exists. */
+	// 得到插入hash值的下标索引index值
     if ((index = _dictKeyIndex(d, key, dictHashKey(d,key), existing)) == -1)
         return NULL;
 	//if (server.debug)
@@ -330,6 +334,7 @@ dictEntry *dictAddRaw(dict *d, void *key, dictEntry **existing)
      * more frequently. */
 	//这里如果redis在异步移动数据的就会使用dict2的数组
     ht = dictIsRehashing(d) ? &d->ht[1] : &d->ht[0];
+	// 发生哈希冲突时的处理 在当前的哈希值节点后添加一个节点链表
     entry = zmalloc(sizeof(*entry));
     entry->next = ht->table[index];
     ht->table[index] = entry;
@@ -966,11 +971,12 @@ static int _dictExpandIfNeeded(dict *d)
      * table (global setting) or we should avoid it but the ratio between
      * elements/buckets is over the "safe" threshold, we resize doubling
      * the number of buckets. */
-    if (d->ht[0].used >= d->ht[0].size &&
+    //判断是否需要扩容   ？？ 有一点想不通 --> 就是used / size > 5 有一点不可能啊 只有在哈希冲突时会发生的这种情况
+	if (d->ht[0].used >= d->ht[0].size &&
         (dict_can_resize ||
-         d->ht[0].used/d->ht[0].size > dict_force_resize_ratio))
+         d->ht[0].used / d->ht[0].size > dict_force_resize_ratio))
     {
-        return dictExpand(d, d->ht[0].used*2);
+        return dictExpand(d, d->ht[0].used * 2);
     }
     return DICT_OK;
 }
@@ -1011,14 +1017,18 @@ static long _dictKeyIndex(dict *d, const void *key, uint64_t hash, dictEntry **e
 	{
         idx = hash & d->ht[table].sizemask;   // 这边hash & mask 
         /* Search if this slot does not already contain the given key */
+		// 在发生哈希冲突时会触发
+		/**/
         he = d->ht[table].table[idx];
         while(he) 
 		{
+			// key值是否相同， 这个情况子啊一开始查询的时候就已经排除了
             if (key==he->key || dictCompareKeys(d, key, he->key)) 
 			{
                 if (existing) *existing = he;
                 return -1;
             }
+			// 这里已经把哈希表中索引的节点向后移动了， 得到链表中最后一个节点的指针
             he = he->next;
         }
         if (!dictIsRehashing(d)) break;
