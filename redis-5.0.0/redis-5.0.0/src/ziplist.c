@@ -693,18 +693,33 @@ unsigned char *__ziplistCascadeUpdate(unsigned char *zl, unsigned char *p) {
 }
 
 /* Delete "num" entries, starting at "p". Returns pointer to the ziplist. */
+/**
+该接口随便删除ziplist节点中任意位置的节点数据
+思想是
+1. 删除当前节点到开始ziplist的指针的长度纪录下来
+2. 当前节点到下num个节点位置偏移量纪录下来
+3. 修改ziplist中tail的指针和zlbytes的指针
+
+
+@param zl  ziplist的指针
+@param p   删除节点的开始指针
+@param num 要删除节点个数
+@return unsigned char * 删除后当前节点的新的指针
+*/
 unsigned char *__ziplistDelete(unsigned char *zl, unsigned char *p, unsigned int num) {
     unsigned int i, totlen, deleted = 0;
     size_t offset;
     int nextdiff = 0;
     zlentry first, tail;
-
+	// 获取当前节点的数据的
     zipEntry(p, &first);
+	// 找到num个节点的的指针
     for (i = 0; p[0] != ZIP_END && i < num; i++) {
         p += zipRawEntryLength(p);
         deleted++;
     }
-
+	// p现在是下num个节点了
+	// 当前节点指针和下num一个节点的偏移量的大小
     totlen = p-first.p; /* Bytes taken by the element(s) to delete. */
     if (totlen > 0) {
         if (p[0] != ZIP_END) {
@@ -712,16 +727,20 @@ unsigned char *__ziplistDelete(unsigned char *zl, unsigned char *p, unsigned int
              * number of bytes required compare to the current `prevrawlen`.
              * There always is room to store this, because it was previously
              * stored by an entry that is now being deleted. */
+			// 当前节点到最一个节点的偏移量的大小
             nextdiff = zipPrevLenByteDiff(p,first.prevrawlen);
 
             /* Note that there is always space when p jumps backward: if
              * the new previous entry is large, one of the deleted elements
              * had a 5 bytes prevlen header, so there is for sure at least
              * 5 bytes free and we need just 4. */
+			// 得到当前节点指针
             p -= nextdiff;
+			// 得到编码格式
             zipStorePrevEntryLength(p,first.prevrawlen);
 
             /* Update offset for tail */
+			// 改变ziplist的tail的指针
             ZIPLIST_TAIL_OFFSET(zl) =
                 intrev32ifbe(intrev32ifbe(ZIPLIST_TAIL_OFFSET(zl))-totlen);
 
@@ -747,7 +766,7 @@ unsigned char *__ziplistDelete(unsigned char *zl, unsigned char *p, unsigned int
         offset = first.p-zl;
         zl = ziplistResize(zl, intrev32ifbe(ZIPLIST_BYTES(zl))-totlen+nextdiff);
         ZIPLIST_INCR_LENGTH(zl,-deleted);
-        p = zl+offset;
+        p = zl + offset;
 
         /* When nextdiff != 0, the raw length of the next entry has changed, so
          * we need to cascade the update throughout the ziplist */
@@ -811,6 +830,7 @@ unsigned char *__ziplistInsert(unsigned char *zl, unsigned char *p, unsigned cha
     }
 
     /* Store offset because a realloc may change the address of zl. */
+	// 当前节点到ziplist开始地址的偏移量
     offset = p - zl;
 	// 扩容
     zl = ziplistResize(zl,curlen + reqlen + nextdiff);
@@ -1095,14 +1115,16 @@ unsigned char *ziplistInsert(unsigned char *zl, unsigned char *p, unsigned char 
  * Also update *p in place, to be able to iterate over the
  * ziplist, while deleting entries. */
 unsigned char *ziplistDelete(unsigned char *zl, unsigned char **p) {
+	// ziplist开始位置地址到当前节点的偏移量纪录下来
     size_t offset = *p-zl;
+	//删除一个节点的偏移量就是下一个节点的偏移量
     zl = __ziplistDelete(zl,*p,1);
 
     /* Store pointer to current element in p, because ziplistDelete will
      * do a realloc which might result in a different "zl"-pointer.
      * When the delete direction is back to front, we might delete the last
      * entry and end up with "p" pointing to ZIP_END, so check this. */
-    *p = zl+offset;
+    *p = zl + offset;
     return zl;
 }
 
@@ -1124,7 +1146,7 @@ unsigned int ziplistCompare(unsigned char *p, unsigned char *sstr, unsigned int 
     if (ZIP_IS_STR(entry.encoding)) {
         /* Raw compare */
         if (entry.len == slen) {
-            return memcmp(p+entry.headersize,sstr,slen) == 0;
+            return memcmp(p + entry.headersize,sstr,slen) == 0;
         } else {
             return 0;
         }

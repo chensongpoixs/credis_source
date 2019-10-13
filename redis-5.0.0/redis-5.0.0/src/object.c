@@ -602,13 +602,9 @@ int getDoubleFromObject(const robj *o, double *target) {
         serverAssertWithInfo(NULL,o,o->type == OBJ_STRING);
         if (sdsEncodedObject(o)) {
             errno = 0;
+			
             value = strtod(o->ptr, &eptr);
-            if (sdslen(o->ptr) == 0 ||
-                isspace(((const char*)o->ptr)[0]) ||
-                (size_t)(eptr-(char*)o->ptr) != sdslen(o->ptr) ||
-                (errno == ERANGE &&
-                    (value == HUGE_VAL || value == -HUGE_VAL || value == 0)) ||
-                isnan(value))
+            if (sdslen(o->ptr) == 0 || isspace(((const char*)o->ptr)[0]) || (size_t)(eptr-(char*)o->ptr) != sdslen(o->ptr) || (errno == ERANGE && (value == HUGE_VAL || value == -HUGE_VAL || value == 0)) || isnan(value))
                 return C_ERR;
         } else if (o->encoding == OBJ_ENCODING_INT) {
             value = (long)o->ptr;

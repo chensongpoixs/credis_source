@@ -1000,17 +1000,20 @@ unsigned char *zzlLastInLexRange(unsigned char *zl, zlexrangespec *range) {
 
 unsigned char *zzlFind(unsigned char *zl, sds ele, double *score) {
     unsigned char *eptr = ziplistIndex(zl,0), *sptr;
-
+	//在zset有序集合中使用两个节点来存放key-vale的数据的前面一个节点是存放key的值后面一个节点是重复value的值
+	//1. --- 那么问题来 这个你觉得有问题吗？   我感觉是有问题的冲突情况是怎么解决呢
     while (eptr != NULL) {
+		// 取下一个节点数据的指针
         sptr = ziplistNext(zl,eptr);
         serverAssert(sptr != NULL);
-
+		// 比较两个数据是否相同 
         if (ziplistCompare(eptr,(unsigned char*)ele,sdslen(ele))) {
             /* Matching element, pull out score. */
+			// 看value中的值是否相同即score的值
             if (score != NULL) *score = zzlGetScore(sptr);
             return eptr;
         }
-
+		//2. -- 它的解决方案是二个节点为一组key-value数据在迭代器在以两个一迭代器
         /* Move to next element. */
         eptr = ziplistNext(zl,sptr);
     }
@@ -1023,8 +1026,10 @@ unsigned char *zzlDelete(unsigned char *zl, unsigned char *eptr) {
     unsigned char *p = eptr;
 
     /* TODO: add function to ziplist API to delete N elements from offset. */
+	// 删除key
     zl = ziplistDelete(zl,&p);
-    zl = ziplistDelete(zl,&p);
+    // 删除value
+	zl = ziplistDelete(zl,&p);
     return zl;
 }
 
@@ -1040,7 +1045,17 @@ unsigned char *zzlInsertAt(unsigned char *zl, unsigned char *eptr, sds ele, doub
         zl = ziplistPush(zl,(unsigned char*)scorebuf,scorelen,ZIPLIST_TAIL);
     } else {
         /* Keep offset relative to zl, as it might be re-allocated. */
+		// 记录当前节点的偏移量
         offset = eptr-zl;
+		// 插入key
+		// 它这边的插入的流程你还记得吗？
+		/*
+		
+		没有插入前节点的内存排序
+		|     |     |     | eptr |      |
+		插入后的节点排序
+		|     |     |     |offset| eptr |     |
+		*/
         zl = ziplistInsert(zl,eptr,(unsigned char*)ele,sdslen(ele));
         eptr = zl+offset;
 
@@ -1061,7 +1076,7 @@ unsigned char *zzlInsert(unsigned char *zl, sds ele, double score) {
         sptr = ziplistNext(zl,eptr);
         serverAssert(sptr != NULL);
         s = zzlGetScore(sptr);
-
+		// 这里说明zset排序是从小大排序
         if (s > score) {
             /* First element with score larger than score for element to be
              * inserted. This means we should take its spot in the list to
@@ -1322,6 +1337,7 @@ int zsetAdd(robj *zobj, double score, sds ele, int *flags, double *newscore) {
     double curscore;
 
     /* NaN as input is an error regardless of all the other parameters. */
+	// 是否score数据是否符合要求
     if (isnan(score)) {
         *flags = ZADD_NAN;
         return 0;
@@ -1330,7 +1346,7 @@ int zsetAdd(robj *zobj, double score, sds ele, int *flags, double *newscore) {
     /* Update the sorted set according to its encoding. */
     if (zobj->encoding == OBJ_ENCODING_ZIPLIST) {
         unsigned char *eptr;
-
+		// 查找key 这里里面已经修改 迭代器的指针两个节点一迭代
         if ((eptr = zzlFind(zobj->ptr,ele,&curscore)) != NULL) {
             /* NX? Return, same element already exists. */
             if (nx) {
@@ -1349,16 +1365,20 @@ int zsetAdd(robj *zobj, double score, sds ele, int *flags, double *newscore) {
             }
 
             /* Remove and re-insert when score changed. */
+			// score是否相同不相同就删除添加进入
+			// 1. 更新操作
             if (score != curscore) {
-                zobj->ptr = zzlDelete(zobj->ptr,eptr);
-                zobj->ptr = zzlInsert(zobj->ptr,ele,score);
+				// 删除两个节点数据的在zset有序集合中自己封装的删除节点
+                zobj->ptr = zzlDelete(zobj->ptr, eptr);
+                zobj->ptr = zzlInsert(zobj->ptr, ele, score);
                 *flags |= ZADD_UPDATED;
             }
             return 1;
         } else if (!xx) {
             /* Optimize: check if the element is too large or the list
              * becomes too long *before* executing zzlInsert. */
-            zobj->ptr = zzlInsert(zobj->ptr,ele,score);
+            // 2. 直接插入
+			zobj->ptr = zzlInsert(zobj->ptr,ele,score);
             if (zzlLength(zobj->ptr) > server.zset_max_ziplist_entries)
                 zsetConvert(zobj,OBJ_ENCODING_SKIPLIST);
             if (sdslen(ele) > server.zset_max_ziplist_value)
@@ -1550,8 +1570,10 @@ void zaddGenericCommand(client *c, int flags) {
 
     /* Parse options. At the end 'scoreidx' is set to the argument position
      * of the score of the first score-element pair. */
+	//check one pair data 
     scoreidx = 2;
     while(scoreidx < c->argc) {
+		// 得到要保持的key值
         char *opt = c->argv[scoreidx]->ptr;
         if (!strcasecmp(opt,"nx")) flags |= ZADD_NX;
         else if (!strcasecmp(opt,"xx")) flags |= ZADD_XX;
@@ -1569,11 +1591,13 @@ void zaddGenericCommand(client *c, int flags) {
 
     /* After the options, we expect to have an even number of args, since
      * we expect any number of score-element pairs. */
+	// 检查数据是否符合要求 
     elements = c->argc-scoreidx;
     if (elements % 2 || !elements) {
         addReply(c,shared.syntaxerr);
         return;
     }
+	// 得到有多少对数据
     elements /= 2; /* Now this holds the number of score-element pairs. */
 
     /* Check for incompatible options. */
@@ -1592,9 +1616,10 @@ void zaddGenericCommand(client *c, int flags) {
     /* Start parsing all the scores, we need to emit any syntax error
      * before executing additions to the sorted set, as the command should
      * either execute fully or nothing at all. */
+	// score数字排序
     scores = zmalloc(sizeof(double)*elements);
     for (j = 0; j < elements; j++) {
-        if (getDoubleFromObjectOrReply(c,c->argv[scoreidx+j*2],&scores[j],NULL)
+        if (getDoubleFromObjectOrReply(c,c->argv[scoreidx + j * 2], &scores[j], NULL)
             != C_OK) goto cleanup;
     }
 
@@ -1602,6 +1627,7 @@ void zaddGenericCommand(client *c, int flags) {
     zobj = lookupKeyWrite(c->db,key);
     if (zobj == NULL) {
         if (xx) goto reply_to_client; /* No key + XX option: nothing to do. */
+		//字符的长度大于64就使用spiklist数据的结构小于
         if (server.zset_max_ziplist_entries == 0 ||
             server.zset_max_ziplist_value < sdslen(c->argv[scoreidx+1]->ptr))
         {
@@ -1616,12 +1642,12 @@ void zaddGenericCommand(client *c, int flags) {
             goto cleanup;
         }
     }
-
+	// 插入有序集合的key-value
     for (j = 0; j < elements; j++) {
         double newscore;
-        score = scores[j];
-        int retflags = flags;
-
+        score = scores[j]; // 有序集合的排序依据数组
+        int retflags = flags; // --> 
+		// 有在key的值
         ele = c->argv[scoreidx+1+j*2]->ptr;
         int retval = zsetAdd(zobj, score, ele, &retflags, &newscore);
         if (retval == 0) {
