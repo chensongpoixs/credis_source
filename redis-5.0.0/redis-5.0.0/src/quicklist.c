@@ -1,5 +1,5 @@
 /* quicklist.c - A doubly linked list of ziplists
- *
+ * 快速列表
  * Copyright (c) 2014, Matt Stancliff <matt@genges.com>
  * All rights reserved.
  *
@@ -113,7 +113,7 @@ void quicklistSetCompressDepth(quicklist *quicklist, int compress) {
     quicklist->compress = compress;
 }
 
-#define FILL_MAX (1 << 15)
+#define FILL_MAX (1 << 15) // 1000 0000 0000 0000
 void quicklistSetFill(quicklist *quicklist, int fill) {
     if (fill > FILL_MAX) {
         fill = FILL_MAX;
@@ -363,9 +363,12 @@ REDIS_STATIC void __quicklistInsertNode(quicklist *quicklist,
         if (quicklist->tail == old_node)
             quicklist->tail = new_node;
     } else {
+		// 尾节点下一个指向头节点
         new_node->next = old_node;
         if (old_node) {
+			// 找到节点的尾节点指针
             new_node->prev = old_node->prev;
+			// 改变要插入的节点上一个节点指向该节点的操作
             if (old_node->prev)
                 old_node->prev->next = new_node;
             old_node->prev = new_node;
@@ -380,7 +383,7 @@ REDIS_STATIC void __quicklistInsertNode(quicklist *quicklist,
 
     if (old_node)
         quicklistCompress(quicklist, old_node);
-
+	// 增加节点的个数累加
     quicklist->len++;
 }
 
@@ -402,8 +405,8 @@ _quicklistNodeSizeMeetsOptimizationRequirement(const size_t sz,
                                                const int fill) {
     if (fill >= 0)
         return 0;
-
-    size_t offset = (-fill) - 1;
+	// 默认8KB --> fill == -2
+    size_t offset = (-fill) - 1; // 2 - 1
 	// 查看链表中的数据是否被填充了
     if (offset < (sizeof(optimization_level) / sizeof(*optimization_level))) {
         if (sz <= optimization_level[offset]) {
@@ -425,12 +428,14 @@ REDIS_STATIC int _quicklistNodeAllowInsert(const quicklistNode *node,
 
     int ziplist_overhead;
     /* size of previous offset */
+	// 偏移量记录要几个字节 这个是ziplist的头部节点的信息
     if (sz < 254)
         ziplist_overhead = 1;
     else
         ziplist_overhead = 5;
 
     /* size of forward offset */
+	// 下面字符串使用的编码格式的所要的的字节数据， 这个ziplist的中使用编码格式的要的编码格式
     if (sz < 64)
         ziplist_overhead += 1;
     else if (likely(sz < 16384))
@@ -439,6 +444,7 @@ REDIS_STATIC int _quicklistNodeAllowInsert(const quicklistNode *node,
         ziplist_overhead += 5;
 
     /* new_sz overestimates if 'sz' encodes to an integer type */
+	/// 现在加上新插入的数据的节点信息的长度
     unsigned int new_sz = node->sz + sz + ziplist_overhead;
     if (likely(_quicklistNodeSizeMeetsOptimizationRequirement(new_sz, fill)))
         return 1;
@@ -483,6 +489,12 @@ int quicklistPushHead(quicklist *quicklist, void *value, size_t sz) {
 	//链表也分五个大的数组在每个数组没有被填充满时继续添加数据到这个数组中，如果被填充满了就从新申请下一个数组
 	// 其实数组数据结构就是ziplist的结构
 	// 这个结构结构中在头节点中纪录所有数组链表中的个数， 而在每个数组的链表中的纪录当前的数组的中的个数
+	/*
+	ziplist中存储数据的个数
+	   4096                     8192                16384              32768                65536
+	|0001 0000 0000 0000|0010 0000 0000 0000|0100 0000 0000 0000|1000 0000 0000 0000|1111 1111 1111 1111|
+	一个|分割就是ziplist压缩数据表
+	*/
     if (likely( _quicklistNodeAllowInsert(quicklist->head, quicklist->fill, sz))) {
         quicklist->head->zl =
             ziplistPush(quicklist->head->zl, value, sz, ZIPLIST_HEAD);
@@ -1410,6 +1422,10 @@ int quicklistPop(quicklist *quicklist, int where, unsigned char **data,
 }
 
 /* Wrapper to allow argument-based switching between HEAD/TAIL pop */
+/*
+@param value 要插入的数据
+@param sz    要插入的数据的长度
+*/
 void quicklistPush(quicklist *quicklist, void *value, const size_t sz,
                    int where) {
     if (where == QUICKLIST_HEAD) {

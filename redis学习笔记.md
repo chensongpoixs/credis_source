@@ -154,6 +154,20 @@ redis 提供 6种数据淘汰策略：
 
 ### 三, redis中的数据类型-- 对象系统
 
+
+
+```
+typedef struct redisObject {
+    unsigned type:4;		// 数据类型的对象
+    unsigned encoding:4;	//数据编码压缩的格式
+    unsigned lru:LRU_BITS; /* LRU time (relative to global lru_clock) or
+                            * LFU data (least significant 8 bits frequency
+                            * and most significant 16 bits access time). */
+    int refcount;       // 类似于java中的引用计数 --> shared
+    void *ptr;      // 保存redis中的五种数据结构的指针
+} robj;
+```
+
 #### 1, redis中的数据的类型分为五种的数据类型对象
 
 ```
@@ -186,7 +200,7 @@ redis 提供 6种数据淘汰策略：
 
 
 ```
-编码格式一一对应
+编码格式一一对应底层实现
 
 |redis数据类型|编码格式||||
 |:--:|:--:|:--:|:--:|:--:|

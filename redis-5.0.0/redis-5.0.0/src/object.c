@@ -499,7 +499,7 @@ robj *tryObjectEncoding(robj *o) {
  * If the object is already raw-encoded just increment the ref count. */
 robj *getDecodedObject(robj *o) {
     robj *dec;
-
+	
     if (sdsEncodedObject(o)) {
         incrRefCount(o);
         return o;

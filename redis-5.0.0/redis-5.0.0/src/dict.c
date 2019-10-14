@@ -390,6 +390,12 @@ dictEntry *dictAddOrFind(dict *d, void *key) {
 /* Search and remove an element. This is an helper function for
  * dictDelete() and dictUnlink(), please check the top comment
  * of those functions. */
+/**
+搜索字典表中节点数据并删除该节点
+@param		d		字典表
+@param		key		字典表中key数据
+@param		nofree  是否删除该字典key-value， 0: 释放数据 1:不释放数据
+*/
 static dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {
     uint64_t h, idx;
     dictEntry *he, *prevHe;
@@ -404,6 +410,22 @@ static dictEntry *dictGenericDelete(dict *d, const void *key, int nofree) {
 	{
         idx = h & d->ht[table].sizemask;
         he = d->ht[table].table[idx];
+		// 这里可能有哈希碰撞如果碰撞的，那么value就是碰撞的数据就会放该索引的一个链表中的
+		/*
+			hashtable     如果在5的位置哈希碰撞就会在插入 node->node链表结构
+			|	0	|
+			|	1	| 
+哈希正常情况	|	2	|  -> |node|
+			|	3	|
+			|	4	|
+哈希碰撞情况	|	5	|  -> |node|-> |node| 这个可能有多节点使用链表连接起来了
+			|	6	|
+			|	7	|
+				*
+				*
+			|	?	|
+
+		*/
         prevHe = NULL;
         while(he) 
 		{

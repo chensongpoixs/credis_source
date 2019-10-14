@@ -200,6 +200,13 @@ int hashTypeExists(robj *o, sds field) {
 #define HASH_SET_TAKE_FIELD (1<<0)
 #define HASH_SET_TAKE_VALUE (1<<1)
 #define HASH_SET_COPY 0
+/**
+设置hash表的key-value的值
+@param o			对象
+@param field		hash表中的保存key的数据的
+@param value		hash表中的保存value的数据
+@param flags		field和value是字符串的指针还是redis中的sds的封装的字符串
+*/
 int hashTypeSet(robj *o, sds field, sds value, int flags) {
     int update = 0;
 
@@ -299,6 +306,7 @@ int hashTypeDelete(robj *o, sds field) {
             deleted = 1;
 
             /* Always check if the dictionary needs a resize after a delete. */
+			// 检查字典是否扩容判断的条件是使用使用数小十分之一的字典数
             if (htNeedsResize(o->ptr)) dictResize(o->ptr);
         }
 

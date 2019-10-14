@@ -41,6 +41,7 @@
 void listTypePush(robj *subject, robj *value, int where) {
     if (subject->encoding == OBJ_ENCODING_QUICKLIST) {
         int pos = (where == LIST_HEAD) ? QUICKLIST_HEAD : QUICKLIST_TAIL;
+		// 把数字和字符串[sds]都转换为字符串
         value = getDecodedObject(value);
         size_t len = sdslen(value->ptr);
         quicklistPush(subject->ptr, value->ptr, len, pos);
@@ -213,7 +214,7 @@ void pushGenericCommand(client *c, int where) {
             quicklistSetOptions(lobj->ptr, server.list_max_ziplist_size,
                                 server.list_compress_depth);
 			// 把hash值插入redis的dict中去
-            dbAdd(c->db,c->argv[1],lobj);
+            dbAdd(c->db, c->argv[1], lobj);
         }
 		// 插入链表中的使用
         listTypePush(lobj,c->argv[j],where);
