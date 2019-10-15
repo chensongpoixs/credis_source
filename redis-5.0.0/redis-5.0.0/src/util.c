@@ -231,8 +231,12 @@ long long memtoll(const char *p, int *err) {
 
 /* Return the number of digits of 'v' when converted to string in radix 10.
  * See ll2string() for more information. */
+/**
+* 计算unsiend long long的 转换字符串后长度
+*/
 uint32_t digits10(uint64_t v) {
-    if (v < 10) return 1;
+	// 两个的十进制两位为一个字节
+    if (v < 10) return 1;  
     if (v < 100) return 2;
     if (v < 1000) return 3;
     if (v < 1000000000000UL) {
@@ -281,7 +285,7 @@ int ll2string(char *dst, size_t dstlen, long long svalue) {
         "4041424344454647484950515253545556575859"
         "6061626364656667686970717273747576777879"
         "8081828384858687888990919293949596979899";
-    int negative;
+    int negative; // 正负号
     unsigned long long value;
 
     /* The main loop works with 64bit unsigned integers for simplicity, so
@@ -290,6 +294,7 @@ int ll2string(char *dst, size_t dstlen, long long svalue) {
         if (svalue != LLONG_MIN) {
             value = -svalue;
         } else {
+			// 计算在long long 有符合在内存存放 转换为正数在内存存放
             value = ((unsigned long long) LLONG_MAX)+1;
         }
         negative = 1;

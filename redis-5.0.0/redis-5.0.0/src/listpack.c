@@ -206,8 +206,11 @@ int lpStringToInt64(const char *s, unsigned long slen, int64_t *value) {
 unsigned char *lpNew(void) {
     unsigned char *lp = lp_malloc(LP_HDR_SIZE+1);
     if (lp == NULL) return NULL;
+	// 前面的4个字节保存内存的大小
     lpSetTotalBytes(lp,LP_HDR_SIZE+1);
+	// 前面的在5和6字节保持数据的个数
     lpSetNumElements(lp,0);
+	// 内存结束在后面的两个字节 0XFF
     lp[LP_HDR_SIZE] = LP_EOF;
     return lp;
 }
@@ -388,6 +391,7 @@ uint32_t lpCurrentEncodedSize(unsigned char *p) {
  * listpack, however, while this function is used to implement lpNext(),
  * it does not return NULL when the EOF element is encountered. */
 unsigned char *lpSkip(unsigned char *p) {
+	// 这是检查字符串紧凑型
     unsigned long entrylen = lpCurrentEncodedSize(p);
     entrylen += lpEncodeBacklen(NULL,entrylen);
     p += entrylen;
@@ -664,7 +668,7 @@ unsigned char *lpInsert(unsigned char *lp, unsigned char *ele, uint32_t size, un
     /* Setup the listpack relocating the elements to make the exact room
      * we need to store the new one. */
     if (where == LP_BEFORE) {
-        memmove(dst+enclen+backlen_size,dst,old_listpack_bytes-poff);
+        memmove(dst+enclen+backlen_size, dst, old_listpack_bytes-poff);
     } else { /* LP_REPLACE. */
         long lendiff = (enclen+backlen_size)-replaced_len;
         memmove(dst+replaced_len+lendiff,
@@ -735,6 +739,7 @@ unsigned char *lpInsert(unsigned char *lp, unsigned char *ele, uint32_t size, un
  * the same as lpInsert(). */
 unsigned char *lpAppend(unsigned char *lp, unsigned char *ele, uint32_t size) {
     uint64_t listpack_bytes = lpGetTotalBytes(lp);
+	// 找到要插入地址的位置偏移量
     unsigned char *eofptr = lp + listpack_bytes - 1;
     return lpInsert(lp,ele,size,eofptr,LP_BEFORE,NULL);
 }

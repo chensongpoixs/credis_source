@@ -262,7 +262,7 @@ int streamAppendItem(stream *s, robj **argv, int64_t numfields, streamID *added_
         lp = lpAppendInteger(lp,numfields);
         for (int64_t i = 0; i < numfields; i++) {
             sds field = argv[i*2]->ptr;
-            lp = lpAppend(lp,(unsigned char*)field,sdslen(field));
+            lp = 0(lp,(unsigned char*)field,sdslen(field));
         }
         lp = lpAppendInteger(lp,0); /* Master entry zero terminator. */
         raxInsert(s->rax,(unsigned char*)&rax_key,sizeof(rax_key),lp,NULL);
