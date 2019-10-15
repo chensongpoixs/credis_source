@@ -659,6 +659,17 @@ void clusterAcceptHandler(aeEventLoop *el, int fd, void *privdata, int mask) {
  * However if the key contains the {...} pattern, only the part between
  * { and } is hashed. This may be useful in the future to force certain
  * keys to be in the same node (assuming no resharding is in progress). */
+
+ /**
+ 在前面的文章中介绍过了redis的主从和哨兵两种集群方案，redis从3.0版本开始引入了redis-cluster(集群)。从主从-哨兵-集群可以看到redis的不断完善；主从复制是最简单的节点同步方案无法主从自动故障转移。哨兵可以同时管理多个主从同步方案同时也可以处理主从自动故障转移，通过配置多个哨兵节点可以解决单点网络故障问题，但是单个节点的性能压力问题无法解决。集群解决了前面两个方案的所有问题。
+ 1.Redis-Cluster采用无中心结构，每个节点都和其它节点通过互ping保持连接，每个节点保存整个集群的状态信息，可以通过连接任意节点读取或者写入数据(甚至是没有数据的空节点)。
+
+ 2.只有当集群中的大多数节点同时fail整个集群才fail。
+
+ 3.整个集群有16384个slot，当需要在 Redis 集群中放置一个 key-value 时，根据 CRC16(key) mod 16384的值，决定将一个key放到哪个桶中。读取一个key时也是相同的算法。
+
+ 4.当主节点fail时从节点会升级为主节点，fail的主节点online之后自动变成了从节点。
+ */
 unsigned int keyHashSlot(char *key, int keylen) {
     int s, e; /* start-end indexes of { and } */
 

@@ -513,7 +513,7 @@ int raxGenericInsert(rax *rax, unsigned char *s, size_t len, void *data, void **
     raxNode *h, **parentlink;
 
     debugf("### Insert %.*s with value %p\n", (int)len, s, data);
-    i = raxLowWalk(rax,s,len,&h,&parentlink,&j,NULL);
+    i = raxLowWalk(rax, s, len, &h, &parentlink, &j,NULL);
 
     /* If i == len we walked following the whole string. If we are not
      * in the middle of a compressed node, the string is either already
@@ -900,7 +900,7 @@ oom:
 /* Overwriting insert. Just a wrapper for raxGenericInsert() that will
  * update the element if there is already one for the same key. */
 int raxInsert(rax *rax, unsigned char *s, size_t len, void *data, void **old) {
-    return raxGenericInsert(rax,s,len,data,old,1);
+    return raxGenericInsert(rax, s, len, data, old, 1);
 }
 
 /* Non overwriting insert function: this if an element with the same key

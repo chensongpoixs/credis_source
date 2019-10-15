@@ -19,6 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="deps\hiredis\async.c" />
+    <ClCompile Include="deps\hiredis\dict.c" />
+    <ClCompile Include="deps\hiredis\hiredis.c" />
+    <ClCompile Include="deps\hiredis\net.c" />
+    <ClCompile Include="deps\hiredis\read.c" />
+    <ClCompile Include="deps\hiredis\sds.c" />
+    <ClCompile Include="deps\hiredis\test.c" />
     <ClCompile Include="src\adlist.c" />
     <ClCompile Include="src\ae.c" />
     <ClCompile Include="src\ae_epoll.c" />
@@ -97,6 +104,15 @@
     <ClCompile Include="src\zmalloc.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="deps\hiredis\async.h" />
+    <ClInclude Include="deps\hiredis\dict.h" />
+    <ClInclude Include="deps\hiredis\fmacros.h" />
+    <ClInclude Include="deps\hiredis\hiredis.h" />
+    <ClInclude Include="deps\hiredis\net.h" />
+    <ClInclude Include="deps\hiredis\read.h" />
+    <ClInclude Include="deps\hiredis\sds.h" />
+    <ClInclude Include="deps\hiredis\sdsalloc.h" />
+    <ClInclude Include="deps\hiredis\win32.h" />
     <ClInclude Include="src\adlist.h" />
     <ClInclude Include="src\ae.h" />
     <ClInclude Include="src\anet.h" />
@@ -145,6 +161,7 @@
     <ClInclude Include="src\zmalloc.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="deps\hiredis\Makefile" />
     <None Include="src\Makefile" />
     <None Include="src\mkreleasehdr.sh" />
     <None Include="src\redis-trib.rb" />

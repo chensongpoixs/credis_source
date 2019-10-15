@@ -102,7 +102,7 @@ client *createClient(int fd) {
             return NULL;
         }
     }
-
+	//客户端是在建立连接后默认把redis的数据库1给客户端操作的
     selectDb(c,0);
     uint64_t client_id;
     atomicGetIncr(server.next_client_id,client_id,1);
@@ -1504,7 +1504,7 @@ void processInputBufferAndReplicate(client *c) {
         }
     }
 }
-// client read  感觉redis中io设计有差了 --没有使用反应堆模式
+// client read  redis中io设计反应堆类似于libevent模式
 void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
     client *c = (client*) privdata;
     int nread, readlen;

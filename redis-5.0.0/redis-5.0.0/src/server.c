@@ -231,7 +231,7 @@ struct redisCommand redisCommandTable[] = {
 	{"msetnx",msetnxCommand,-3,"wm",0,NULL,1,-1,2,0,0},
 	{"randomkey",randomkeyCommand,1,"rR",0,NULL,0,0,0,0,0},
 	{"select",selectCommand,2,"lF",0,NULL,0,0,0,0,0},
-	{"swapdb",swapdbCommand,3,"wF",0,NULL,0,0,0,0,0},
+	{"swapdb",swapdbCommand,3,"wF",0,NULL,0,0,0,0,0}, // 交换两个数据库
 	{"move",moveCommand,3,"wF",0,NULL,1,1,1,0,0},
 	{"rename",renameCommand,3,"w",0,NULL,1,2,1,0,0},
 	{"renamenx",renamenxCommand,3,"wF",0,NULL,1,2,1,0,0},
@@ -2080,6 +2080,7 @@ void initServer(void) {
 			strerror(errno));
 		exit(1);
 	}
+	// 申请redisDb的内存
 	server.db = zmalloc(sizeof(redisDb)*server.dbnum);
 
 	/* Open the TCP listening socket for the user commands. */
@@ -2171,6 +2172,8 @@ void initServer(void) {
 				"Unrecoverable error creating server.ipfd file event.");
 		}
 	}
+
+	// unix的守护进程
 	if (server.sofd > 0 && aeCreateFileEvent(server.el, server.sofd, AE_READABLE,
 		acceptUnixHandler, NULL) == AE_ERR) serverPanic("Unrecoverable error creating server.sofd file event.");
 

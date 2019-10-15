@@ -4,6 +4,12 @@
     <Filter Include="src">
       <UniqueIdentifier>{98d62a88-5d37-4f87-910a-f6f5211b775d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="deps">
+      <UniqueIdentifier>{fb586334-e509-4ccf-b8f6-241d509172ee}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="deps\hiredis">
+      <UniqueIdentifier>{38064402-cd93-4287-83da-e201e166a7ec}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\adlist.c">
@@ -234,6 +240,27 @@
     <ClCompile Include="src\zmalloc.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="deps\hiredis\async.c">
+      <Filter>deps\hiredis</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\hiredis\dict.c">
+      <Filter>deps\hiredis</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\hiredis\hiredis.c">
+      <Filter>deps\hiredis</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\hiredis\net.c">
+      <Filter>deps\hiredis</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\hiredis\read.c">
+      <Filter>deps\hiredis</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\hiredis\sds.c">
+      <Filter>deps\hiredis</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\hiredis\test.c">
+      <Filter>deps\hiredis</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\adlist.h">
@@ -374,6 +401,33 @@
     <ClInclude Include="src\zmalloc.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="deps\hiredis\async.h">
+      <Filter>deps\hiredis</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\hiredis\dict.h">
+      <Filter>deps\hiredis</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\hiredis\fmacros.h">
+      <Filter>deps\hiredis</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\hiredis\hiredis.h">
+      <Filter>deps\hiredis</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\hiredis\net.h">
+      <Filter>deps\hiredis</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\hiredis\read.h">
+      <Filter>deps\hiredis</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\hiredis\sds.h">
+      <Filter>deps\hiredis</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\hiredis\sdsalloc.h">
+      <Filter>deps\hiredis</Filter>
+    </ClInclude>
+    <ClInclude Include="deps\hiredis\win32.h">
+      <Filter>deps\hiredis</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="src\Makefile">
@@ -387,6 +441,9 @@
     </None>
     <None Include="src\valgrind.sup">
       <Filter>src</Filter>
+    </None>
+    <None Include="deps\hiredis\Makefile">
+      <Filter>deps\hiredis</Filter>
     </None>
   </ItemGroup>
 </Project>

@@ -240,7 +240,9 @@ robj *dbRandomKey(redisDb *db) {
 
         key = dictGetKey(de);
         keyobj = createStringObject(key,sdslen(key));
+		/// 在过期字典中存在，并且在slave从分支上
         if (dictFind(db->expires,key)) {
+			//slave两个字典指针数量相同情况的处理
             if (allvolatile && server.masterhost && --maxtries == 0) {
                 /* If the DB is composed only of keys with an expire set,
                  * it could happen that all the keys are already logically
@@ -252,6 +254,7 @@ robj *dbRandomKey(redisDb *db) {
                  * return a key name that may be already expired. */
                 return keyobj;
             }
+			// 说明过期中的处理 为什么要这样处理呢??????
             if (expireIfNeeded(db,keyobj)) {
                 decrRefCount(keyobj);
                 continue; /* search for another key. This expired. */
@@ -1469,6 +1472,7 @@ void slotToKeyUpdateKey(robj *key, int add) {
     indexed[0] = (hashslot >> 8) & 0xff;
     indexed[1] = hashslot & 0xff;
     memcpy(indexed+2,key->ptr,keylen);
+	// 在indexed中前面两位是slot的信息
     if (add) {
         raxInsert(server.cluster->slots_to_keys,indexed,keylen+2,NULL,NULL);
     } else {
