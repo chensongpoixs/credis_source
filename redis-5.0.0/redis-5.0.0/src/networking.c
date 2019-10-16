@@ -1554,7 +1554,7 @@ void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
     }
 	// 打印客户端发送数据包的信息 --> redis是自己对redis信息sds
 	// 很特色 都是以 '*' 开头
-	printf("[%s][%d][client send -> msg = %s]\n", __PRETTY_FUNCTION__, __LINE__, c->querybuf + qblen);
+	printf("[%s][%s][%d][client send -> msg = %s]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__, c->querybuf + qblen);
     sdsIncrLen(c->querybuf,nread);
     c->lastinteraction = server.unixtime;
     if (c->flags & CLIENT_MASTER) c->read_reploff += nread;

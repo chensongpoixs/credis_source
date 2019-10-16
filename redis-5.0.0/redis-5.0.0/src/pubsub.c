@@ -238,7 +238,7 @@ int pubsubPublishMessage(robj *channel, robj *message) {
         listRewind(list,&li);
         while ((ln = listNext(&li)) != NULL) {
             client *c = ln->value;
-
+			printf("[%s][%s][%d][client send -> fd = %d]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__, c->fd);
             addReply(c,shared.mbulkhdr[3]);
             addReply(c,shared.messagebulk);
             addReplyBulk(c,channel);

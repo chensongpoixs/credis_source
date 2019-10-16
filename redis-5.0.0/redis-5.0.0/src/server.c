@@ -310,7 +310,7 @@ struct redisCommand redisCommandTable[] = {
 	{"geodist",geodistCommand,-4,"r",0,NULL,1,1,1,0,0},
 	{"pfselftest",pfselftestCommand,1,"a",0,NULL,0,0,0,0,0},
 	{"pfadd",pfaddCommand,-2,"wmF",0,NULL,1,1,1,0,0},
-	{"pfcount",pfcountCommand,-2,"r",0,NULL,1,-1,1,0,0},
+	{"pfcount",pfcountCommand,-2,"r",0,NULL,1,-1,1,0,0}, //subscribe
 	{"pfmerge",pfmergeCommand,-2,"wm",0,NULL,1,-1,1,0,0},
 	{"pfdebug",pfdebugCommand,-3,"w",0,NULL,0,0,0,0,0},
 	{"xadd",xaddCommand,-5,"wmFR",0,NULL,1,1,1,0,0},
@@ -4130,6 +4130,7 @@ int main(int argc, char **argv) {
 	dictSetHashFunctionSeed((uint8_t*)hashseed);
 	server.sentinel_mode = checkForSentinelMode(argc, argv);
 	initServerConfig();
+	// module init
 	moduleInitModulesSystem();
 
 	/* Store the executable path and arguments in a safe place in order

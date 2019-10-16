@@ -37,6 +37,10 @@
  *
  * The function returns -1 if the input contains characters not mapping to
  * any class. */
+/************************************************************************/
+/* 数据中的发布订阅模式的通知类型的[读取配置的转换成程序中的变量]                 */
+/* @param classes  读取配置表中的notify-keyspace-events的字符串 */
+/************************************************************************/
 int keyspaceEventsStringToFlags(char *classes) {
     char *p = classes;
     int c, flags = 0;
@@ -94,6 +98,13 @@ sds keyspaceEventsFlagsToString(int flags) {
  * 'event' is a C string representing the event name.
  * 'key' is a Redis object representing the key name.
  * 'dbid' is the database ID where the key lives.  */
+/**
+* 发布订阅模式 通知事件
+* @param type 配置表中的notify-keyspace-events的配置项转换程序中的十进制数
+* @param event 事件类型
+* @param key  变化的哈希值
+* @param dbid 数据库ID
+*/
 void notifyKeyspaceEvent(int type, char *event, robj *key, int dbid) {
     sds chan;
     robj *chanobj, *eventobj;
@@ -105,7 +116,7 @@ void notifyKeyspaceEvent(int type, char *event, robj *key, int dbid) {
      * will only call event subscribers if the event type matches the types
      * they are interested in. */
      moduleNotifyKeyspaceEvent(type, event, key, dbid);
-    
+	 printf("[%s][%s][%d][client send -> notify_keyspace_events = %d][type = %d]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__, server.notify_keyspace_events, type);
     /* If notifications for this class of events are off, return ASAP. */
     if (!(server.notify_keyspace_events & type)) return;
 
@@ -113,6 +124,7 @@ void notifyKeyspaceEvent(int type, char *event, robj *key, int dbid) {
 
     /* __keyspace@<db>__:<key> <event> notifications. */
     if (server.notify_keyspace_events & NOTIFY_KEYSPACE) {
+		printf("[%s][%s][%d][client send -> notify_keyspace_events = %d][type = %d]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__, server.notify_keyspace_events, type);
         chan = sdsnewlen("__keyspace@",11);
         len = ll2string(buf,sizeof(buf),dbid);
         chan = sdscatlen(chan, buf, len);
@@ -124,7 +136,9 @@ void notifyKeyspaceEvent(int type, char *event, robj *key, int dbid) {
     }
 
     /* __keyevent@<db>__:<event> <key> notifications. */
+	//subscribe __keyevent@0__:set
     if (server.notify_keyspace_events & NOTIFY_KEYEVENT) {
+		printf("[%s][%s][%d][client send -> notify_keyspace_events = %d][type = %d]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__, server.notify_keyspace_events, type);
         chan = sdsnewlen("__keyevent@",11);
         if (len == -1) len = ll2string(buf,sizeof(buf),dbid);
         chan = sdscatlen(chan, buf, len);
