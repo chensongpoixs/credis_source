@@ -1243,12 +1243,13 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 	}
 
 	/* Check if a background saving or AOF rewrite in progress terminated. */
+	//检查是否有子进程在写入数据aof或者rdb
 	if (server.rdb_child_pid != -1 || server.aof_child_pid != -1 ||
 		ldbPendingChildren())
 	{
 		int statloc;
 		pid_t pid;
-
+		// 等待子进程退出， 清理工作 临时文件清空
 		if ((pid = wait3(&statloc, WNOHANG, NULL)) != 0) {
 			int exitcode = WEXITSTATUS(statloc);
 			int bysignal = 0;
@@ -1281,7 +1282,8 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 			closeChildInfoPipe();
 		}
 	}
-	else {
+	else 
+	{
 		/* If there is not a background saving/rewrite in progress check if
 		 * we have to save/rewrite now. */
 		// 异步存储数据
@@ -1327,6 +1329,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 
 	/* AOF postponed flush: Try at every cron cycle if the slow fsync
 	 * completed. */
+	// wrtie aof metedata
 	if (server.aof_flush_postponed_start) flushAppendOnlyFile(0);
 
 	/* AOF write errors: in this case we have a buffer to flush as well and
