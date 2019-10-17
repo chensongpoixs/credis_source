@@ -106,6 +106,12 @@ void rioInitWithBuffer(rio *r, sds s) {
 /* --------------------- Stdio file pointer implementation ------------------- */
 
 /* Returns 1 or 0 for success/failure. */
+/**
+* 写文件操作
+* @param  r		文件的结构体
+* @param  buf	要写入的buf数据块
+* @param  len	要写入的buf的数据块的大小
+*/
 static size_t rioFileWrite(rio *r, const void *buf, size_t len) {
     size_t retval;
 

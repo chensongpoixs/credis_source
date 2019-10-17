@@ -409,6 +409,7 @@ ssize_t rdbSaveRawString(rio *rdb, unsigned char *s, size_t len) {
     /* Try integer encoding */
     if (len <= 11) {
         unsigned char buf[5];
+		// 尝试把数据转换数字字符串
         if ((enclen = rdbTryIntegerEncoding((char*)s,len,buf)) > 0) {
             if (rdbWriteRaw(rdb,buf,enclen) == -1) return -1;
             return enclen;
@@ -417,6 +418,7 @@ ssize_t rdbSaveRawString(rio *rdb, unsigned char *s, size_t len) {
 
     /* Try LZF compression - under 20 bytes it's unable to compress even
      * aaaaaaaaaaaaaaaaaa so skip it */
+	// 字符长度大于的20字节就使用加密算法LZF算法进行去重
     if (server.rdb_compression && len > 20) {
         n = rdbSaveLzfStringObject(rdb,s,len);
         if (n == -1) return -1;
@@ -425,6 +427,7 @@ ssize_t rdbSaveRawString(rio *rdb, unsigned char *s, size_t len) {
     }
 
     /* Store verbatim */
+	// 这边正常写入数据到文件中的没有加密
     if ((n = rdbSaveLen(rdb,len)) == -1) return -1;
     nwritten += n;
     if (len > 0) {
@@ -757,7 +760,7 @@ ssize_t rdbSaveObject(rio *rdb, robj *o) {
 
     if (o->type == OBJ_STRING) {
         /* Save a string value */
-        if ((n = rdbSaveStringObject(rdb,o)) == -1) return -1;
+        if ((n = rdbSaveStringObject(rdb, o)) == -1) return -1;
         nwritten += n;
     } else if (o->type == OBJ_LIST) {
         /* Save a list value */
@@ -1113,6 +1116,7 @@ int rdbSaveRio(rio *rdb, int *error, int flags, rdbSaveInfo *rsi) {
     if (server.rdb_checksum)
         rdb->update_cksum = rioGenericUpdateChecksum;
     snprintf(magic,sizeof(magic),"REDIS%04d",RDB_VERSION);
+	// 保持redis的版本号
     if (rdbWriteRaw(rdb,magic,9) == -1) goto werr;
     if (rdbSaveInfoAuxFields(rdb,flags,rsi) == -1) goto werr;
 
@@ -1134,8 +1138,11 @@ int rdbSaveRio(rio *rdb, int *error, int flags, rdbSaveInfo *rsi) {
         uint64_t db_size, expires_size;
         db_size = dictSize(db->dict);
         expires_size = dictSize(db->expires);
+		//保存redis数据库的标记位 [0XFB]
         if (rdbSaveType(rdb,RDB_OPCODE_RESIZEDB) == -1) goto werr;
+		// 保存数据的中的字典个数
         if (rdbSaveLen(rdb,db_size) == -1) goto werr;
+		//保存数据过期的字典个数
         if (rdbSaveLen(rdb,expires_size) == -1) goto werr;
 
         /* Iterate this DB writing every entry */
