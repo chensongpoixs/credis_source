@@ -1361,7 +1361,7 @@ int rewriteAppendOnlyFile(char *filename) {
 
     if (server.aof_rewrite_incremental_fsync)
         rioSetAutoSync(&aof,REDIS_AUTOSYNC_BYTES);
-
+	// 这边写入aof的文件格式使用rdb文件格式还是 文本格式人识别
     if (server.aof_use_rdb_preamble) {
         int error;
         if (rdbSaveRio(&aof,&error,RDB_SAVE_AOF_PREAMBLE,NULL) == C_ERR) {

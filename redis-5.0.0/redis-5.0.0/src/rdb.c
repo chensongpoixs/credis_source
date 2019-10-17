@@ -1,4 +1,4 @@
-/*
+ï»¿/*
  * Copyright (c) 2009-2012, Salvatore Sanfilippo <antirez at gmail dot com>
  * All rights reserved.
  *
@@ -141,12 +141,12 @@ int rdbSaveLen(rio *rdb, uint64_t len) {
     unsigned char buf[2];
     size_t nwritten;
 
-    if (len < (1<<6)) {
+    if (len < (1<<6)/*â€­64 == 0X40*/) {
         /* Save a 6 bit len */
         buf[0] = (len&0xFF)|(RDB_6BITLEN<<6);
         if (rdbWriteRaw(rdb,buf,1) == -1) return -1;
         nwritten = 1;
-    } else if (len < (1<<14)) {
+    } else if (len < (1<<14)/*â€­16384â€¬ == 0X40000*/) {
         /* Save a 14 bit len */
         buf[0] = ((len>>8)&0xFF)|(RDB_14BITLEN<<6);
         buf[1] = len&0xFF;
@@ -232,17 +232,17 @@ uint64_t rdbLoadLen(rio *rdb, int *isencoded) {
  * representation is stored in the buffer pointer to by "enc" and the string
  * length is returned. Otherwise 0 is returned. */
 int rdbEncodeInteger(long long value, unsigned char *enc) {
-    if (value >= -(1<<7) && value <= (1<<7)-1) {
-        enc[0] = (RDB_ENCVAL<<6)|RDB_ENC_INT8;
+    if (value >= -(1<<7) /*-128 == 0X80*/ && value <= (1<<7)-1 /*127 == 0x7F*/) {
+        enc[0] = (RDB_ENCVAL<<6)/*0XC0å³192*/|RDB_ENC_INT8; // 0XC0
         enc[1] = value&0xFF;
         return 2;
-    } else if (value >= -(1<<15) && value <= (1<<15)-1) {
-        enc[0] = (RDB_ENCVAL<<6)|RDB_ENC_INT16;
+    } else if (value >= -(1<<15)/*-â€­32768â€¬ == 0X8000*/ && value <= (1<<15)-1 /*32767  == 0X7FFF*/) {
+        enc[0] = (RDB_ENCVAL<<6)|RDB_ENC_INT16;// 0XC1
         enc[1] = value&0xFF;
         enc[2] = (value>>8)&0xFF;
         return 3;
-    } else if (value >= -((long long)1<<31) && value <= ((long long)1<<31)-1) {
-        enc[0] = (RDB_ENCVAL<<6)|RDB_ENC_INT32;
+    } else if (value >= -((long long)1<<31) /*-â€­2147483648â€¬ == 0Xâ€­80000000â€¬*/ && value <= ((long long)1<<31)-1 /*2147483647â€¬ == 0Xâ€­7FFFFFFF*/) {
+        enc[0] = (RDB_ENCVAL<<6)|RDB_ENC_INT32;// 0XC2
         enc[1] = value&0xFF;
         enc[2] = (value>>8)&0xFF;
         enc[3] = (value>>16)&0xFF;
@@ -319,7 +319,7 @@ ssize_t rdbSaveLzfBlob(rio *rdb, void *data, size_t compress_len,
     ssize_t n, nwritten = 0;
 
     /* Data compressed! Let's save it on disk */
-    byte = (RDB_ENCVAL<<6)|RDB_ENC_LZF;
+    byte = (RDB_ENCVAL<<6)|RDB_ENC_LZF;//0XC3
     if ((n = rdbWriteRaw(rdb,&byte,1)) == -1) goto writeerr;
     nwritten += n;
 
@@ -751,7 +751,7 @@ size_t rdbSaveStreamConsumers(rio *rdb, streamCG *cg) {
 
 /* Save a Redis object.
  * Returns -1 on error, number of bytes written on success. */
-// ±£´ækey-valueÖĞvalueµÄ¶ÔÏóµÄ´¦Àí
+// ä¿å­˜key-valueä¸­valueçš„å¯¹è±¡çš„å¤„ç†
 ssize_t rdbSaveObject(rio *rdb, robj *o) {
     ssize_t n = 0, nwritten = 0;
 
@@ -761,7 +761,7 @@ ssize_t rdbSaveObject(rio *rdb, robj *o) {
         nwritten += n;
     } else if (o->type == OBJ_LIST) {
         /* Save a list value */
-		// list±£´æÊı¾İµÄÊÇ×ª»»ziplist±£´æµ½ÂäµØÎÄ¼ş
+		// listä¿å­˜æ•°æ®çš„æ˜¯è½¬æ¢ziplistä¿å­˜åˆ°è½åœ°æ–‡ä»¶
         if (o->encoding == OBJ_ENCODING_QUICKLIST) {
             quicklist *ql = o->ptr;
             quicklistNode *node = ql->head;
@@ -1101,7 +1101,7 @@ int rdbSaveInfoAuxFields(rio *rdb, int flags, rdbSaveInfo *rsi) {
  * When the function returns C_ERR and if 'error' is not NULL, the
  * integer pointed by 'error' is set to the value of errno just after the I/O
  * error. */
-// redis async ±£³ÖÊı¾İ
+// redis async ä¿æŒæ•°æ®
 int rdbSaveRio(rio *rdb, int *error, int flags, rdbSaveInfo *rsi) {
     dictIterator *di = NULL;
     dictEntry *de;
@@ -1119,6 +1119,7 @@ int rdbSaveRio(rio *rdb, int *error, int flags, rdbSaveInfo *rsi) {
     for (j = 0; j < server.dbnum; j++) {
         redisDb *db = server.db+j;
         dict *d = db->dict;
+		// æ•°æ®åº“ä¸­çš„å­—å…¸æ²¡æœ‰æ•°æ®ç›´æ¥è¿”å›
         if (dictSize(d) == 0) continue;
         di = dictGetSafeIterator(d);
 

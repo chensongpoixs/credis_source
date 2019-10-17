@@ -93,7 +93,7 @@ typedef struct _rio rio;
 static inline size_t rioWrite(rio *r, const void *buf, size_t len) {
     while (len) {
         size_t bytes_to_write = (r->max_processing_chunk && r->max_processing_chunk < len) ? r->max_processing_chunk : len;
-        if (r->update_cksum) r->update_cksum(r,buf,bytes_to_write);
+        if (r->update_cksum) r->update_cksum(r,buf,bytes_to_write);//rioGenericUpdateChecksum
         if (r->write(r,buf,bytes_to_write) == 0)
             return 0;
         buf = (char*)buf + bytes_to_write;

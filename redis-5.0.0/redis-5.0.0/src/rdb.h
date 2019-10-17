@@ -98,14 +98,14 @@
 
 /* Special RDB opcodes (saved/loaded with rdbSaveType/rdbLoadType). */
 #define RDB_OPCODE_MODULE_AUX 247   /* Module auxiliary data. */
-#define RDB_OPCODE_IDLE       248   /* LRU idle time. */
-#define RDB_OPCODE_FREQ       249   /* LFU frequency. */
+#define RDB_OPCODE_IDLE       248   /* LRU idle time. 0XF8*/
+#define RDB_OPCODE_FREQ       249   /* LFU frequency. 0XF9*/
 #define RDB_OPCODE_AUX        250   /* RDB aux field. */
-#define RDB_OPCODE_RESIZEDB   251   /* Hash table resize hint. */
-#define RDB_OPCODE_EXPIRETIME_MS 252    /* Expire time in milliseconds. */
-#define RDB_OPCODE_EXPIRETIME 253       /* Old expire time in seconds. */
-#define RDB_OPCODE_SELECTDB   254   /* DB number of the following keys. */
-#define RDB_OPCODE_EOF        255   /* End of the RDB file. */
+#define RDB_OPCODE_RESIZEDB   251   /* Hash table resize hint. 0XFB*/
+#define RDB_OPCODE_EXPIRETIME_MS 252    /* Expire time in milliseconds. 0XFC*/
+#define RDB_OPCODE_EXPIRETIME 253       /* Old expire time in seconds. 0XFD */
+#define RDB_OPCODE_SELECTDB   254   /* DB number of the following keys. 0XFE*/
+#define RDB_OPCODE_EOF        255   /* End of the RDB file. 0XFF*/
 
 /* Module serialized values sub opcodes */
 #define RDB_MODULE_OPCODE_EOF   0   /* End of module value. */

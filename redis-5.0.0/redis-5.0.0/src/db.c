@@ -438,6 +438,7 @@ void flushdbCommand(client *c) {
 /* FLUSHALL [ASYNC]
  *
  * Flushes the whole server data set. */
+//Òì²½´æ´¢Êý¾Ý
 void flushallCommand(client *c) {
     int flags;
 

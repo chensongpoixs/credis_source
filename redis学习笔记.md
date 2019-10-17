@@ -313,6 +313,68 @@ typedef struct redisDb {
 
 
 
+long 类型在内存放置
+
+1. -128~127之间的数据使用两个字节
+
+第一个字节为 0XC0
+第二个字节为 整数的值得
+
+2. -32768~32767使用三个字节
+
+第一个字节为 0XC1
+第二个字节和第三个为 整数的值得
+
+
+3. -‭2147483648‬ ~ 2147483647使用四个字节
+
+
+第一个字节为 0XC2
+第二个字节和第三个和第四个为 整数的值得
+
+字符串类型
+
+1. 长度在0到64之间的使用一个字节
+
+高两位为00后6位为字符串的长度
+
+```
+buf[0] = (len&0xFF)|(RDB_6BITLEN<<6);
+```
+
+2. 长度在64到16384之间使用二个字节
+
+高两位为01 后面14位为长度
+
+```
+buf[0] = ((len>>8)&0xFF)|(RDB_14BITLEN<<6);
+buf[1] = len&0xFF;
+```
+
+3. 长度在uint32max值之间的使用5个字节
+
+高八位为0X80 后面4个字节存放长度
+
+```
+  /* Save a 32 bit len */
+        buf[0] = RDB_32BITLEN;
+        if (rdbWriteRaw(rdb,buf,1) == -1) return -1;
+        uint32_t len32 = htonl(len);
+        if (rdbWriteRaw(rdb,&len32,4) == -1) return -1;
+```
+4. 长度大于uintmax的值使用9个字节
+
+
+高八位为0X81 后面8个字节存放长度
+
+```
+ buf[0] = RDB_64BITLEN;
+        if (rdbWriteRaw(rdb,buf,1) == -1) return -1;
+        len = htonu64(len);
+        if (rdbWriteRaw(rdb,&len,8) == -1) return -1;
+```
+
+
 
 
 

@@ -247,7 +247,7 @@ struct redisCommand redisCommandTable[] = {
 	{"echo",echoCommand,2,"F",0,NULL,0,0,0,0,0},
 	{"save",saveCommand,1,"as",0,NULL,0,0,0,0,0},
 	{"bgsave",bgsaveCommand,-1,"as",0,NULL,0,0,0,0,0},
-	{"bgrewriteaof",bgrewriteaofCommand,1,"as",0,NULL,0,0,0,0,0},
+	{"bgrewriteaof",bgrewriteaofCommand,1,"as",0,NULL,0,0,0,0,0},   // redis中的重写.aof文件的操作  --分写入二进制还是文本格式
 	{"shutdown",shutdownCommand,-1,"aslt",0,NULL,0,0,0,0,0},
 	{"lastsave",lastsaveCommand,1,"RF",0,NULL,0,0,0,0,0},
 	{"type",typeCommand,2,"rF",0,NULL,1,1,1,0,0},
@@ -1284,6 +1284,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 	else {
 		/* If there is not a background saving/rewrite in progress check if
 		 * we have to save/rewrite now. */
+		// 异步存储数据
 		for (j = 0; j < server.saveparamslen; j++) {
 			struct saveparam *sp = server.saveparams + j;
 
