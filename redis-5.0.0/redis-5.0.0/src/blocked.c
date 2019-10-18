@@ -298,7 +298,7 @@ void handleClientsBlockedOnKeys(void) {
                              * call. */
                             if (dstkey) incrRefCount(dstkey);
                             unblockClient(receiver);
-
+							// aof异步保存数据的操作
                             if (serveClientBlockedOnList(receiver,
                                 rl->key,dstkey,rl->db,value,
                                 where) == C_ERR)
@@ -494,6 +494,9 @@ void handleClientsBlockedOnKeys(void) {
  * stream keys, we also provide an array of streamID structures: clients will
  * be unblocked only when items with an ID greater or equal to the specified
  * one is appended to the stream. */
+/**
+* blpop 等待
+*/
 void blockForKeys(client *c, int btype, robj **keys, int numkeys, mstime_t timeout, robj *target, streamID *ids) {
     dictEntry *de;
     list *l;
@@ -582,6 +585,10 @@ void unblockClientWaitingData(client *c) {
  * made by a script or in the context of MULTI/EXEC.
  *
  * The list will be finally processed by handleClientsBlockedOnLists() */
+/**
+* 只有另一个客户端使用阻塞式的获取数据的时，这个客户端插入数据的时会触发该方法保持数据跟发布订阅差不多  
+* 会触发另一个方法 handleClientsBlockedOnKeys
+*/
 void signalKeyAsReady(redisDb *db, robj *key) {
     readyList *rl;
 

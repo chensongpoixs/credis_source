@@ -634,6 +634,9 @@ void rpoplpushCommand(client *c) {
  * should be undone as the client was not served: This only happens for
  * BRPOPLPUSH that fails to push the value to the destination key as it is
  * of the wrong type. */
+/**
+*aof异步保存数据的操作
+*/
 int serveClientBlockedOnList(client *receiver, robj *key, robj *dstkey, redisDb *db, robj *value, int where)
 {
     robj *argv[3];
@@ -643,6 +646,7 @@ int serveClientBlockedOnList(client *receiver, robj *key, robj *dstkey, redisDb 
         argv[0] = (where == LIST_HEAD) ? shared.lpop :
                                           shared.rpop;
         argv[1] = key;
+		//aof异步保存数据的操作
         propagate((where == LIST_HEAD) ?
             server.lpopCommand : server.rpopCommand,
             db->id,argv,2,PROPAGATE_AOF|PROPAGATE_REPL);

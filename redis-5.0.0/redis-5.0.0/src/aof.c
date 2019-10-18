@@ -105,6 +105,7 @@ void aofChildWriteDiffData(aeEventLoop *el, int fd, void *privdata, int mask) {
     UNUSED(mask);
 
     while(1) {
+		//main loop 
         ln = listFirst(server.aof_rewrite_buf_blocks);
         block = ln ? ln->value : NULL;
         if (server.aof_stop_sending_diff || !block) {
@@ -112,8 +113,9 @@ void aofChildWriteDiffData(aeEventLoop *el, int fd, void *privdata, int mask) {
                               AE_WRITABLE);
             return;
         }
-		// 把数据包写入管道中的
+		// 把数据包写入管道中的 
         if (block->used > 0) {
+			// 写入数据通知异步保存数据进程
             nwritten = write(server.aof_pipe_write_data_to_child,
                              block->buf,block->used);
             if (nwritten <= 0) return;
@@ -126,6 +128,10 @@ void aofChildWriteDiffData(aeEventLoop *el, int fd, void *privdata, int mask) {
 }
 
 /* Append data to the AOF rewrite buffer, allocating new blocks if needed. */
+/**
+* 业务进程的新的操作异步保存数据的操作
+* 
+*/
 void aofRewriteBufferAppend(unsigned char *s, unsigned long len) {
     listNode *ln = listLast(server.aof_rewrite_buf_blocks);
     aofrwblock *block = ln ? ln->value : NULL;
@@ -616,6 +622,7 @@ void feedAppendOnlyFile(struct redisCommand *cmd, int dictid, robj **argv, int a
      * accumulate the differences between the child DB and the current one
      * in a buffer, so that when the child process will do its work we
      * can append the differences to the new append only file. */
+	// 判断是否异步保存数据的保存的话 aof_child_pid的值不为-1了 所以要保存数据
     if (server.aof_child_pid != -1)
         aofRewriteBufferAppend((unsigned char*)buf,sdslen(buf));
 

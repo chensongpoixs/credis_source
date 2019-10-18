@@ -169,6 +169,7 @@ void dbAdd(redisDb *db, robj *key, robj *val) {
     int retval = dictAdd(db->dict, copy, val);
 
     serverAssertWithInfo(NULL,key,retval == DICT_OK);
+	// 触发异步保存数据的进程？？？？？？？？？？？   
     if (val->type == OBJ_LIST ||
         val->type == OBJ_ZSET)
         signalKeyAsReady(db, key);
@@ -1117,7 +1118,7 @@ void propagateExpire(redisDb *db, robj *key, int lazy) {
     argv[1] = key;
     incrRefCount(argv[0]);
     incrRefCount(argv[1]);
-
+	// 是否异步保存数据的进程
     if (server.aof_state != AOF_OFF)
         feedAppendOnlyFile(server.delCommand,db->id,argv,2);
     replicationFeedSlaves(server.slaves,db->id,argv,2);
@@ -1175,6 +1176,7 @@ int expireIfNeeded(redisDb *db, robj *key) {
 
     /* Delete the key */
     server.stat_expiredkeys++;
+	//过期时也要异步保存数据进程
     propagateExpire(db,key,server.lazyfree_lazy_expire);
     notifyKeyspaceEvent(NOTIFY_EXPIRED,
         "expired",key,db->id);

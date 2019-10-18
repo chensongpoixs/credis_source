@@ -2357,6 +2357,7 @@ struct redisCommand *lookupCommandOrOriginal(sds name) {
 void propagate(struct redisCommand *cmd, int dbid, robj **argv, int argc,
 	int flags)
 {
+	// 是否异步保存数据的开启
 	if (server.aof_state != AOF_OFF && flags & PROPAGATE_AOF)
 		feedAppendOnlyFile(cmd, dbid, argv, argc);
 	if (flags & PROPAGATE_REPL)
@@ -2541,6 +2542,7 @@ void call(client *c, int flags) {
 		/* Call propagate() only if at least one of AOF / replication
 		 * propagation is needed. Note that modules commands handle replication
 		 * in an explicit way, so we never replicate them automatically. */
+		// 异步保存数据的进程开启了
 		if (propagate_flags != PROPAGATE_NONE && !(c->cmd->flags & CMD_MODULE))
 			propagate(c->cmd, c->db->id, c->argv, c->argc, propagate_flags);
 	}
@@ -2565,6 +2567,7 @@ void call(client *c, int flags) {
 				/* Whatever the command wish is, we honor the call() flags. */
 				if (!(flags&CMD_CALL_PROPAGATE_AOF)) target &= ~PROPAGATE_AOF;
 				if (!(flags&CMD_CALL_PROPAGATE_REPL)) target &= ~PROPAGATE_REPL;
+				// aof异步保存数据的进程开启了
 				if (target)
 					propagate(rop->cmd, rop->dbid, rop->argv, rop->argc, target);
 			}
@@ -2777,6 +2780,7 @@ int processCommand(client *c) {
 	else {
 		call(c, CMD_CALL_FULL);
 		c->woff = server.master_repl_offset;
+		// 客户端使用阻塞式获取数据
 		if (listLength(server.ready_keys))
 			handleClientsBlockedOnKeys();
 	}

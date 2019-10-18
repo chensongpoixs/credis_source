@@ -441,6 +441,47 @@ ssize_t aofReadDiffFromParent(void) {
 
 
 
+特殊的操作
+
+1. signalKeyAsReady
+
+
+业务进程通知方法
+
+1. propagateExpire
+2. propagate
+
+
+
+#### 一, 在过期的字典中的调用
+
+1. expireIfNeeded(惰性删除)
+2. freeMemoryIfNeeded(设置内存的大小检测)
+2. activeExpireCycleTryExpire(定时删除)
+
+
+#### 二, 新增加的操作记录
+
+客户端使用阻塞获取信息使用
+1. handleClientsBlockedOnKeys
+2. execCommandPropagateMulti
+3. serveClientBlockedOnList
+4. streamPropagateXCLAIM
+5. streamPropagateGroupID
+
+客户端请求
+
+1. call中有两个
+
+
+
+
+
+
+
+
+
+
 
 
 

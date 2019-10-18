@@ -636,8 +636,8 @@ typedef struct clientReplyBlock {
 typedef struct redisDb {
     dict *dict;                 /* The keyspace for this DB */
     dict *expires;              /* Timeout of keys with a timeout set */
-    dict *blocking_keys;        /* Keys with clients waiting for data (BLPOP)*/
-    dict *ready_keys;           /* Blocked keys that received a PUSH */
+    dict *blocking_keys;        /* Keys with clients waiting for data (BLPOP)  客户端等待BLPOP的命令返回数据 */
+    dict *ready_keys;           /* Blocked keys that received a PUSH 这个和上面的配合使用的有两个功能一个是类似于发布订阅模式，二个作用是用于的业务进程通知，aof异步写入数据进程*/
     dict *watched_keys;         /* WATCHED keys for MULTI/EXEC CAS */
     int id;                     /* Database ID */
     long long avg_ttl;          /* Average TTL, just for stats */
@@ -1051,7 +1051,7 @@ struct redisServer {
     int daemonize;                  /* True if running as a daemon */
     clientBufferLimitsConfig client_obuf_limits[CLIENT_TYPE_OBUF_COUNT];
     /* AOF persistence */
-    int aof_state;                  /* AOF_(ON|OFF|WAIT_REWRITE) */
+    int aof_state;                  /* AOF_(ON|OFF|WAIT_REWRITE) 是否开启子进程写入数据保存的状态记录 */
     int aof_fsync;                  /* Kind of fsync() policy */
     char *aof_filename;             /* Name of the AOF file */
     int aof_no_fsync_on_rewrite;    /* Don't fsync if a rewrite is in prog. */
@@ -1079,12 +1079,12 @@ struct redisServer {
     int aof_use_rdb_preamble;       /* Use RDB preamble on AOF rewrites. */
     /* AOF pipes used to communicate between parent and child during rewrite. */
     int aof_pipe_write_data_to_child;
-    int aof_pipe_read_data_from_parent;
+    int aof_pipe_read_data_from_parent;  // 异步保存数据进程读取数据
     int aof_pipe_write_ack_to_parent;
     int aof_pipe_read_ack_from_child;
     int aof_pipe_write_ack_to_child;
     int aof_pipe_read_ack_from_parent;
-    int aof_stop_sending_diff;     /* If true stop sending accumulated diffs
+    int aof_stop_sending_diff;     /* If true stop sending accumulated diffs 是否停止业务进程与异步保存数据的进程之间的通信
                                       to child process. */
     sds aof_child_diff;             /* AOF diff accumulator child side.   在异步进程中的保存数据时，业务进程进行新的操作时的数据的保存位置，  命名也挺好的一看就会懂了 (chlid)子进程, 我看了老半天都没有懂， 估计我是笨了*/
     /* RDB persistence */
