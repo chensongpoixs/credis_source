@@ -55,7 +55,7 @@ struct _rio {
     uint64_t cksum;
 
     /* number of bytes read or written */
-    size_t processed_bytes;
+    size_t processed_bytes;  // 记录读取或者写入数据的时的大小  --->rioWrite
 
     /* maximum single read or write chunk size */
     size_t max_processing_chunk;
@@ -98,6 +98,7 @@ static inline size_t rioWrite(rio *r, const void *buf, size_t len) {
             return 0;
         buf = (char*)buf + bytes_to_write;
         len -= bytes_to_write;
+		//记录写入的大小
         r->processed_bytes += bytes_to_write;
     }
     return 1;
@@ -111,6 +112,7 @@ static inline size_t rioRead(rio *r, void *buf, size_t len) {
         if (r->update_cksum) r->update_cksum(r,buf,bytes_to_read);
         buf = (char*)buf + bytes_to_read;
         len -= bytes_to_read;
+		// 记录读取的大小
         r->processed_bytes += bytes_to_read;
     }
     return 1;

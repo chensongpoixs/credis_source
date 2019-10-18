@@ -67,6 +67,9 @@ typedef struct aofrwblock {
 /* This function free the old AOF rewrite buffer if needed, and initialize
  * a fresh new one. It tests for server.aof_rewrite_buf_blocks equal to NULL
  * so can be used for the first initialization as well. */
+/**
+* 重置aofwrite的buf缓冲器
+*/
 void aofRewriteBufferReset(void) {
     if (server.aof_rewrite_buf_blocks)
         listRelease(server.aof_rewrite_buf_blocks);
@@ -109,6 +112,7 @@ void aofChildWriteDiffData(aeEventLoop *el, int fd, void *privdata, int mask) {
                               AE_WRITABLE);
             return;
         }
+		// 把数据包写入管道中的
         if (block->used > 0) {
             nwritten = write(server.aof_pipe_write_data_to_child,
                              block->buf,block->used);
@@ -1247,6 +1251,9 @@ int rewriteModuleObject(rio *r, robj *key, robj *o) {
 /* This function is called by the child rewriting the AOF file to read
  * the difference accumulated from the parent into a buffer, that is
  * concatenated at the end of the rewrite. */
+/**
+* 保存业务进程的数据到server.aof_child_diff中
+*/
 ssize_t aofReadDiffFromParent(void) {
     char buf[65536]; /* Default pipe buffer size on most Linux systems. */
     ssize_t nread, total = 0;
@@ -1319,7 +1326,9 @@ int rewriteAppendOnlyFileRio(rio *aof) {
                 if (rioWriteBulkLongLong(aof,expiretime) == 0) goto werr;
             }
             /* Read some diff from the parent process from time to time. */
-            if (aof->processed_bytes > processed+AOF_READ_DIFF_INTERVAL_BYTES) {
+			//当写入数据大小 1024 * 10 时为什么要写入管道呢  这些人设计这个干呢   
+			// 这里是检测 业务进程通知的操作保存， 可能是异步存储的数据量太大时才会触发该检测
+            if (aof->processed_bytes > processed + AOF_READ_DIFF_INTERVAL_BYTES) {
                 processed = aof->processed_bytes;
                 aofReadDiffFromParent();
             }
@@ -1356,7 +1365,8 @@ int rewriteAppendOnlyFile(char *filename) {
         return C_ERR;
     }
 
-    server.aof_child_diff = sdsempty();
+	//这个字符串干嘛呢?:????
+    server.aof_child_diff = sdsempty(); 
     rioInitWithFile(&aof,fp);
 
     if (server.aof_rewrite_incremental_fsync)
@@ -1364,11 +1374,13 @@ int rewriteAppendOnlyFile(char *filename) {
 	// 这边写入aof的文件格式使用rdb文件格式还是 文本格式人识别
     if (server.aof_use_rdb_preamble) {
         int error;
+		// 1. redis 二进制存储到aof文件中的
         if (rdbSaveRio(&aof,&error,RDB_SAVE_AOF_PREAMBLE,NULL) == C_ERR) {
             errno = error;
             goto werr;
         }
     } else {
+		// 2. 文本格式存储到aof文件中的
         if (rewriteAppendOnlyFileRio(&aof) == C_ERR) goto werr;
     }
 
@@ -1385,6 +1397,7 @@ int rewriteAppendOnlyFile(char *filename) {
      * happens after 20 ms without new data). */
     int nodata = 0;
     mstime_t start = mstime();
+	//防止管道有延迟
     while(mstime()-start < 1000 && nodata < 20) {
         if (aeWait(server.aof_pipe_read_data_from_parent, AE_READABLE, 1) <= 0)
         {
@@ -1403,6 +1416,7 @@ int rewriteAppendOnlyFile(char *filename) {
     /* We read the ACK from the server using a 10 seconds timeout. Normally
      * it should reply ASAP, but just in case we lose its reply, we are sure
      * the child will eventually get terminated. */
+	//检测心跳包ack
     if (syncRead(server.aof_pipe_read_ack_from_parent,&byte,1,5000) != 1 ||
         byte != '!') goto werr;
     serverLog(LL_NOTICE,"Parent agreed to stop sending diffs. Finalizing AOF...");
@@ -1414,6 +1428,7 @@ int rewriteAppendOnlyFile(char *filename) {
     serverLog(LL_NOTICE,
         "Concatenating %.2f MB of AOF diff received from parent.",
         (double) sdslen(server.aof_child_diff) / (1024*1024));
+	// 写入业务进程中的操作到aof文件中的
     if (rioWrite(&aof,server.aof_child_diff,sdslen(server.aof_child_diff)) == 0)
         goto werr;
 
@@ -1424,6 +1439,7 @@ int rewriteAppendOnlyFile(char *filename) {
 
     /* Use RENAME to make sure the DB file is changed atomically only
      * if the generate DB file is ok. */
+	// 修改文件命名
     if (rename(tmpfile,filename) == -1) {
         serverLog(LL_WARNING,"Error moving temp append only file on the final destination: %s", strerror(errno));
         unlink(tmpfile);
@@ -1474,16 +1490,20 @@ void aofChildPipeReadable(aeEventLoop *el, int fd, void *privdata, int mask) {
  * and two other pipes used by the children to signal it finished with
  * the rewrite so no more data should be written, and another for the
  * parent to acknowledge it understood this new condition. */
+/**
+* 在业务进程中的创建管道，负责通知子进程
+*/
 int aofCreatePipes(void) {
     int fds[6] = {-1, -1, -1, -1, -1, -1};
     int j;
-
+	// 创建管道
     if (pipe(fds) == -1) goto error; /* parent -> children data. */
     if (pipe(fds+2) == -1) goto error; /* children -> parent ack. */
     if (pipe(fds+4) == -1) goto error; /* parent -> children ack. */
     /* Parent -> children data is non blocking. */
     if (anetNonBlock(NULL,fds[0]) != ANET_OK) goto error;
     if (anetNonBlock(NULL,fds[1]) != ANET_OK) goto error;
+	// 把孩子节点放到事件驱动中的
     if (aeCreateFileEvent(server.el, fds[2], AE_READABLE, aofChildPipeReadable, NULL) == AE_ERR) goto error;
 
     server.aof_pipe_write_data_to_child = fds[1];
@@ -1534,16 +1554,22 @@ int rewriteAppendOnlyFileBackground(void) {
     long long start;
 
     if (server.aof_child_pid != -1 || server.rdb_child_pid != -1) return C_ERR;
-    if (aofCreatePipes() != C_OK) return C_ERR;
+	// 这里为什么使用三个管道来玩， 这些人设计这种模式干嘛呢！ 有必要这样设计吗？ 还是这帮人有毛病呢！！！！
+	// 1. 这帮人设计这个 是为在异步写入数据时，会有新数据写入或者修改 业务进程通过管道通知异步的进程保存业务进程的操作到server.aof_child_diff中
+    // 这帮大
+	if (aofCreatePipes() != C_OK) return C_ERR;
+	// 孩子管道？？
     openChildInfoPipe();
     start = ustime();
     if ((childpid = fork()) == 0) {
         char tmpfile[256];
 
         /* Child */
+		// 1. 清理父进程多余工作
         closeListeningSockets(0);
         redisSetProcTitle("redis-aof-rewrite");
         snprintf(tmpfile,256,"temp-rewriteaof-bg-%d.aof", (int) getpid());
+		// 写入aof文件操作
         if (rewriteAppendOnlyFile(tmpfile) == C_OK) {
             size_t private_dirty = zmalloc_get_private_dirty(-1);
 

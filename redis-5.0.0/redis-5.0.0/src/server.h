@@ -1086,7 +1086,7 @@ struct redisServer {
     int aof_pipe_read_ack_from_parent;
     int aof_stop_sending_diff;     /* If true stop sending accumulated diffs
                                       to child process. */
-    sds aof_child_diff;             /* AOF diff accumulator child side. */
+    sds aof_child_diff;             /* AOF diff accumulator child side.   在异步进程中的保存数据时，业务进程进行新的操作时的数据的保存位置，  命名也挺好的一看就会懂了 (chlid)子进程, 我看了老半天都没有懂， 估计我是笨了*/
     /* RDB persistence */
     long long dirty;                /* Changes to DB from the last save */
     long long dirty_before_bgsave;  /* Used to restore dirty on failed BGSAVE */

@@ -378,6 +378,65 @@ buf[1] = len&0xFF;
 
 
 
+在redis中的异步保存数据的流程
+
+1. 管道用于业务进程的新的操作通知异步保存数据的进程
+2. 创建子进程保存数据,并接受业务进程数据的新的操作保存到server.aof_child_diff在子保存redis中的数据结束时再保存这些数据
+
+```
+/**
+* 在业务进程中的创建管道，负责通知子进程
+*/
+int aofCreatePipes(void) {
+    int fds[6] = {-1, -1, -1, -1, -1, -1};
+    int j;
+	// 创建管道
+    if (pipe(fds) == -1) goto error; /* parent -> children data. */
+    if (pipe(fds+2) == -1) goto error; /* children -> parent ack. */
+    if (pipe(fds+4) == -1) goto error; /* parent -> children ack. */
+    /* Parent -> children data is non blocking. */
+    if (anetNonBlock(NULL,fds[0]) != ANET_OK) goto error;
+    if (anetNonBlock(NULL,fds[1]) != ANET_OK) goto error;
+	// 把孩子节点放到事件驱动中的
+    if (aeCreateFileEvent(server.el, fds[2], AE_READABLE, aofChildPipeReadable, NULL) == AE_ERR) goto error;
+
+    server.aof_pipe_write_data_to_child = fds[1];
+    server.aof_pipe_read_data_from_parent = fds[0];
+    server.aof_pipe_write_ack_to_parent = fds[3];
+    server.aof_pipe_read_ack_from_child = fds[2];
+    server.aof_pipe_write_ack_to_child = fds[5];
+    server.aof_pipe_read_ack_from_parent = fds[4];
+    server.aof_stop_sending_diff = 0;
+    return C_OK;
+
+error:
+    serverLog(LL_WARNING,"Error opening /setting AOF rewrite IPC pipes: %s",
+        strerror(errno));
+    for (j = 0; j < 6; j++) if(fds[j] != -1) close(fds[j]);
+    return C_ERR;
+}
+```
+
+异步保存进程
+
+```
+/**
+* 保存业务进程的数据到server.aof_child_diff中
+*/
+ssize_t aofReadDiffFromParent(void) {
+    char buf[65536]; /* Default pipe buffer size on most Linux systems. */
+    ssize_t nread, total = 0;
+
+    while ((nread =
+            read(server.aof_pipe_read_data_from_parent,buf,sizeof(buf))) > 0) {
+        server.aof_child_diff = sdscatlen(server.aof_child_diff,buf,nread);
+        total += nread;
+    }
+    return total;
+}
+```
+
+
 
 
 
