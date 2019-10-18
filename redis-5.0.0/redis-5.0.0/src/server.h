@@ -247,7 +247,7 @@ typedef long long mstime_t; /* millisecond time type. */
 #define CLIENT_PUBSUB (1<<18)      /* Client is in Pub/Sub mode. */
 #define CLIENT_PREVENT_AOF_PROP (1<<19)  /* Don't propagate to AOF. */
 #define CLIENT_PREVENT_REPL_PROP (1<<20)  /* Don't propagate to slaves. */
-#define CLIENT_PREVENT_PROP (CLIENT_PREVENT_AOF_PROP|CLIENT_PREVENT_REPL_PROP)
+#define CLIENT_PREVENT_PROP (CLIENT_PREVENT_AOF_PROP|CLIENT_PREVENT_REPL_PROP)  // aof和主从中的从服务器
 #define CLIENT_PENDING_WRITE (1<<21) /* Client has output to send but a write
                                         handler is yet not installed. */
 #define CLIENT_REPLY_OFF (1<<22)   /* Don't send replies to client. */
@@ -843,7 +843,7 @@ typedef struct redisOp {
  */
 typedef struct redisOpArray {
     redisOp *ops;
-    int numops;
+    int numops; // 保存redisOp的对象的个数
 } redisOpArray;
 
 /* This structure is returned by the getMemoryOverheadData() function in
@@ -1088,7 +1088,7 @@ struct redisServer {
                                       to child process. */
     sds aof_child_diff;             /* AOF diff accumulator child side.   在异步进程中的保存数据时，业务进程进行新的操作时的数据的保存位置，  命名也挺好的一看就会懂了 (chlid)子进程, 我看了老半天都没有懂， 估计我是笨了*/
     /* RDB persistence */
-    long long dirty;                /* Changes to DB from the last save */
+    long long dirty;                /* Changes to DB from the last save 该字段是纪录客户端的命令是否成功 好通知异步保存数据的进程 */
     long long dirty_before_bgsave;  /* Used to restore dirty on failed BGSAVE */
     pid_t rdb_child_pid;            /* PID of RDB saving child */
     struct saveparam *saveparams;   /* Save points array for RDB */

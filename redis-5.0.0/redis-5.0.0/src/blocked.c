@@ -271,6 +271,7 @@ void handleClientsBlockedOnKeys(void) {
                  * this key, from the first blocked to the last. */
                 de = dictFind(rl->db->blocking_keys,rl->key);
                 if (de) {
+					//得到该需要该信息的客户端的链表
                     list *clients = dictGetVal(de);
                     int numclients = listLength(clients);
 
@@ -298,7 +299,8 @@ void handleClientsBlockedOnKeys(void) {
                              * call. */
                             if (dstkey) incrRefCount(dstkey);
                             unblockClient(receiver);
-							// aof异步保存数据的操作
+							// 1. 通知阻塞式的客户端有信息了
+							// 2. aof异步保存数据的操作
                             if (serveClientBlockedOnList(receiver,
                                 rl->key,dstkey,rl->db,value,
                                 where) == C_ERR)
@@ -351,7 +353,9 @@ void handleClientsBlockedOnKeys(void) {
                         int where = (receiver->lastcmd &&
                                      receiver->lastcmd->proc == bzpopminCommand)
                                      ? ZSET_MIN : ZSET_MAX;
+						// 删除过期的阻塞的客户端
                         unblockClient(receiver);
+						// 发送给阻塞式的客户端的信息
                         genericZpopCommand(receiver,&rl->key,1,where,1,NULL);
                         zcard--;
 
@@ -363,6 +367,7 @@ void handleClientsBlockedOnKeys(void) {
                         argv[0] = createStringObject(cmd->name,strlen(cmd->name));
                         argv[1] = rl->key;
                         incrRefCount(rl->key);
+						// 
                         propagate(cmd,receiver->db->id,
                                   argv,2,PROPAGATE_AOF|PROPAGATE_REPL);
                         decrRefCount(argv[0]);
@@ -495,7 +500,9 @@ void handleClientsBlockedOnKeys(void) {
  * be unblocked only when items with an ID greater or equal to the specified
  * one is appended to the stream. */
 /**
+* 这个设计挺巧妙的 要学习哦
 * blpop 等待
+* 这个操作是不会在main loop 记录下来的是因为 全局的 server.dirty没有加一的操作，正好于压入的操作一起通知异步写入数据的进程对应的函数handleClientsBlockedOnKeys
 */
 void blockForKeys(client *c, int btype, robj **keys, int numkeys, mstime_t timeout, robj *target, streamID *ids) {
     dictEntry *de;

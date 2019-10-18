@@ -445,6 +445,7 @@ void spopWithCountCommand(client *c) {
 
     /* Generate an SPOP keyspace notification */
     notifyKeyspaceEvent(NOTIFY_SET,"spop",c->argv[1],c->db->id);
+	//这里是因为队利弹出操作 弹出count个的数据
     server.dirty += count;
 
     /* CASE 1:

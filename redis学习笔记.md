@@ -475,9 +475,96 @@ ssize_t aofReadDiffFromParent(void) {
 
 
 
+1. 当客户端使用阻塞式请求数据时, redis先是查询没有就把数据保存到db->blocking_keys的字典中,在下次有客户端插入数据时在通知该客户端和通知异步进程
+  
+
+
+这里我没有明白
 
 
 
+```
+
+// 这里我没有看懂 是什么原因使用这种方式难道上面的还不够吗？？？？ 还需这种发生操作
+// 1. spop弹出队利中的数据的个数
+// 2. 如果大于的现有的队利的个数就不需要纪录了
+// 3. 小于现有的队礼的个数就要纪录数据的了弹出的数据具体的那些数据key-value
+// 思考: 为什么大于时就不会纪录了，小于就要纪录具体弹出的数据的key-value呢
+// 这个有可能弹出数据错误数据的， 不知道弹出具体那个key-value， 而设计这个模式为弹出数据的正确性
+
+if (server.also_propagate.numops) {
+	int j;
+	redisOp *rop;
+
+	if (flags & CMD_CALL_PROPAGATE) {
+		for (j = 0; j < server.also_propagate.numops; j++) {
+			rop = &server.also_propagate.ops[j];
+			int target = rop->target;
+			/* Whatever the command wish is, we honor the call() flags. */
+			if (!(flags&CMD_CALL_PROPAGATE_AOF)) target &= ~PROPAGATE_AOF;
+			if (!(flags&CMD_CALL_PROPAGATE_REPL)) target &= ~PROPAGATE_REPL;
+			// aof异步保存数据的进程开启了
+			if (target)
+				propagate(rop->cmd, rop->dbid, rop->argv, rop->argc, target);
+		}
+	}
+	redisOpArrayFree(&server.also_propagate);
+}
+```
+
+
+
+
+```
+/**
+* 这个设计还是挺巧妙的哦
+* blpop 等待
+* 这个操作是不会在main loop 记录下来的是因为 全局的 server.dirty没有加一的操作，正好于压入的操作一起通知异步写入数据的进程handleClientsBlockedOnKeys
+*/
+void blockForKeys(client *c, int btype, robj **keys, int numkeys, mstime_t timeout, robj *target, streamID *ids) {
+    dictEntry *de;
+    list *l;
+    int j;
+
+    c->bpop.timeout = timeout;
+    c->bpop.target = target;
+
+    if (target != NULL) incrRefCount(target);
+
+    for (j = 0; j < numkeys; j++) {
+        /* The value associated with the key name in the bpop.keys dictionary
+         * is NULL for lists and sorted sets, or the stream ID for streams. */
+        void *key_data = NULL;
+        if (btype == BLOCKED_STREAM) {
+            key_data = zmalloc(sizeof(streamID));
+            memcpy(key_data,ids+j,sizeof(streamID));
+        }
+
+        /* If the key already exists in the dictionary ignore it. */
+        if (dictAdd(c->bpop.keys,keys[j],key_data) != DICT_OK) {
+            zfree(key_data);
+            continue;
+        }
+        incrRefCount(keys[j]);
+
+        /* And in the other "side", to map keys -> clients */
+        de = dictFind(c->db->blocking_keys,keys[j]);
+        if (de == NULL) {
+            int retval;
+
+            /* For every key we take a list of clients blocked for it */
+            l = listCreate();
+            retval = dictAdd(c->db->blocking_keys,keys[j],l);
+            incrRefCount(keys[j]);
+            serverAssertWithInfo(c,keys[j],retval == DICT_OK);
+        } else {
+            l = dictGetVal(de);
+        }
+        listAddNodeTail(l,c);
+    }
+    blockClient(c,btype);
+}
+```
 
 
 

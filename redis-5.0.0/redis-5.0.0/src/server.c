@@ -2461,6 +2461,7 @@ void call(client *c, int flags) {
 
 	/* Sent the command to clients in MONITOR mode, only if the commands are
 	 * not generated from reading an AOF. */
+	// 发送信息给哨兵
 	if (listLength(server.monitors) &&
 		!server.loading &&
 		!(c->cmd->flags & (CMD_SKIP_MONITOR | CMD_ADMIN)))
@@ -2522,10 +2523,13 @@ void call(client *c, int flags) {
 
 		/* Check if the command operated changes in the data set. If so
 		 * set for replication / AOF propagation. */
+		// 判断客户端的命令是否执行成功 
+		// 如果成功就通知aof rdb save的服务器保存数据的操作
 		if (dirty) propagate_flags |= (PROPAGATE_AOF | PROPAGATE_REPL);
 
 		/* If the client forced AOF / replication of the command, set
 		 * the flags regardless of the command effects on the data set. */
+		// 精确到是redis服务需要那种的操作
 		if (c->flags & CLIENT_FORCE_REPL) propagate_flags |= PROPAGATE_REPL;
 		if (c->flags & CLIENT_FORCE_AOF) propagate_flags |= PROPAGATE_AOF;
 
@@ -2549,6 +2553,7 @@ void call(client *c, int flags) {
 
 	/* Restore the old replication flags, since call() can be executed
 	 * recursively. */
+	//还原现场的的状态
 	c->flags &= ~(CLIENT_FORCE_AOF | CLIENT_FORCE_REPL | CLIENT_PREVENT_PROP);
 	c->flags |= client_old_flags &
 		(CLIENT_FORCE_AOF | CLIENT_FORCE_REPL | CLIENT_PREVENT_PROP);
@@ -2556,6 +2561,12 @@ void call(client *c, int flags) {
 	/* Handle the alsoPropagate() API to handle commands that want to propagate
 	 * multiple separated commands. Note that alsoPropagate() is not affected
 	 * by CLIENT_PREVENT_PROP flag. */
+	// 这里我没有看懂 是什么原因使用这种方式难道上面的还不够吗？？？？ 还需这种发生操作
+	// 1. spop弹出队利中的数据的个数
+	// 2. 如果大于的现有的队利的个数就不需要纪录了
+	// 3. 小于现有的队礼的个数就要纪录数据的了弹出的数据具体的那些数据key-value
+	// 思考: 为什么大于时就不会纪录了，小于就要纪录具体弹出的数据的key-value呢
+	// 这个有可能弹出数据错误数据的， 不知道弹出具体那个key-value， 而设计这个模式为
 	if (server.also_propagate.numops) {
 		int j;
 		redisOp *rop;
@@ -2780,7 +2791,7 @@ int processCommand(client *c) {
 	else {
 		call(c, CMD_CALL_FULL);
 		c->woff = server.master_repl_offset;
-		// 客户端使用阻塞式获取数据
+		// 客户端使用阻塞式获取数据和通知异步进程aof保存操作纪录的数据
 		if (listLength(server.ready_keys))
 			handleClientsBlockedOnKeys();
 	}

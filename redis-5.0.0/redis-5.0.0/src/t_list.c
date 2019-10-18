@@ -636,6 +636,12 @@ void rpoplpushCommand(client *c) {
  * of the wrong type. */
 /**
 *aof异步保存数据的操作
+* @param receiver 客户端
+* @param key  
+* @param dstkey 该阻塞式客户端推送该条信息
+* @param db
+* @param value
+* @param value
 */
 int serveClientBlockedOnList(client *receiver, robj *key, robj *dstkey, redisDb *db, robj *value, int where)
 {
@@ -652,6 +658,7 @@ int serveClientBlockedOnList(client *receiver, robj *key, robj *dstkey, redisDb 
             db->id,argv,2,PROPAGATE_AOF|PROPAGATE_REPL);
 
         /* BRPOP/BLPOP */
+		//看到吧 给该信息的客户端发送吧
         addReplyMultiBulkLen(receiver,2);
         addReplyBulk(receiver,key);
         addReplyBulk(receiver,value);

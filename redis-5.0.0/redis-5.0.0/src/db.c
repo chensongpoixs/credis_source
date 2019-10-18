@@ -169,7 +169,9 @@ void dbAdd(redisDb *db, robj *key, robj *val) {
     int retval = dictAdd(db->dict, copy, val);
 
     serverAssertWithInfo(NULL,key,retval == DICT_OK);
-	// 触发异步保存数据的进程？？？？？？？？？？？   
+	// 触发异步保存数据的进程？？？？？？？？？？？
+	// 这是redis中的一种模式 
+	// 1. 当客户端使用阻塞式请求数据时, redis先是查询没有就把数据保存到db->blocking_keys的字典中,在下次有客户端插入数据时在通知该客户端和通知异步进程
     if (val->type == OBJ_LIST ||
         val->type == OBJ_ZSET)
         signalKeyAsReady(db, key);
