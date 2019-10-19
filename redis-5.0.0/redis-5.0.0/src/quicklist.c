@@ -1,5 +1,6 @@
 /* quicklist.c - A doubly linked list of ziplists
  * 快速列表
+ * 这里还需提一下快速列表的中使用ziplist作为存储一个一个实际的数据在快速列表中的有5个ziplist结构
  * Copyright (c) 2014, Matt Stancliff <matt@genges.com>
  * All rights reserved.
  *

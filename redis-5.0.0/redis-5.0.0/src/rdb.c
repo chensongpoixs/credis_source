@@ -147,8 +147,8 @@ int rdbSaveLen(rio *rdb, uint64_t len) {
         if (rdbWriteRaw(rdb,buf,1) == -1) return -1;
         nwritten = 1;
     } else if (len < (1<<14)/*‭16384‬ == 0X40000*/) {
-        /* Save a 14 bit len */
-        buf[0] = ((len>>8)&0xFF)|(RDB_14BITLEN<<6); // 100 0000 
+        /* Save a 14 bit len */  // 数据为14位的高两位为  01
+        buf[0] = ((len>>8)&0xFF)|(RDB_14BITLEN<<6); // 0100 0000 
         buf[1] = len&0xFF;
         if (rdbWriteRaw(rdb,buf,2) == -1) return -1;
         nwritten = 2;
@@ -631,7 +631,7 @@ int rdbSaveObjectType(rio *rdb, robj *o) {
     case OBJ_STRING:
         return rdbSaveType(rdb,RDB_TYPE_STRING);
     case OBJ_LIST:
-        if (o->encoding == OBJ_ENCODING_QUICKLIST)
+        if (o->encoding == OBJ_ENCODING_QUICKLIST) // 快速列表0X0E
             return rdbSaveType(rdb,RDB_TYPE_LIST_QUICKLIST);
         else
             serverPanic("Unknown list encoding");
@@ -769,7 +769,7 @@ ssize_t rdbSaveObject(rio *rdb, robj *o) {
         if (o->encoding == OBJ_ENCODING_QUICKLIST) {
             quicklist *ql = o->ptr;
             quicklistNode *node = ql->head;
-
+			// 快速列表中的数据的个数
             if ((n = rdbSaveLen(rdb,ql->len)) == -1) return -1;
             nwritten += n;
 
@@ -1095,6 +1095,7 @@ int rdbSaveInfoAuxFields(rio *rdb, int flags, rdbSaveInfo *rsi) {
         if (rdbSaveAuxFieldStrInt(rdb,"repl-offset",server.master_repl_offset)
             == -1) return -1;
     }
+	// 是否开启aof异步保存数据的
     if (rdbSaveAuxFieldStrInt(rdb,"aof-preamble",aof_preamble) == -1) return -1;
     return 1;
 }
@@ -1131,6 +1132,7 @@ int rdbSaveRio(rio *rdb, int *error, int flags, rdbSaveInfo *rsi) {
         di = dictGetSafeIterator(d);
 
         /* Write the SELECT DB opcode */
+		// 1. redis的数据的的标志位是以0XFE区分的
         if (rdbSaveType(rdb,RDB_OPCODE_SELECTDB) == -1) goto werr;
         if (rdbSaveLen(rdb,j) == -1) goto werr;
 
@@ -1141,11 +1143,11 @@ int rdbSaveRio(rio *rdb, int *error, int flags, rdbSaveInfo *rsi) {
         uint64_t db_size, expires_size;
         db_size = dictSize(db->dict);
         expires_size = dictSize(db->expires);
-		//保存redis数据库的标记位 [0XFB]
+		//保存redis数据库字典的标记位 [0XFB]
         if (rdbSaveType(rdb,RDB_OPCODE_RESIZEDB) == -1) goto werr;
 		// 保存数据的中的字典个数
         if (rdbSaveLen(rdb,db_size) == -1) goto werr;
-		//保存数据过期的字典个数
+		//保存ttl数据过期的字典个数
         if (rdbSaveLen(rdb,expires_size) == -1) goto werr;
 
         /* Iterate this DB writing every entry */
