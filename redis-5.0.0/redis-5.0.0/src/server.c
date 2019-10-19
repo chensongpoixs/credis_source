@@ -1295,6 +1295,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 			 * the given amount of seconds, and if the latest bgsave was
 			 * successful or if, in case of an error, at least
 			 * CONFIG_BGSAVE_RETRY_DELAY seconds already elapsed. */
+			// server.dirty这个全局变量是纪录修改数据的次数
 			if (server.dirty >= sp->changes &&
 				server.unixtime - server.lastsave > sp->seconds &&
 				(server.unixtime - server.lastbgsave_try >
@@ -1318,6 +1319,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 			server.aof_rewrite_perc &&
 			server.aof_current_size > server.aof_rewrite_min_size)
 		{
+			// 因子 server.aof_rewrite_base_size 关键因子？？？？是已经写入数据的大小
 			long long base = server.aof_rewrite_base_size ?
 				server.aof_rewrite_base_size : 1;
 			long long growth = (server.aof_current_size * 100 / base) - 100;
@@ -2456,6 +2458,11 @@ void preventCommandReplication(client *c) {
  * preventCommandReplication(client *c);
  *
  */
+/**
+* 执行客户的命令
+* @param c      客户端
+* @param flags  访问权限
+*/
 void call(client *c, int flags) {
 	long long dirty, start, duration;
 	int client_old_flags = c->flags;
@@ -2478,6 +2485,8 @@ void call(client *c, int flags) {
 	redisOpArrayInit(&server.also_propagate);
 
 	/* Call the command. */
+	// dirty是纪录该操作是否生效的有几种情况是不生效的
+    // 例如: blpop的命令
 	dirty = server.dirty;
 	start = ustime();
 	// backcall -->cmd    client exec cmd
@@ -2599,6 +2608,10 @@ void call(client *c, int flags) {
  * If C_OK is returned the client is still alive and valid and
  * other operations can be performed by the caller. Otherwise
  * if C_ERR is returned the client was destroyed (i.e. after QUIT). */
+/**
+* 执行客户端命令
+* @param c 客户端结构体
+*/
 int processCommand(client *c) {
 	/* The QUIT command is handled separately. Normal command procs will
 	 * go through checking for replication and QUIT will cause trouble

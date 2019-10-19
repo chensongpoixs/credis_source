@@ -561,7 +561,13 @@ sds catAppendOnlyExpireAtCommand(sds buf, struct redisCommand *cmd, robj *key, r
     decrRefCount(argv[2]);
     return buf;
 }
-
+/**
+* 追加数据到aof文件中的aof_buf纪录
+* @param cmd 执行命令
+* @param dictid 数据库id
+* @param argv  命令参数
+* @param argc  命令个数
+*/
 void feedAppendOnlyFile(struct redisCommand *cmd, int dictid, robj **argv, int argc) {
     sds buf = sdsempty();
     robj *tmpargv[3];

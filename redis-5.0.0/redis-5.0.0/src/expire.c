@@ -51,12 +51,18 @@
  *
  * The parameter 'now' is the current time in milliseconds as is passed
  * to the function to avoid too many gettimeofday() syscalls. */
+/**
+* 删除数据
+* @param db 数据库id
+* @param de 要删除的节点数据
+* @param now
+*/
 int activeExpireCycleTryExpire(redisDb *db, dictEntry *de, long long now) {
     long long t = dictGetSignedIntegerVal(de);
     if (now > t) {
         sds key = dictGetKey(de);
         robj *keyobj = createStringObject(key,sdslen(key));
-
+		// 通知异步进程保持数据
         propagateExpire(db,keyobj,server.lazyfree_lazy_expire);
 		// redis 删除一次性dict和expare中的hash
         if (server.lazyfree_lazy_expire)
@@ -94,7 +100,10 @@ int activeExpireCycleTryExpire(redisDb *db, dictEntry *de, long long now) {
  * If type is ACTIVE_EXPIRE_CYCLE_SLOW, that normal expire cycle is
  * executed, where the time limit is a percentage of the REDIS_HZ period
  * as specified by the ACTIVE_EXPIRE_CYCLE_SLOW_TIME_PERC define. */
-
+/**
+* 删除过期数据的
+* @param type 
+*/
 void activeExpireCycle(int type) {
     /* This function has some global state in order to continue the work
      * incrementally across calls. */

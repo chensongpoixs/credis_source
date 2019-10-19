@@ -231,6 +231,11 @@ uint64_t rdbLoadLen(rio *rdb, int *isencoded) {
  * for encoded types. If the function successfully encodes the integer, the
  * representation is stored in the buffer pointer to by "enc" and the string
  * length is returned. Otherwise 0 is returned. */
+/**
+* 编码数据是数字类型
+* @param value 数字
+* @param enc 转换后的字符串
+*/
 int rdbEncodeInteger(long long value, unsigned char *enc) {
     if (value >= -(1<<7) /*-128 == 0X80*/ && value <= (1<<7)-1 /*127 == 0x7F*/) {
         enc[0] = (RDB_ENCVAL<<6)/*0XC0即192*/|RDB_ENC_INT8; // 0XC0
@@ -402,6 +407,12 @@ err:
 
 /* Save a string object as [len][data] on disk. If the object is a string
  * representation of an integer value we try to save it in a special form */
+/**
+* 保存key-value中的数据 大于20字节就需要使用zlf压缩算法， 数据是字符是数据的且长度小于11给字节的
+* @param rdb 写入的文件的信息
+* @param s 要写入的数据的
+* @param len 要写入的数据的长度
+*/
 ssize_t rdbSaveRawString(rio *rdb, unsigned char *s, size_t len) {
     int enclen;
     ssize_t n, nwritten = 0;
@@ -626,6 +637,11 @@ int rdbLoadBinaryFloatValue(rio *rdb, float *val) {
 }
 
 /* Save the object type of object "o". */
+/**
+* 保存redis中的所有编码数据过的函数
+* @param rdb 写入文件信息
+* @param o key-value中的value的使用的编码的数据结构
+*/
 int rdbSaveObjectType(rio *rdb, robj *o) {
     switch (o->type) {
     case OBJ_STRING:
@@ -1084,6 +1100,7 @@ int rdbSaveInfoAuxFields(rio *rdb, int flags, rdbSaveInfo *rsi) {
     if (rdbSaveAuxFieldStrStr(rdb,"redis-ver",REDIS_VERSION) == -1) return -1;
 	// 2. redis的系统的位数x64，x86
     if (rdbSaveAuxFieldStrInt(rdb,"redis-bits",redis_bits) == -1) return -1;
+	// 3. 当前UTC的时间戳
     if (rdbSaveAuxFieldStrInt(rdb,"ctime",time(NULL)) == -1) return -1;
     if (rdbSaveAuxFieldStrInt(rdb,"used-mem",zmalloc_used_memory()) == -1) return -1;
 
@@ -1110,6 +1127,13 @@ int rdbSaveInfoAuxFields(rio *rdb, int flags, rdbSaveInfo *rsi) {
  * integer pointed by 'error' is set to the value of errno just after the I/O
  * error. */
 // redis async 保持数据
+/**
+* 保存数据到文件
+* @param rdb 文件
+* @param error 错误码
+* @param flags 
+* @param rsi   要保持文件的信息结构体
+*/
 int rdbSaveRio(rio *rdb, int *error, int flags, rdbSaveInfo *rsi) {
     dictIterator *di = NULL;
     dictEntry *de;
@@ -1159,11 +1183,13 @@ int rdbSaveRio(rio *rdb, int *error, int flags, rdbSaveInfo *rsi) {
 
             initStaticStringObject(key,keystr);
             expire = getExpire(db,&key);
+			// 保持数据库中的key-value
             if (rdbSaveKeyValuePair(rdb,&key,o,expire) == -1) goto werr;
 
             /* When this RDB is produced as part of an AOF rewrite, move
              * accumulated diff from parent to child while rewriting in
              * order to have a smaller final write. */
+			// 这个是redis为防止管道破裂而要业务进程的发送数据
             if (flags & RDB_SAVE_AOF_PREAMBLE &&
                 rdb->processed_bytes > processed+AOF_READ_DIFF_INTERVAL_BYTES)
             {
@@ -1295,7 +1321,11 @@ werr:
     unlink(tmpfile);
     return C_ERR;
 }
-
+/**
+*开启异步进程保存数据
+* @param filename 要保存到文件名
+* @param rsi 信息
+*/
 int rdbSaveBackground(char *filename, rdbSaveInfo *rsi) {
     pid_t childpid;
     long long start;
@@ -1304,6 +1334,7 @@ int rdbSaveBackground(char *filename, rdbSaveInfo *rsi) {
 
     server.dirty_before_bgsave = server.dirty;
     server.lastbgsave_try = time(NULL);
+	// 开启管道用于业务进程于异步保存数据进程之间的通信
     openChildInfoPipe();
 
     start = ustime();
@@ -1311,6 +1342,7 @@ int rdbSaveBackground(char *filename, rdbSaveInfo *rsi) {
         int retval;
 
         /* Child */
+		// 关闭父进程垃圾
         closeListeningSockets(0);
         redisSetProcTitle("redis-rdb-bgsave");
         retval = rdbSave(filename,rsi);

@@ -247,6 +247,9 @@ void disconnectAllBlockedClients(void) {
  * other side of the linked list. However as long as the key starts to
  * be used only for a single type, like virtually any Redis application will
  * do, the function is already fair. */
+/**
+* 处理客户端事务并发送信息到异步保持数据进程
+*/
 void handleClientsBlockedOnKeys(void) {
     while(listLength(server.ready_keys) != 0) {
         list *l;
@@ -507,6 +510,13 @@ void handleClientsBlockedOnKeys(void) {
 * 这个设计挺巧妙的 要学习哦
 * blpop 等待
 * 这个操作是不会在main loop 记录下来的是因为 全局的 server.dirty没有加一的操作，正好于压入的操作一起通知异步写入数据的进程对应的函数handleClientsBlockedOnKeys
+* @param c   客户端
+* @param btyes
+* @param keys客户事务key值
+* @param numkeys 个数
+* @param timeout 延迟的秒数
+* @param target 对方
+* @param ids 是redis5.0新出来一种数据结构压缩的哦
 */
 void blockForKeys(client *c, int btype, robj **keys, int numkeys, mstime_t timeout, robj *target, streamID *ids) {
     dictEntry *de;
@@ -541,6 +551,7 @@ void blockForKeys(client *c, int btype, robj **keys, int numkeys, mstime_t timeo
 
             /* For every key we take a list of clients blocked for it */
             l = listCreate();
+			// 看到吧放到blocking_keys中的了
             retval = dictAdd(c->db->blocking_keys,keys[j],l);
             incrRefCount(keys[j]);
             serverAssertWithInfo(c,keys[j],retval == DICT_OK);
@@ -602,11 +613,14 @@ void unblockClientWaitingData(client *c) {
 /**
 * 只有另一个客户端使用阻塞式的获取数据的时，这个客户端插入数据的时会触发该方法保持数据跟发布订阅差不多  
 * 会触发另一个方法 handleClientsBlockedOnKeys
+* @param db 数据库
+* @param key 事务的key
 */
 void signalKeyAsReady(redisDb *db, robj *key) {
     readyList *rl;
 
     /* No clients blocking for this key? No need to queue it. */
+	// 看到没有该事务就返回就直接接着下一步走呗
     if (dictFind(db->blocking_keys,key) == NULL) return;
 
     /* Key was already signaled? No need to queue it again. */
