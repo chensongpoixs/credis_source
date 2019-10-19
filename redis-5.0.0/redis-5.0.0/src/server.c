@@ -1264,6 +1264,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 					(int)server.aof_child_pid);
 			}
 			else if (pid == server.rdb_child_pid) {
+				// 这个里面修改当前的数的修改次数的纪录server.dirty
 				backgroundSaveDoneHandler(exitcode, bysignal);
 				if (!bysignal && exitcode == 0) receiveChildInfo();
 			}
@@ -1286,7 +1287,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 	{
 		/* If there is not a background saving/rewrite in progress check if
 		 * we have to save/rewrite now. */
-		// 异步存储数据
+		// 异步存储数据到rdb数据中的符合条件异步开进程保存数据
 		for (j = 0; j < server.saveparamslen; j++) {
 			struct saveparam *sp = server.saveparams + j;
 
@@ -1304,6 +1305,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 					sp->changes, (int)sp->seconds);
 				rdbSaveInfo rsi, *rsiptr;
 				rsiptr = rdbPopulateSaveInfo(&rsi);
+				// rdb文件保存数据的操作
 				rdbSaveBackground(server.rdb_filename, rsiptr);
 				break;
 			}

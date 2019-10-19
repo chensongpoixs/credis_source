@@ -765,9 +765,12 @@ typedef struct client {
     char buf[PROTO_REPLY_CHUNK_BYTES];
 } client;
 
+/**
+* save保存数据的多少秒修改一次就保存数据async_write
+*/
 struct saveparam {
-    time_t seconds;
-    int changes;
+    time_t seconds; // 秒数  
+    int changes;    // 次数
 };
 
 struct moduleLoadQueueEntry {
