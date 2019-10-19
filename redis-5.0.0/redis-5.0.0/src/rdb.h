@@ -100,7 +100,7 @@
 #define RDB_OPCODE_MODULE_AUX 247   /* Module auxiliary data. */
 #define RDB_OPCODE_IDLE       248   /* LRU idle time. 0XF8*/
 #define RDB_OPCODE_FREQ       249   /* LFU frequency. 0XF9*/
-#define RDB_OPCODE_AUX        250   /* RDB aux field. */
+#define RDB_OPCODE_AUX        250   /* RDB aux field. 0XFA*/
 #define RDB_OPCODE_RESIZEDB   251   /* Hash table resize hint. 0XFB*/
 #define RDB_OPCODE_EXPIRETIME_MS 252    /* Expire time in milliseconds. 0XFC*/
 #define RDB_OPCODE_EXPIRETIME 253       /* Old expire time in seconds. 0XFD */

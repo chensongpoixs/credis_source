@@ -148,7 +148,7 @@ int rdbSaveLen(rio *rdb, uint64_t len) {
         nwritten = 1;
     } else if (len < (1<<14)/*‭16384‬ == 0X40000*/) {
         /* Save a 14 bit len */
-        buf[0] = ((len>>8)&0xFF)|(RDB_14BITLEN<<6);
+        buf[0] = ((len>>8)&0xFF)|(RDB_14BITLEN<<6); // 100 0000 
         buf[1] = len&0xFF;
         if (rdbWriteRaw(rdb,buf,2) == -1) return -1;
         nwritten = 2;
@@ -407,6 +407,7 @@ ssize_t rdbSaveRawString(rio *rdb, unsigned char *s, size_t len) {
     ssize_t n, nwritten = 0;
 
     /* Try integer encoding */
+	//redis的版本的位数64位 在hex中的是0X40，在redis中的key或者value是数字且长度小于11时不需要的纪录保存的数据的长度直接包数据就可以了
     if (len <= 11) {
         unsigned char buf[5];
 		// 尝试把数据转换数字字符串
@@ -1078,7 +1079,9 @@ int rdbSaveInfoAuxFields(rio *rdb, int flags, rdbSaveInfo *rsi) {
     int aof_preamble = (flags & RDB_SAVE_AOF_PREAMBLE) != 0;
 
     /* Add a few fields about the state when the RDB was created. */
+	// 1. redis的版本
     if (rdbSaveAuxFieldStrStr(rdb,"redis-ver",REDIS_VERSION) == -1) return -1;
+	// 2. redis的系统的位数x64，x86
     if (rdbSaveAuxFieldStrInt(rdb,"redis-bits",redis_bits) == -1) return -1;
     if (rdbSaveAuxFieldStrInt(rdb,"ctime",time(NULL)) == -1) return -1;
     if (rdbSaveAuxFieldStrInt(rdb,"used-mem",zmalloc_used_memory()) == -1) return -1;
@@ -1116,7 +1119,7 @@ int rdbSaveRio(rio *rdb, int *error, int flags, rdbSaveInfo *rsi) {
     if (server.rdb_checksum)
         rdb->update_cksum = rioGenericUpdateChecksum;
     snprintf(magic,sizeof(magic),"REDIS%04d",RDB_VERSION);
-	// 保持redis的版本号
+	// 保持redis的的db的版本号
     if (rdbWriteRaw(rdb,magic,9) == -1) goto werr;
     if (rdbSaveInfoAuxFields(rdb,flags,rsi) == -1) goto werr;
 
