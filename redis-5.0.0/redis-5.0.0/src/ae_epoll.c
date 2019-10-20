@@ -69,12 +69,16 @@ static void aeApiFree(aeEventLoop *eventLoop) {
     zfree(state->events);
     zfree(state);
 }
-
+/**
+* 添加事件或者修改事件
+* 
+*/
 static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {
     aeApiState *state = eventLoop->apidata;
     struct epoll_event ee = {0}; /* avoid valgrind warning */
     /* If the fd was already monitored for some event, we need a MOD
      * operation. Otherwise we need an ADD operation. */
+	// 判断的事件是添加函数修改
     int op = eventLoop->events[fd].mask == AE_NONE ?
             EPOLL_CTL_ADD : EPOLL_CTL_MOD;
 
@@ -86,13 +90,19 @@ static int aeApiAddEvent(aeEventLoop *eventLoop, int fd, int mask) {
     if (epoll_ctl(state->epfd,op,fd,&ee) == -1) return -1;
     return 0;
 }
-
+/**
+* 删除对应read，write事件
+* @param eventLoop
+* @param fd 描述符
+* @param delmask 删除的事件的掩码
+*/
 static void aeApiDelEvent(aeEventLoop *eventLoop, int fd, int delmask) {
     aeApiState *state = eventLoop->apidata;
     struct epoll_event ee = {0}; /* avoid valgrind warning */
     int mask = eventLoop->events[fd].mask & (~delmask);
 
     ee.events = 0;
+	// 判断是否删除write and read事件都删除话就从epoll中删除
     if (mask & AE_READABLE) ee.events |= EPOLLIN;
     if (mask & AE_WRITABLE) ee.events |= EPOLLOUT;
     ee.data.fd = fd;

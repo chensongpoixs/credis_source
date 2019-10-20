@@ -48,7 +48,13 @@ static int aeApiCreate(aeEventLoop *eventLoop) {
     eventLoop->apidata = state;
     return 0;
 }
-
+/**
+* 这个是因为select和epoll的在初始化时都1024个即FD_SETSIZE(win上有一点区别FD_SETSIZE = 64)
+* 事件处理的个数大于FD_SETSIZE扩大反应堆的数量
+* @param eventLoop  主数据
+* @param setsize    要扩容的大小
+* @return int 是否需要扩容
+*/
 static int aeApiResize(aeEventLoop *eventLoop, int setsize) {
     /* Just ensure we have enough room in the fd_set type. */
     if (setsize >= FD_SETSIZE) return -1;

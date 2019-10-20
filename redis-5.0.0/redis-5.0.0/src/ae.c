@@ -59,7 +59,11 @@
         #endif
     #endif
 #endif
-
+/**
+* 设置反应堆的处理事件的个数 setsize, 初始化描述符的状态
+* @param setsize   反应堆的事件的数量
+* @return aeEventLoop 事件的大的结构体
+*/
 aeEventLoop *aeCreateEventLoop(int setsize) {
     aeEventLoop *eventLoop;
     int i;
@@ -78,9 +82,11 @@ aeEventLoop *aeCreateEventLoop(int setsize) {
     eventLoop->maxfd = -1;
     eventLoop->beforesleep = NULL;
     eventLoop->aftersleep = NULL;
+	//设置设置反应堆的队的大小
     if (aeApiCreate(eventLoop) == -1) goto err;
     /* Events with mask == AE_NONE are not set. So let's initialize the
      * vector with it. */
+	// 设置反应堆的事件的数量
     for (i = 0; i < setsize; i++)
         eventLoop->events[i].mask = AE_NONE;
     return eventLoop;
@@ -106,11 +112,17 @@ int aeGetSetSize(aeEventLoop *eventLoop) {
  * performed at all.
  *
  * Otherwise AE_OK is returned and the operation is successful. */
+/**
+* 重置反应堆处理事件的大小
+* @param eventLoop 
+* @param setsize 要扩容的大小
+*/
 int aeResizeSetSize(aeEventLoop *eventLoop, int setsize) {
     int i;
 
     if (setsize == eventLoop->setsize) return AE_OK;
     if (eventLoop->maxfd >= setsize) return AE_ERR;
+	// 判断是否需要的扩大反应堆的数量
     if (aeApiResize(eventLoop,setsize) == -1) return AE_ERR;
 
     eventLoop->events = zrealloc(eventLoop->events,sizeof(aeFileEvent)*setsize);
@@ -119,6 +131,7 @@ int aeResizeSetSize(aeEventLoop *eventLoop, int setsize) {
 
     /* Make sure that if we created new slots, they are initialized with
      * an AE_NONE mask. */
+	// 新增加的事件初始化事件的状态
     for (i = eventLoop->maxfd+1; i < setsize; i++)
         eventLoop->events[i].mask = AE_NONE;
     return AE_OK;
@@ -134,39 +147,60 @@ void aeDeleteEventLoop(aeEventLoop *eventLoop) {
 void aeStop(aeEventLoop *eventLoop) {
     eventLoop->stop = 1;
 }
-
+/**
+* 添加事件的处理函数
+* @param eventLoop 
+* @param fd  事件的文件描述符
+* @param mask 对应的事件的掩码
+* @return int 添加是否成功
+*/
 int aeCreateFileEvent(aeEventLoop *eventLoop, int fd, int mask,
         aeFileProc *proc, void *clientData)
 {
+	// 判断当前的描述符的是否符合要求   当前反应堆中的最大文件描述符是eventLoop->setsize
     if (fd >= eventLoop->setsize) {
         errno = ERANGE;
         return AE_ERR;
     }
+	// 得到当前描述符的事件的事件
     aeFileEvent *fe = &eventLoop->events[fd];
-
+	// 添加事件
     if (aeApiAddEvent(eventLoop, fd, mask) == -1)
         return AE_ERR;
     fe->mask |= mask;
+	// 提交对应的事件处理函数
     if (mask & AE_READABLE) fe->rfileProc = proc;
     if (mask & AE_WRITABLE) fe->wfileProc = proc;
+	// 会话层的数据结构
     fe->clientData = clientData;
+	// 判断当前的文件描述符是否大于最大的
     if (fd > eventLoop->maxfd)
         eventLoop->maxfd = fd;
     return AE_OK;
 }
 
+/**
+* 从事件中的删除
+* @param eventLoop
+* @param fd
+* @param mask 要删除事件的对应的掩码
+*/
 void aeDeleteFileEvent(aeEventLoop *eventLoop, int fd, int mask)
 {
+	// 1. 判断当前的事件的文件描述符是否在反应堆中的
     if (fd >= eventLoop->setsize) return;
+	// 2. 得到事件的结构体
     aeFileEvent *fe = &eventLoop->events[fd];
+	// 3. 判断当前的事件是否有回调函数
     if (fe->mask == AE_NONE) return;
 
     /* We want to always remove AE_BARRIER if set when AE_WRITABLE
      * is removed. */
     if (mask & AE_WRITABLE) mask |= AE_BARRIER;
-
+	// 4. 删除事件
     aeApiDelEvent(eventLoop, fd, mask);
     fe->mask = fe->mask & (~mask);
+	// 5. 是否需要更新最大描述符
     if (fd == eventLoop->maxfd && fe->mask == AE_NONE) {
         /* Update the max fd */
         int j;
