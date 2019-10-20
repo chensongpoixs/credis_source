@@ -1,5 +1,5 @@
 /* Kqueue(2)-based ae.c module
- *
+ * mac
  * Copyright (C) 2009 Harish Mallipeddi - harish.mallipeddi@gmail.com
  * All rights reserved.
  *

@@ -181,6 +181,7 @@ int aeCreateFileEvent(aeEventLoop *eventLoop, int fd, int mask,
 
 /**
 * 从事件中的删除
+* --------------这个我设计比较复杂了，感觉redis删除事件的处理挺巧妙的  "设置最大描述符的"
 * @param eventLoop
 * @param fd
 * @param mask 要删除事件的对应的掩码
