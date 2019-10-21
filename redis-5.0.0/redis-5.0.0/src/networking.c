@@ -72,13 +72,19 @@ int listMatchObjects(void *a, void *b) {
 
 /* This function links the client to the global linked list of clients.
  * unlinkClient() does the opposite, among other things. */
+/**
+*	把新的客户端添加server的结构体中客户端链表中，并添加反应堆中的查找客户端索引 
+* @param c 客户端
+*/
 void linkClient(client *c) {
+	// 1. 添加链表tail
     listAddNodeTail(server.clients,c);
     /* Note that we remember the linked list node where the client is stored,
      * this way removing the client in unlinkClient() will not require
      * a linear scan, but just a constant time operation. */
     c->client_list_node = listLast(server.clients);
     uint64_t id = htonu64(c->id);
+	// 2. 添加反应堆中的查找客户端索引  ----  这里我还没有明白反应堆中的查找客户端索引？？？？？
     raxInsert(server.clients_index,(unsigned char*)&id,sizeof(id),c,NULL);
 }
 
@@ -90,21 +96,25 @@ client *createClient(int fd) {
      * in the context of a client. When commands are executed in other
      * contexts (for instance a Lua script) we need a non connected client. */
     if (fd != -1) {
+		// 设置非阻塞文件描述符
         anetNonBlock(NULL,fd);
+		// 关闭Nagle算法
         anetEnableTcpNoDelay(NULL,fd);
         if (server.tcpkeepalive)
-            anetKeepAlive(NULL,fd,server.tcpkeepalive);
+            anetKeepAlive(NULL,fd,server.tcpkeepalive); // 心跳包
+		// 设置反应堆的事件回调函数
         if (aeCreateFileEvent(server.el,fd,AE_READABLE,
-            readQueryFromClient, c) == AE_ERR)
+            readQueryFromClient, c) == AE_ERR) 
         {
             close(fd);
             zfree(c);
             return NULL;
         }
     }
-	//客户端是在建立连接后默认把redis的数据库1给客户端操作的
+	//客户端是在建立连接后默认把redis的数据库0给客户端操作的
     selectDb(c,0);
     uint64_t client_id;
+	// 记录服务器的客户端数量
     atomicGetIncr(server.next_client_id,client_id,1);
     c->id = client_id;
     c->fd = fd;
@@ -155,7 +165,9 @@ client *createClient(int fd) {
     c->client_list_node = NULL;
     listSetFreeMethod(c->pubsub_patterns,decrRefCountVoid);
     listSetMatchMethod(c->pubsub_patterns,listMatchObjects);
+	//添加对应服务器中的客户端的链表中的，和反应堆的中查找客户端索引中的
     if (fd != -1) linkClient(c);
+	// 初始化事务
     initClientMultiState(c);
     return c;
 }
@@ -236,6 +248,7 @@ int prepareClientToWrite(client *c) {
  * -------------------------------------------------------------------------- */
 
 int _addReplyToBuffer(client *c, const char *s, size_t len) {
+	// 可用的大小
     size_t available = sizeof(c->buf)-c->bufpos;
 
     if (c->flags & CLIENT_CLOSE_AFTER_REPLY) return C_OK;
@@ -666,6 +679,7 @@ static void acceptCommonHandler(int fd, int flags, char *ip) {
      * connection. Note that we create the client instead to check before
      * for this condition, since now the socket is already set in non-blocking
      * mode and we can send an error for free using the Kernel I/O */
+	// 服务器的最大连接数判定
     if (listLength(server.clients) > server.maxclients) {
         char *err = "-ERR max number of clients reached\r\n";
 
@@ -725,7 +739,7 @@ static void acceptCommonHandler(int fd, int flags, char *ip) {
 
 void acceptTcpHandler(aeEventLoop *el, int fd, void *privdata, int mask) {
     int cport, cfd, max = MAX_ACCEPTS_PER_CALL;
-    char cip[NET_IP_STR_LEN];
+    char cip[NET_IP_STR_LEN]; // 新连接上客户端IP地址
     UNUSED(el);
     UNUSED(mask);
     UNUSED(privdata);
@@ -1435,6 +1449,7 @@ void processInputBuffer(client *c) {
         if (c->flags & (CLIENT_CLOSE_AFTER_REPLY|CLIENT_CLOSE_ASAP)) break;
 
         /* Determine request type when unknown. */
+		// 第一次没有协议， 要添加协议
         if (!c->reqtype) {
             if (c->querybuf[c->qb_pos] == '*') {
                 c->reqtype = PROTO_REQ_MULTIBULK;
@@ -1444,9 +1459,10 @@ void processInputBuffer(client *c) {
         }
 
         if (c->reqtype == PROTO_REQ_INLINE) {
-			// 解析命令行参数
+			// 解析服务之间通信的协议argc argv中
             if (processInlineBuffer(c) != C_OK) break;
         } else if (c->reqtype == PROTO_REQ_MULTIBULK) {
+			// 解析客户命令行参数 到argc argv中
             if (processMultibulkBuffer(c) != C_OK) break;
         } else {
             serverPanic("Unknown request type");
@@ -1530,7 +1546,10 @@ void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
     }
 
     qblen = sdslen(c->querybuf);
+	//校验接受缓冲区可用的大小
     if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
+	//这里如果没有使用怎么多的内存就造成了内存泄漏吗？？？怎么处理呢
+	// redis封装sds处理分配内存大小的处理
     c->querybuf = sdsMakeRoomFor(c->querybuf, readlen);
     nread = read(fd, c->querybuf+qblen, readlen);
     if (nread == -1) {
@@ -1558,7 +1577,9 @@ void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
     sdsIncrLen(c->querybuf,nread);
     c->lastinteraction = server.unixtime;
     if (c->flags & CLIENT_MASTER) c->read_reploff += nread;
+	// 数据统计使用的
     server.stat_net_input_bytes += nread;
+	// 处理客户端发送消息包过大的处理
     if (sdslen(c->querybuf) > server.client_max_querybuf_len) {
         sds ci = catClientInfoString(sdsempty(),c), bytes = sdsempty();
 

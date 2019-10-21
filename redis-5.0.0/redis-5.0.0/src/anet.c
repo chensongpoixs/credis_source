@@ -92,6 +92,12 @@ int anetBlock(char *err, int fd) {
 /* Set TCP keep alive option to detect dead peers. The interval option
  * is only used for Linux as we are using Linux-specific APIs to set
  * the probe send time, interval, and count. */
+/**
+* linux系统特殊检测心疼包设置
+* @param err
+* @param fd 文件描述符
+* @param interval 秒数
+*/
 int anetKeepAlive(char *err, int fd, int interval)
 {
     int val = 1;
@@ -106,7 +112,7 @@ int anetKeepAlive(char *err, int fd, int interval)
     /* Default settings are more or less garbage, with the keepalive time
      * set to 7200 by default on Linux. Modify settings to make the feature
      * actually useful. */
-
+	
     /* Send first probe after interval. */
     val = interval;
     if (setsockopt(fd, IPPROTO_TCP, TCP_KEEPIDLE, &val, sizeof(val)) < 0) {
@@ -140,6 +146,7 @@ int anetKeepAlive(char *err, int fd, int interval)
 
 static int anetSetTcpNoDelay(char *err, int fd, int val)
 {
+	//禁止Nagle算法-----IPPROTO_TCP
     if (setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &val, sizeof(val)) == -1)
     {
         anetSetError(err, "setsockopt TCP_NODELAY: %s", strerror(errno));
@@ -287,7 +294,9 @@ static int anetTcpGenericConnect(char *err, char *addr, int port,
          * the next entry in servinfo. */
         if ((s = socket(p->ai_family,p->ai_socktype,p->ai_protocol)) == -1)
             continue;
+		// 重用本地地址
         if (anetSetReuseAddr(err,s) == ANET_ERR) goto error;
+		// 是否设置文件描述符非阻塞
         if (flags & ANET_CONNECT_NONBLOCK && anetNonBlock(err,s) != ANET_OK)
             goto error;
         if (source_addr) {
@@ -299,7 +308,7 @@ static int anetTcpGenericConnect(char *err, char *addr, int port,
                 goto error;
             }
             for (b = bservinfo; b != NULL; b = b->ai_next) {
-                if (bind(s,b->ai_addr,b->ai_addrlen) != -1) {
+                if (bind(s, b->ai_addr, b->ai_addrlen) != -1) {
                     bound = 1;
                     break;
                 }
@@ -436,7 +445,14 @@ int anetWrite(int fd, char *buf, int count)
     }
     return totlen;
 }
-
+/**
+*bind listen
+* @param err
+* @param s 
+* @param sa
+* @param len
+* @param backlog
+*/
 static int anetListen(char *err, int s, struct sockaddr *sa, socklen_t len, int backlog) {
     if (bind(s,sa,len) == -1) {
         anetSetError(err, "bind: %s", strerror(errno));
@@ -484,6 +500,7 @@ static int _anetTcpServer(char *err, int port, char *bindaddr, int af, int backl
 
         if (af == AF_INET6 && anetV6Only(err,s) == ANET_ERR) goto error;
         if (anetSetReuseAddr(err,s) == ANET_ERR) goto error;
+		// bind listen
         if (anetListen(err,s,p->ai_addr,p->ai_addrlen,backlog) == ANET_ERR) s = ANET_ERR;
         goto end;
     }

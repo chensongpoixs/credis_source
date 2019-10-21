@@ -707,12 +707,12 @@ typedef struct readyList {
 /* With multiplexing we need to take per-client state.
  * Clients are taken in a linked list. */
 typedef struct client {
-    uint64_t id;            /* Client incremental unique ID. */
+    uint64_t id;            /* Client incremental unique ID. 服务器的自动增加的ID */
     int fd;                 /* Client socket. */
     redisDb *db;            /* Pointer to currently SELECTed DB. */
     robj *name;             /* As set by CLIENT SETNAME. */
     sds querybuf;           /* Buffer we use to accumulate client queries. */
-    size_t qb_pos;          /* The position we have read in querybuf. */
+    size_t qb_pos;          /* The position we have read in querybuf. 解析客户端的请求数据的trim*/
     sds pending_querybuf;   /* If this client is flagged as master, this buffer
                                represents the yet not applied portion of the
                                replication stream that we are receiving from
@@ -750,7 +750,7 @@ typedef struct client {
     int slave_listening_port; /* As configured with: SLAVECONF listening-port */
     char slave_ip[NET_IP_STR_LEN]; /* Optionally given by REPLCONF ip-address */
     int slave_capa;         /* Slave capabilities: SLAVE_CAPA_* bitwise OR. */
-    multiState mstate;      /* MULTI/EXEC state */
+    multiState mstate;      /* MULTI/EXEC state 事物*/
     int btype;              /* Type of blocking op if CLIENT_BLOCKED. */
     blockingState bpop;     /* blocking state */
     long long woff;         /* Last write global replication offset. */
@@ -981,7 +981,7 @@ struct redisServer {
     mstime_t clients_pause_end_time; /* Time when we undo clients_paused */
     char neterr[ANET_ERR_LEN];   /* Error buffer for anet.c */
     dict *migrate_cached_sockets;/* MIGRATE cached sockets */
-    uint64_t next_client_id;    /* Next client unique ID. Incremental. */
+    uint64_t next_client_id;    /* Next client unique ID. Incremental. 记录服务器的客户端数量*/
     int protected_mode;         /* Don't accept external connections. */
     /* RDB / AOF loading information */
     int loading;                /* We are loading data from disk if true */
@@ -1022,7 +1022,7 @@ struct redisServer {
     long long slowlog_log_slower_than; /* SLOWLOG time limit (to get logged) */
     unsigned long slowlog_max_len;     /* SLOWLOG max number of items logged */
     struct malloc_stats cron_malloc_stats; /* sampled in serverCron(). */
-    long long stat_net_input_bytes; /* Bytes read from network. */
+    long long stat_net_input_bytes; /* Bytes read from network.    这个是服务器的使用压力测试时处理数据*/
     long long stat_net_output_bytes; /* Bytes written to network. */
     size_t stat_rdb_cow_bytes;      /* Copy on write bytes during RDB saving. */
     size_t stat_aof_cow_bytes;      /* Copy on write bytes during AOF rewrite. */
