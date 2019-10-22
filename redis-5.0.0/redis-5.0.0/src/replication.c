@@ -124,7 +124,7 @@ void freeReplicationBacklog(void) {
  * server.master_repl_offset, because there is no case where we want to feed
  * the backlog without incrementing the offset. */
 /**
-* 把master同步到salve数据放到缓存中的
+* 把master同步到salve数据放到缓存中的   主从偏移量记录主：master_repl_offset 从:repl_backlog_off 用于断线重连机制数据的同步
 * @param ptr 数据
 * @param len 数据的长度
 */
@@ -392,6 +392,7 @@ long long addReplyReplicationBacklog(client *c, long long offset) {
             (server.repl_backlog_size - j) : len;
 
         serverLog(LL_DEBUG, "[PSYNC] addReply() length: %lld", thislen);
+		// 返回数据给 savle服务
         addReplySds(c,sdsnewlen(server.repl_backlog + j, thislen));
         len -= thislen;
         j = 0;
@@ -452,6 +453,12 @@ int replicationSetupSlaveForFullResync(client *slave, long long offset) {
  *
  * On success return C_OK, otherwise C_ERR is returned and we proceed
  * with the usual full resync. */
+/**
+* 该方法是savle的短线重连时的数据的偏移量的校验
+* 1. 请求完整同步数据的命令: psync ? -1   
+* 2. 掉线重连请求数据同步的命令： psync 23423423rflksd32432432432olkjo234  2000 --> 格式: psync crc64(id)  offset
+* @param c 客户端即 savle
+*/
 int masterTryPartialResynchronization(client *c) {
     long long psync_offset, psync_len;
     char *master_replid = c->argv[1]->ptr;
@@ -496,6 +503,7 @@ int masterTryPartialResynchronization(client *c) {
     }
 
     /* We still have the data our slave is asking for? */
+	// 检测master服务上是否还有缓存数据  中savle中的发送 psync ? -1的判定
     if (!server.repl_backlog ||
         psync_offset < server.repl_backlog_off ||
         psync_offset > (server.repl_backlog_off + server.repl_backlog_histlen))
@@ -530,6 +538,7 @@ int masterTryPartialResynchronization(client *c) {
         freeClientAsync(c);
         return C_OK;
     }
+	// 发送同步消息给savle
     psync_len = addReplyReplicationBacklog(c,psync_offset);
     serverLog(LL_NOTICE,
         "Partial resynchronization request from %s accepted. Sending %lld bytes of backlog starting from offset %lld.",
@@ -568,6 +577,11 @@ need_full_resync:
  *    started.
  *
  * Returns C_OK on success or C_ERR otherwise. */
+
+/**
+* 是否开启异步进程同步数据
+* @param mincapa 
+*/
 int startBgsaveForReplication(int mincapa) {
     int retval;
     int socket_target = server.repl_diskless_sync && (mincapa & SLAVE_CAPA_EOF);
@@ -585,7 +599,7 @@ int startBgsaveForReplication(int mincapa) {
         if (socket_target)
             retval = rdbSaveToSlavesSockets(rsiptr);
         else
-            retval = rdbSaveBackground(server.rdb_filename,rsiptr);
+            retval = rdbSaveBackground(server.rdb_filename,rsiptr); // 开启异步进程备份数据
     } else {
         serverLog(LL_WARNING,"BGSAVE for replication: replication information not available, can't generate the RDB file right now. Try later.");
         retval = C_ERR;
@@ -665,6 +679,7 @@ void syncCommand(client *c) {
      * So the slave knows the new replid and offset to try a PSYNC later
      * if the connection with the master is lost. */
     if (!strcasecmp(c->argv[0]->ptr,"psync")) {
+		// redis 短线重连机制的数据同步 的校验
         if (masterTryPartialResynchronization(c) == C_OK) {
             server.stat_sync_partial_ok++;
             return; /* No full resync needed, return. */
@@ -746,7 +761,7 @@ void syncCommand(client *c) {
         serverLog(LL_NOTICE,"Current BGSAVE has socket target. Waiting for next BGSAVE for SYNC");
 
     /* CASE 3: There is no BGSAVE is progress. */
-    } else {
+    } else {  // 开启异步进程备份数据
         if (server.repl_diskless_sync && (c->slave_capa & SLAVE_CAPA_EOF)) {
             /* Diskless replication RDB child is created inside
              * replicationCron() since we want to delay its start a
@@ -758,7 +773,7 @@ void syncCommand(client *c) {
              * diskless replication) and we don't have a BGSAVE in progress,
              * let's start one. */
             if (server.aof_child_pid == -1) {
-                startBgsaveForReplication(c->slave_capa);
+                startBgsaveForReplication(c->slave_capa); // 开启异步进程备份数据
             } else {
                 serverLog(LL_NOTICE,
                     "No BGSAVE in progress, but an AOF rewrite is active. "
@@ -811,6 +826,7 @@ void replconfCommand(client *c) {
             }
         } else if (!strcasecmp(c->argv[j]->ptr,"capa")) {
             /* Ignore capabilities not understood by this master. */
+			// 配置psync----
             if (!strcasecmp(c->argv[j+1]->ptr,"eof"))
                 c->slave_capa |= SLAVE_CAPA_EOF;
             else if (!strcasecmp(c->argv[j+1]->ptr,"psync2"))
