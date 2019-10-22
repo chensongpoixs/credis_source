@@ -1304,7 +1304,7 @@ struct redisCommand {
     int firstkey; /* The first argument that's a key (0 = no keys) */
     int lastkey;  /* The last argument that's a key */
     int keystep;  /* The step between first and last key */
-    long long microseconds, calls;
+    long long microseconds, calls;// 命令执行的时间秒和次数
 };
 
 struct redisFunctionSym {

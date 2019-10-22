@@ -2490,7 +2490,7 @@ void call(client *c, int flags) {
 	// dirty是纪录该操作是否生效的有几种情况是不生效的
     // 例如: blpop的命令
 	dirty = server.dirty;
-	start = ustime();
+	start = ustime();// 这边进行数据统计该命令执行的时间
 	// backcall -->cmd    client exec cmd
 	c->cmd->proc(c);
 	duration = ustime() - start;
