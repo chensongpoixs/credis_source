@@ -123,6 +123,11 @@ void freeReplicationBacklog(void) {
  * This function also increments the global replication offset stored at
  * server.master_repl_offset, because there is no case where we want to feed
  * the backlog without incrementing the offset. */
+/**
+* 把master同步到salve数据放到缓存中的
+* @param ptr 数据
+* @param len 数据的长度
+*/
 void feedReplicationBacklog(void *ptr, size_t len) {
     unsigned char *p = ptr;
 
@@ -136,11 +141,12 @@ void feedReplicationBacklog(void *ptr, size_t len) {
         memcpy(server.repl_backlog+server.repl_backlog_idx,p,thislen);
         server.repl_backlog_idx += thislen;
         if (server.repl_backlog_idx == server.repl_backlog_size)
-            server.repl_backlog_idx = 0;
+            server.repl_backlog_idx = 0;// 这边为什么索引id赋值为0
         len -= thislen;
         p += thislen;
         server.repl_backlog_histlen += thislen;
     }
+	// 校验真实的长度
     if (server.repl_backlog_histlen > server.repl_backlog_size)
         server.repl_backlog_histlen = server.repl_backlog_size;
     /* Set the offset of the first byte we have in the backlog. */
@@ -288,8 +294,10 @@ void replicationFeedSlavesFromMasterStream(list *slaves, char *buf, size_t bufle
         }
         printf("\n");
     }
-
+	// 这一步是什么意思呢？？？？？   没有看懂 难道是主从中master要做数据的缓存吗? 
+	// 猜测: 放到repl_backing中，有新的save连接就发送给它 服务器只缓存大小是
     if (server.repl_backlog) feedReplicationBacklog(buf,buflen);
+	// 通知所有的save
     listRewind(slaves,&li);
     while((ln = listNext(&li))) {
         client *slave = ln->value;

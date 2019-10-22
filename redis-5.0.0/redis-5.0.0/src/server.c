@@ -1715,6 +1715,7 @@ void initServerConfig(void) {
 	server.repl_no_slaves_since = time(NULL);
 
 	/* Client output buffer limits */
+	// ≥ı ºªØ master savle
 	for (j = 0; j < CLIENT_TYPE_OBUF_COUNT; j++)
 		server.client_obuf_limits[j] = clientBufferLimitsDefaults[j];
 

@@ -1424,6 +1424,10 @@ int processMultibulkBuffer(client *c) {
  * more query buffer to process, because we read more data from the socket
  * or because a client was blocked and later reactivated, so there could be
  * pending query buffer, already representing a full command, to process. */
+/**
+* 解析客户端协议
+* @param c 客户端
+*/
 void processInputBuffer(client *c) {
     server.current_client = c;
 
@@ -1477,6 +1481,7 @@ void processInputBuffer(client *c) {
                 if (c->flags & CLIENT_MASTER && !(c->flags & CLIENT_MULTI)) {
                     /* Update the applied replication offset of our master. */
                     c->reploff = c->read_reploff - sdslen(c->querybuf) + c->qb_pos;
+					//c->reploff = c->read_reploff - (sdslen(c->querybuf) - c->qb_pos);
                 }
 
                 /* Don't reset the client structure for clients blocked in a
@@ -1514,6 +1519,7 @@ void processInputBufferAndReplicate(client *c) {
         processInputBuffer(c);
         size_t applied = c->reploff - prev_offset;
         if (applied) {
+			// 主从同步 master -> savle
             replicationFeedSlavesFromMasterStream(server.slaves,
                     c->pending_querybuf, applied);
             sdsrange(c->pending_querybuf,applied,-1);
@@ -1568,6 +1574,7 @@ void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
         /* Append the query buffer to the pending (not applied) buffer
          * of the master. We'll use this buffer later in order to have a
          * copy of the string applied by the last command executed. */
+		// 放到主从同步中的缓存中的buf
         c->pending_querybuf = sdscatlen(c->pending_querybuf,
                                         c->querybuf+qblen,nread);
     }
@@ -1576,6 +1583,7 @@ void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
 	printf("[%s][%s][%d][client send -> msg = %s]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__, c->querybuf + qblen);
     sdsIncrLen(c->querybuf,nread);
     c->lastinteraction = server.unixtime;
+	// 你看master 这边read_reploff +字符串的长度 这是为什么呢
     if (c->flags & CLIENT_MASTER) c->read_reploff += nread;
 	// 数据统计使用的
     server.stat_net_input_bytes += nread;
@@ -2094,6 +2102,10 @@ char *getClientTypeName(int class) {
  *
  * Return value: non-zero if the client reached the soft or the hard limit.
  *               Otherwise zero is returned. */
+/**
+* 检测同步
+* @param c 客户端
+*/
 int checkClientOutputBufferLimits(client *c) {
     int soft = 0, hard = 0, class;
     unsigned long used_mem = getClientOutputBufferMemoryUsage(c);

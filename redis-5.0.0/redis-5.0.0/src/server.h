@@ -713,7 +713,7 @@ typedef struct client {
     robj *name;             /* As set by CLIENT SETNAME. */
     sds querybuf;           /* Buffer we use to accumulate client queries. */
     size_t qb_pos;          /* The position we have read in querybuf. 解析客户端的请求数据的trim*/
-    sds pending_querybuf;   /* If this client is flagged as master, this buffer
+    sds pending_querybuf;   /* 主从同步的缓存 If this client is flagged as master, this buffer
                                represents the yet not applied portion of the
                                replication stream that we are receiving from
                                the master. */
@@ -1052,7 +1052,7 @@ struct redisServer {
     int supervised;                 /* 1 if supervised, 0 otherwise. */
     int supervised_mode;            /* See SUPERVISED_* */
     int daemonize;                  /* True if running as a daemon */
-    clientBufferLimitsConfig client_obuf_limits[CLIENT_TYPE_OBUF_COUNT];
+    clientBufferLimitsConfig client_obuf_limits[CLIENT_TYPE_OBUF_COUNT]; // 主从数据库master savle数据设置
     /* AOF persistence 这里需要我以后看看机制有问题啊！！！！！！*/
     int aof_state;                  /* AOF_(ON|OFF|WAIT_REWRITE) 是否开启子进程写入数据保存的状态记录 */
     int aof_fsync;                  /* Kind of fsync() policy */
