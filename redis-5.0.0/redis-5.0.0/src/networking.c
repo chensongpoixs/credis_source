@@ -921,6 +921,7 @@ void freeClient(client *c) {
 
     /* Master/slave cleanup Case 2:
      * we lost the connection with the master. */
+	// 看到吧 状态改变吧 master -》REPL_STATE_CONNECT
     if (c->flags & CLIENT_MASTER) replicationHandleMasterDisconnection();
 
     /* If this client was scheduled for async freeing we need to remove it

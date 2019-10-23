@@ -1131,6 +1131,8 @@ void restartAOF() {
 * 完全同步master服务的数据的接受数据过程
 * 1. 获取数据包的数据头的大小，第二次事情回调读取数据流的大小
 * 这里我没有找到维持slave与master的心跳包的事件 ,只看到数据同步过来了
+* 2. redis 居然这样去玩的完全同步数据的重担socket的连接
+*  -  slave重担完成同步数据了之后就断开连接， 再次使用偏移量连接数据的master 与断线重连的机制一样的  会玩
 * @param el
 * @param fd
 * @param privdata
@@ -1312,6 +1314,7 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
         zfree(server.repl_transfer_tmpfile);
         close(server.repl_transfer_fd);
         replicationCreateMasterClient(server.repl_transfer_s,rsi.repl_stream_db);
+		//****这边的状态改变了****
         server.repl_state = REPL_STATE_CONNECTED;
         server.repl_down_since = 0;
         /* After a full resynchroniziation we use the replication ID and
@@ -2051,8 +2054,12 @@ void replicationUnsetMaster(void) {
 
 /* This function is called when the slave lose the connection with the
  * master into an unexpected way. */
+/**
+* 主从完成同步数据 类似于断线重连接 过程  现在把状态该成连接master的状态
+*/
 void replicationHandleMasterDisconnection(void) {
     server.master = NULL;
+	/// 该状态吧 --》REPL_STATE_CONNECT
     server.repl_state = REPL_STATE_CONNECT;
     server.repl_down_since = server.unixtime;
     /* We lost connection with our master, don't disconnect slaves yet,
@@ -2595,10 +2602,12 @@ void replicationCron(void) {
     }
 
     /* Timed out master when we are an already connected slave? */
+	// 这里断开连接了 使用状态和时间
     if (server.masterhost && server.repl_state == REPL_STATE_CONNECTED &&
         (time(NULL)-server.master->lastinteraction) > server.repl_timeout)
     {
         serverLog(LL_WARNING,"MASTER timeout: no data nor PING received...");
+		//在这里面把状态修改REPL_STATE_CONNECT
         freeClient(server.master);
     }
 
