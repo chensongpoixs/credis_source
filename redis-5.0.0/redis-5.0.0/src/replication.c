@@ -1127,6 +1127,15 @@ void restartAOF() {
 
 /* Asynchronously read the SYNC payload we receive from a master */
 #define REPL_MAX_WRITTEN_BEFORE_FSYNC (1024*1024*8) /* 8 MB */
+/**
+* 完全同步master服务的数据的接受数据过程
+* 1. 获取数据包的数据头的大小，第二次事情回调读取数据流的大小
+* 这里我没有找到维持slave与master的心跳包的事件 ,只看到数据同步过来了
+* @param el
+* @param fd
+* @param privdata
+* @param mask
+*/
 void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
     char buf[4096];
     ssize_t nread, readlen, nwritten;
@@ -1230,6 +1239,7 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
     }
 
     server.repl_transfer_lastio = server.unixtime;
+	// 写入落地文件
     if ((nwritten = write(server.repl_transfer_fd,buf,nread)) != nread) {
         serverLog(LL_WARNING,"Write error or short write writing to the DB dump file needed for MASTER <-> REPLICA synchronization: %s", 
             (nwritten == -1) ? strerror(errno) : "short write");
@@ -1446,6 +1456,17 @@ char *sendSynchronousCommand(int flags, int fd, ...) {
 #define PSYNC_FULLRESYNC 3
 #define PSYNC_NOT_SUPPORTED 4
 #define PSYNC_TRY_LATER 5
+/**
+* 一, slave 发送校验 偏移量 offset   
+* 1. 第一次时发送 cmd: psync ? -1   
+* 2. 断线重连发送 cmd psync  crc16(server_id) offset
+* 二, master 发送信息同步数据的两种策略
+* 1. +FULLRESYNC   完全拷贝数据
+* 2. +CONTINUE    slave 的偏移量进行同步数据
+* 3. -NOMASTERLINK, -LOADING  master服务的状态不对
+* @param fd master的文件描述符
+* @param read_reply  false : 发送信息给master ， true :用于接收master信息
+*/
 int slaveTryPartialResynchronization(int fd, int read_reply) {
     char *psync_replid;
     char psync_offset[32];
@@ -1489,7 +1510,8 @@ int slaveTryPartialResynchronization(int fd, int read_reply) {
         sdsfree(reply);
         return PSYNC_WAIT_REPLY;
     }
-
+	// 删除read的事件 现在彻底没有回函数了?????????????????? 怎么处理心跳包呢
+	// 1.+CONTINUE 是在小偏移量中提交的事件的处理即函数:replicationResurrectCachedMaster
     aeDeleteFileEvent(server.el,fd,AE_READABLE);
 
     if (!strncmp(reply,"+FULLRESYNC",11)) {
@@ -1524,7 +1546,7 @@ int slaveTryPartialResynchronization(int fd, int read_reply) {
         sdsfree(reply);
         return PSYNC_FULLRESYNC;
     }
-
+	// master 返回 偏移量offset 的数据 同步数据的
     if (!strncmp(reply,"+CONTINUE",9)) {
         /* Partial resync was accepted. */
         serverLog(LL_NOTICE,
@@ -1606,6 +1628,13 @@ int slaveTryPartialResynchronization(int fd, int read_reply) {
 
 /* This handler fires when the non blocking connect was able to
  * establish a connection with the master. */
+/**
+* 同步读写操作 在loop中
+* @param el
+* @param fd 连接服务的文件描述符
+* @param privdata 数据
+* @param mask 掩码
+*/
 void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
     char tmpfile[256], *err = NULL;
     int dfd = -1, maxtries = 5;
@@ -1725,7 +1754,7 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
     if (server.repl_state == REPL_STATE_SEND_IP &&
         server.slave_announce_ip == NULL)
     {
-            server.repl_state = REPL_STATE_SEND_CAPA;
+            server.repl_state = REPL_STATE_SEND_CAPA;///？？？？？？？？
     }
 
     /* Set the slave ip, so that Master's INFO command can list the
@@ -1786,6 +1815,7 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
      * and the global offset, to try a partial resync at the next
      * reconnection attempt. */
     if (server.repl_state == REPL_STATE_SEND_PSYNC) {
+		// 校验master 偏移量数据 
         if (slaveTryPartialResynchronization(fd,0) == PSYNC_WRITE_ERROR) {
             err = sdsnew("Write error sending the PSYNC command.");
             goto write_error;
@@ -1801,19 +1831,21 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
                              server.repl_state);
         goto error;
     }
-
+	// master返回 校验的数据的 并返回 数据库
     psync_result = slaveTryPartialResynchronization(fd,1);
+	// master服务 还没有返回数据有可能是断开连接了
     if (psync_result == PSYNC_WAIT_REPLY) return; /* Try again later... */
 
     /* If the master is in an transient error, we should try to PSYNC
      * from scratch later, so go to the error path. This happens when
      * the server is loading the dataset or is not connected with its
      * master and so forth. */
+	/// master 服务在校验ping pong 的时候校验的同步的机制中的 master 与 slave 机制不同！！！！！
     if (psync_result == PSYNC_TRY_LATER) goto error;
 
     /* Note: if PSYNC does not return WAIT_REPLY, it will take care of
      * uninstalling the read handler from the file descriptor. */
-
+	// master 服务返回数据了
     if (psync_result == PSYNC_CONTINUE) {
         serverLog(LL_NOTICE, "MASTER <-> REPLICA sync: Master accepted a Partial Resynchronization.");
         return;
@@ -1839,6 +1871,7 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
     }
 
     /* Prepare a suitable temp file for bulk transfer */
+	// 下面是完成同步数据的方案
     while(maxtries--) {
         snprintf(tmpfile,256,
             "temp-%d.%ld.rdb",(int)server.unixtime,(long int)getpid());
@@ -1852,6 +1885,7 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
     }
 
     /* Setup the non blocking download of the bulk file. */
+	// 等待master发送 *.rdb文件流过来同步数据
     if (aeCreateFileEvent(server.el,fd, AE_READABLE,readSyncBulkPayload,NULL)
             == AE_ERR)
     {
@@ -1884,6 +1918,11 @@ write_error: /* Handle sendSynchronousCommand(SYNC_CMD_WRITE) errors. */
     goto error;
 }
 
+
+/**
+* 连接master服务
+* 
+*/
 int connectWithMaster(void) {
     int fd;
 
@@ -2235,6 +2274,10 @@ void replicationDiscardCachedMaster(void) {
  * This function is called when successfully setup a partial resynchronization
  * so the stream of data that we'll receive will start from were this
  * master left. */
+/**
+* 维护master服务的心跳包 read和write的事件的处理
+* @param newfd master文件描述符
+*/
 void replicationResurrectCachedMaster(int newfd) {
     server.master = server.cached_master;
     server.cached_master = NULL;
@@ -2247,6 +2290,7 @@ void replicationResurrectCachedMaster(int newfd) {
 
     /* Re-add to the list of clients. */
     linkClient(server.master);
+	// 在这边有加上了 read事件
     if (aeCreateFileEvent(server.el, newfd, AE_READABLE,
                           readQueryFromClient, server.master)) {
         serverLog(LL_WARNING,"Error resurrecting the cached master, impossible to add the readable handler: %s", strerror(errno));

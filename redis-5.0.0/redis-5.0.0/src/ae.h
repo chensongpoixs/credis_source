@@ -38,10 +38,10 @@
 #define AE_OK 0
 #define AE_ERR -1
 
-#define AE_NONE 0       /* No events registered. */
-#define AE_READABLE 1   /* Fire when descriptor is readable. */
-#define AE_WRITABLE 2   /* Fire when descriptor is writable. */
-#define AE_BARRIER 4    /* With WRITABLE, never fire the event if the
+#define AE_NONE 0       /* 0000 No events registered. */
+#define AE_READABLE 1   /* 0001 Fire when descriptor is readable. */
+#define AE_WRITABLE 2   /* 0010 Fire when descriptor is writable. */
+#define AE_BARRIER 4    /* 0100 With WRITABLE, never fire the event if the
                            READABLE event already fired in the same event
                            loop iteration. Useful when you want to persist
                            things to disk before sending replies, and want

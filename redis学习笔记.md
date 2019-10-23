@@ -575,6 +575,29 @@ net
 
 
 
+master -> slave 
+
+
+slaveof 命令中执行函数中的数字master的地址和ip的删除当前主机的名称
+
+
+
+slave -> master 连接的过程
+
+
+connectWithMaster
+
+状态由REPL_STATE_CONNECT变成REPL_STATE_CONNECTING
+
+同步的socket连接syncWithMaster
+
+1. 发送ping 状态由REPL_STATE_CONNECTING变成REPL_STATE_RECEIVE_PONG
+2. 接受pong 状态变成REPL_STATE_SEND_AUTH
+
+在状态REPL_STATE_SEND_PSYNC时校验的偏移量
+
+
+
 
 
 
