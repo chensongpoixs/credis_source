@@ -973,6 +973,9 @@ client *lookupClientByID(uint64_t id) {
 
 /* Write data in output buffers to client. Return C_OK if the client
  * is still valid after the call, C_ERR if it was freed. */
+/**
+* 发送slave 信息
+*/
 int writeToClient(int fd, client *c, int handler_installed) {
     ssize_t nwritten = 0, totwritten = 0;
     size_t objlen;
@@ -1066,6 +1069,13 @@ int writeToClient(int fd, client *c, int handler_installed) {
 }
 
 /* Write event handler. Just send data to the client. */
+/**
+* 当文件描述符可可以写入数据的时候 写入要写入的数据 c->buf
+* @param el
+* @param fd 文件描述符
+* @param privdata 玩家数据
+* @param mask 掩码
+*/
 void sendReplyToClient(aeEventLoop *el, int fd, void *privdata, int mask) {
     UNUSED(el);
     UNUSED(mask);

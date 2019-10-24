@@ -880,6 +880,7 @@ void putSlaveOnline(client *slave) {
     slave->replstate = SLAVE_STATE_ONLINE;
     slave->repl_put_online_on_ack = 0;
     slave->repl_ack_time = server.unixtime; /* Prevent false timeout. */
+	//这边也注册事件什么情况下注册呢！！！！！
     if (aeCreateFileEvent(server.el, slave->fd, AE_WRITABLE,
         sendReplyToClient, slave) == AE_ERR) {
         serverLog(LL_WARNING,"Unable to register writable event for replica bulk transfer: %s", strerror(errno));
@@ -2169,6 +2170,9 @@ void roleCommand(client *c) {
 /* Send a REPLCONF ACK command to the master to inform it about the current
  * processed offset. If we are not connected with a master, the command has
  * no effects. */
+/**
+*savle 服务发送 ack 心跳包 和 偏移量的 校验
+*/
 void replicationSendAck(void) {
     client *c = server.master;
 
@@ -2306,6 +2310,9 @@ void replicationResurrectCachedMaster(int newfd) {
 
     /* We may also need to install the write handler as well if there is
      * pending data in the write buffers. */
+	/**
+	* 看到吧 ！ redis 中的是怎么玩的当文件描述符可写的写入数据发送slave
+	*/
     if (clientHasPendingReplies(server.master)) {
         if (aeCreateFileEvent(server.el, newfd, AE_WRITABLE,
                           sendReplyToClient, server.master)) {

@@ -2367,8 +2367,13 @@ void propagate(struct redisCommand *cmd, int dbid, robj **argv, int argc,
 	// 是否异步保存数据的开启
 	if (server.aof_state != AOF_OFF && flags & PROPAGATE_AOF)
 		feedAppendOnlyFile(cmd, dbid, argv, argc);
-	if (flags & PROPAGATE_REPL)
+	if (flags & PROPAGATE_REPL)  
+	{   
+		// 同步salve服务的数据  ？？ master 怎么发送呢 没有找到呢 ！！！！！！要看看
+		// 1. redis使用事件监听文件描述符可写入数据时写入数据注册了事件 
+		//-----我2019-10-23号看master<->slave的中的网络断线重连接中sendReplyToClient函数的没有理解 ， 我在2019-10-24号又看到master返回slave时不知道怎么发送数据的找了一上午
 		replicationFeedSlaves(server.slaves, dbid, argv, argc);
+	}
 }
 
 /* Used inside commands to schedule the propagation of additional commands
