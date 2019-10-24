@@ -1264,7 +1264,8 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 					(int)server.aof_child_pid);
 			}
 			else if (pid == server.rdb_child_pid) {
-				// 这个里面修改当前的数的修改次数的纪录server.dirty
+				// 这个里面修改当前的数的修改次数的纪录server.dirty  这里要思考着看？？？？？？？？？
+				// 发送数据给 slave服务的操作
 				backgroundSaveDoneHandler(exitcode, bysignal);
 				if (!bysignal && exitcode == 0) receiveChildInfo();
 			}

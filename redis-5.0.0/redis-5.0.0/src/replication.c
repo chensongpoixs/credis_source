@@ -940,6 +940,7 @@ void sendBulkToSlave(aeEventLoop *el, int fd, void *privdata, int mask) {
     }
     slave->repldboff += nwritten;
     server.stat_net_output_bytes += nwritten;
+	// 文件发送完成了 
     if (slave->repldboff == slave->repldbsize) {
         close(slave->repldbfd);
         slave->repldbfd = -1;
@@ -962,6 +963,11 @@ void sendBulkToSlave(aeEventLoop *el, int fd, void *privdata, int mask) {
  * otherwise C_ERR is passed to the function.
  * The 'type' argument is the type of the child that terminated
  * (if it had a disk or socket target). */
+/**
+* 更新到磁盘还是更新slave服务
+* @param bgsaveerr  OK, ERR
+* @param type  RDB_CHILD_TYPE_DISK, 
+*/
 void updateSlavesWaitingBgsave(int bgsaveerr, int type) {
     listNode *ln;
     int startbgsave = 0;

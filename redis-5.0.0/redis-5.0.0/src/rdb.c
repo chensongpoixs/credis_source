@@ -2128,6 +2128,11 @@ int rdbLoad(char *filename, rdbSaveInfo *rsi) {
 
 /* A background saving child (BGSAVE) terminated its work. Handle this.
  * This function covers the case of actual BGSAVEs. */
+/**
+* 写入磁盘操作
+* @param exitcode
+* @param bysignal 
+*/
 void backgroundSaveDoneHandlerDisk(int exitcode, int bysignal) {
     if (!bysignal && exitcode == 0) {
         serverLog(LL_NOTICE,
@@ -2165,6 +2170,11 @@ void backgroundSaveDoneHandlerDisk(int exitcode, int bysignal) {
 /* A background saving child (BGSAVE) terminated its work. Handle this.
  * This function covers the case of RDB -> Salves socket transfers for
  * diskless replication. */
+/**
+* 发送rdb文件给slave服务的操作
+* @param exitcode
+* @param bysignal
+*/
 void backgroundSaveDoneHandlerSocket(int exitcode, int bysignal) {
     uint64_t *ok_slaves;
 
@@ -2258,6 +2268,12 @@ void backgroundSaveDoneHandlerSocket(int exitcode, int bysignal) {
 }
 
 /* When a background RDB saving/transfer terminates, call the right handler. */
+/**
+* 1. 写入disk磁盘
+* 2. 发送数据给slave服务
+* @param exitcode 
+* @param bysignal 
+*/
 void backgroundSaveDoneHandler(int exitcode, int bysignal) {
     switch(server.rdb_child_type) {
     case RDB_CHILD_TYPE_DISK:
