@@ -1497,6 +1497,7 @@ void processInputBuffer(client *c) {
             if (processCommand(c) == C_OK) {
                 if (c->flags & CLIENT_MASTER && !(c->flags & CLIENT_MULTI)) {
                     /* Update the applied replication offset of our master. */
+					// 更新偏移量  在slave服务上 
                     c->reploff = c->read_reploff - sdslen(c->querybuf) + c->qb_pos;
 					//c->reploff = c->read_reploff - (sdslen(c->querybuf) - c->qb_pos);
                 }
@@ -1535,6 +1536,8 @@ void processInputBufferAndReplicate(client *c) {
         size_t prev_offset = c->reploff;
         processInputBuffer(c);
         size_t applied = c->reploff - prev_offset;
+		// 说明什么呢    
+		// 1. master与 slave服务上偏移量不一致所以要master 与slave同步数据    这边要多想一点  不止是客户端的命令同步哦还有可能slave服务与mater的偏移量不同步时也可以广播数据哦
         if (applied) {
 			// 主从同步 master -> savle
             replicationFeedSlavesFromMasterStream(server.slaves,

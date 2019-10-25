@@ -281,6 +281,12 @@ void replicationFeedSlaves(list *slaves, int dictid, robj **argv, int argc) {
 /* This function is used in order to proxy what we receive from our master
  * to our sub-slaves. */
 #include <ctype.h>
+/**
+* 该方法是master发送slave广播使用的 使用
+* @param slaves slave服务集合
+* @param buf
+* @param buflen 
+*/
 void replicationFeedSlavesFromMasterStream(list *slaves, char *buf, size_t buflen) {
     listNode *ln;
     listIter li;
@@ -297,7 +303,7 @@ void replicationFeedSlavesFromMasterStream(list *slaves, char *buf, size_t bufle
 	// 这一步是什么意思呢？？？？？   没有看懂 难道是主从中master要做数据的缓存吗? 
 	// 猜测: 放到repl_backing中，有新的save连接就发送给它 服务器只缓存大小是
     if (server.repl_backlog) feedReplicationBacklog(buf,buflen);
-	// 通知所有的save
+	// 通知所有的save 这里master做适配 根据每个slave服务的偏移量发送实际缓存数据的大小 给对应slave服务
     listRewind(slaves,&li);
     while((ln = listNext(&li))) {
         client *slave = ln->value;
