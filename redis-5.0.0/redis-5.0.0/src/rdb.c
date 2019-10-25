@@ -2173,7 +2173,7 @@ void backgroundSaveDoneHandlerDisk(int exitcode, int bysignal) {
 /**
 * 发送rdb文件给slave服务的操作
 * @param exitcode
-* @param bysignal
+* @param bysignal   
 */
 void backgroundSaveDoneHandlerSocket(int exitcode, int bysignal) {
     uint64_t *ok_slaves;

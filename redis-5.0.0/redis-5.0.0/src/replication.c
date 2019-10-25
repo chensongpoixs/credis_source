@@ -1320,6 +1320,7 @@ void readSyncBulkPayload(aeEventLoop *el, int fd, void *privdata, int mask) {
         /* Final setup of the connected slave <- master link */
         zfree(server.repl_transfer_tmpfile);
         close(server.repl_transfer_fd);
+		//创建master数据库
         replicationCreateMasterClient(server.repl_transfer_s,rsi.repl_stream_db);
 		//****这边的状态改变了****
         server.repl_state = REPL_STATE_CONNECTED;
@@ -2691,6 +2692,7 @@ void replicationCron(void) {
     }
 
     /* Disconnect timedout slaves. */
+	// slave连接超时的操作
     if (listLength(server.slaves)) {
         listIter li;
         listNode *ln;

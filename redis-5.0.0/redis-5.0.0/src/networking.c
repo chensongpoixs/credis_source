@@ -840,6 +840,11 @@ void unlinkClient(client *c) {
     }
 }
 
+
+/**
+* 对客户端的回话的修改状态   如果master和slave的作为客户端话就修改比较多一点
+* @param c 客户端
+*/
 void freeClient(client *c) {
     listNode *ln;
 
@@ -861,6 +866,7 @@ void freeClient(client *c) {
                           CLIENT_CLOSE_ASAP|
                           CLIENT_BLOCKED)))
         {
+			// 这边修改master数据为缓存数据
             replicationCacheMaster(c);
             return;
         }
