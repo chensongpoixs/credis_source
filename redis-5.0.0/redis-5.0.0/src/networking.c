@@ -980,7 +980,7 @@ client *lookupClientByID(uint64_t id) {
 /* Write data in output buffers to client. Return C_OK if the client
  * is still valid after the call, C_ERR if it was freed. */
 /**
-* 发送slave 信息
+* 异步发送slave 信息
 */
 int writeToClient(int fd, client *c, int handler_installed) {
     ssize_t nwritten = 0, totwritten = 0;
@@ -1546,7 +1546,13 @@ void processInputBufferAndReplicate(client *c) {
         }
     }
 }
-// client read  redis中io设计反应堆类似于libevent模式
+/**
+* client read  redis中io设计反应堆类似于libevent模式
+* @param el
+* @param fd
+* @param privdata
+* @param mask
+*/
 void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
     client *c = (client*) privdata;
     int nread, readlen;

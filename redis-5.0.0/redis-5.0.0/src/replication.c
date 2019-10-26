@@ -1497,12 +1497,14 @@ int slaveTryPartialResynchronization(int fd, int read_reply) {
          * right value, so that this information will be propagated to the
          * client structure representing the master into server.master. */
         server.master_initial_offset = -1;
-
+		
         if (server.cached_master) {
+			// 断线重连的时候 从服务把master服务设置成了 缓存数据库了  
             psync_replid = server.cached_master->replid;
             snprintf(psync_offset,sizeof(psync_offset),"%lld", server.cached_master->reploff+1);
             serverLog(LL_NOTICE,"Trying a partial resynchronization (request %s:%s).", psync_replid, psync_offset);
-        } else {
+        } else { 
+			// 完全同步数据的处理
             serverLog(LL_NOTICE,"Partial resynchronization not possible (no cached master)");
             psync_replid = "?";
             memcpy(psync_offset,"-1",3);
@@ -1683,6 +1685,7 @@ void syncWithMaster(aeEventLoop *el, int fd, void *privdata, int mask) {
         serverLog(LL_NOTICE,"Non blocking connect for SYNC fired the event.");
         /* Delete the writable event so that the readable event remains
          * registered and we can wait for the PONG reply. */
+		// 这里删除write事件 目的是为写入是io是同步进行的，而read还是异步进行中的
         aeDeleteFileEvent(server.el,fd,AE_WRITABLE);
         server.repl_state = REPL_STATE_RECEIVE_PONG;
         /* Send the PING, don't check for errors at all, we have the timeout
@@ -1938,11 +1941,10 @@ write_error: /* Handle sendSynchronousCommand(SYNC_CMD_WRITE) errors. */
 
 /**
 * 连接master服务
-* 
 */
 int connectWithMaster(void) {
     int fd;
-
+	// 1. 创建socket异步连接master服务
     fd = anetTcpNonBlockBestEffortBindConnect(NULL,
         server.masterhost,server.masterport,NET_FIRST_BIND_ADDR);
     if (fd == -1) {
@@ -1950,7 +1952,7 @@ int connectWithMaster(void) {
             strerror(errno));
         return C_ERR;
     }
-
+	// 2. 注册事件
     if (aeCreateFileEvent(server.el,fd,AE_READABLE|AE_WRITABLE,syncWithMaster,NULL) ==
             AE_ERR)
     {
@@ -1961,6 +1963,7 @@ int connectWithMaster(void) {
 
     server.repl_transfer_lastio = server.unixtime;
     server.repl_transfer_s = fd;
+	// 3. 修改连接状态
     server.repl_state = REPL_STATE_CONNECTING;
     return C_OK;
 }
@@ -2219,6 +2222,10 @@ void replicationSendAck(void) {
  * replicationResurrectCachedMaster() that is used after a successful PSYNC
  * handshake in order to reactivate the cached master.
  */
+/**
+* 设置master服务数据库为缓存数据库 在slave服务上使用的
+* @param c 客户端
+*/
 void replicationCacheMaster(client *c) {
     serverAssert(server.master != NULL && server.cached_master == NULL);
     serverLog(LL_NOTICE,"Caching the disconnected master state.");
@@ -2600,6 +2607,9 @@ long long replicationGetSlaveOffset(void) {
 /* --------------------------- REPLICATION CRON  ---------------------------- */
 
 /* Replication cron function, called 1 time per second. */
+/**
+* 主函数定时事件触发的事件 频在配置表可以配置的 hz
+*/
 void replicationCron(void) {
     static long long replication_cron_loops = 0;
 
@@ -2622,7 +2632,7 @@ void replicationCron(void) {
     }
 
     /* Timed out master when we are an already connected slave? */
-	// 这里断开连接了 使用状态和时间
+	// 这里断开连接了 使用状态和时间  ， master发送文件结束后 slave的状态就是  REPL_STATE_CONNECTED 需要的理解哦很巧妙的设计 
     if (server.masterhost && server.repl_state == REPL_STATE_CONNECTED &&
         (time(NULL)-server.master->lastinteraction) > server.repl_timeout)
     {
@@ -2632,6 +2642,7 @@ void replicationCron(void) {
     }
 
     /* Check if we should connect to a MASTER */
+	// 在slave服务中的检查状态 连接master服务的
     if (server.repl_state == REPL_STATE_CONNECT) {
         serverLog(LL_NOTICE,"Connecting to MASTER %s:%d",
             server.masterhost, server.masterport);
