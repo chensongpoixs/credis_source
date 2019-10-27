@@ -1364,6 +1364,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 	}
 
 	/* Run the Sentinel timer if we are in sentinel mode. */
+	// sentinel 发送给 master的 hello的订阅事件计时器
 	if (server.sentinel_mode) sentinelTimer();
 
 	/* Cleanup expired MIGRATE cached sockets. */

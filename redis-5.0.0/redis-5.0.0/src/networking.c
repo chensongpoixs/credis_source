@@ -980,7 +980,7 @@ client *lookupClientByID(uint64_t id) {
 /* Write data in output buffers to client. Return C_OK if the client
  * is still valid after the call, C_ERR if it was freed. */
 /**
-* 异步发送slave 信息
+* 异步发送slave 信息 发送给客户端的数据包
 */
 int writeToClient(int fd, client *c, int handler_installed) {
     ssize_t nwritten = 0, totwritten = 0;
@@ -989,6 +989,7 @@ int writeToClient(int fd, client *c, int handler_installed) {
 
     while(clientHasPendingReplies(c)) {
         if (c->bufpos > 0) {
+			printf("[%s][%s][%d][client name = %s][client send -> fd = %d]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__, c->name, c->fd);
             nwritten = write(fd,c->buf+c->sentlen,c->bufpos-c->sentlen);
             if (nwritten <= 0) break;
             c->sentlen += nwritten;
@@ -1009,7 +1010,7 @@ int writeToClient(int fd, client *c, int handler_installed) {
                 listDelNode(c->reply,listFirst(c->reply));
                 continue;
             }
-
+			printf("[%s][%s][%d][client send -> fd = %d]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__, c->fd);
             nwritten = write(fd, o->buf + c->sentlen, objlen - c->sentlen);
             if (nwritten <= 0) break;
             c->sentlen += nwritten;

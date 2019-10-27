@@ -222,6 +222,11 @@ int pubsubUnsubscribeAllPatterns(client *c, int notify) {
 }
 
 /* Publish a message */
+/**
+* 推送给订阅该频道的客户端   广播发送信息
+* @param channel  频道
+* @param message
+*/
 int pubsubPublishMessage(robj *channel, robj *message) {
     int receivers = 0;
     dictEntry *de;
@@ -229,12 +234,13 @@ int pubsubPublishMessage(robj *channel, robj *message) {
     listIter li;
 
     /* Send to clients listening for that channel */
+	// 发送那些订阅这些信息客户端
     de = dictFind(server.pubsub_channels,channel);
     if (de) {
         list *list = dictGetVal(de);
         listNode *ln;
         listIter li;
-
+		// ？？ 推送所有的自己的信息的怎么处理
         listRewind(list,&li);
         while ((ln = listNext(&li)) != NULL) {
             client *c = ln->value;
@@ -247,6 +253,7 @@ int pubsubPublishMessage(robj *channel, robj *message) {
         }
     }
     /* Send to clients listening to matching channels */
+	// 这是订阅该消息 现在又广播所有人的操作  ？？ 这边到底是什么模式， 我还没有明白
     if (listLength(server.pubsub_patterns)) {
         listRewind(server.pubsub_patterns,&li);
         channel = getDecodedObject(channel);
@@ -313,7 +320,10 @@ void punsubscribeCommand(client *c) {
     }
     if (clientSubscriptionsCount(c) == 0) c->flags &= ~CLIENT_PUBSUB;
 }
-
+/**
+* 推送所有的客户端订阅该信息   sentinel服务的发送
+* @param c 客户端
+*/
 void publishCommand(client *c) {
     int receivers = pubsubPublishMessage(c->argv[1],c->argv[2]);
     if (server.cluster_enabled)
