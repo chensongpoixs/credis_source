@@ -90,7 +90,7 @@ typedef struct redisReader {
     int ridx; /* Index of current read task */
     void *reply; /* Temporary reply pointer */
 
-    redisReplyObjectFunctions *fn;
+    redisReplyObjectFunctions *fn; // 回调函数  读取处理数据的
     void *privdata;
 } redisReader;
 

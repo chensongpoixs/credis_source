@@ -275,6 +275,13 @@ typedef struct redisAeEvents {
     int reading, writing;
 } redisAeEvents;
 
+/**
+* 这是 sentinel异步连接服务的 读取数据的事件的封装
+* @param el
+* @param fd
+* @param privdata
+* @param mask
+*/
 static void redisAeReadEvent(aeEventLoop *el, int fd, void *privdata, int mask) {
     ((void)el); ((void)fd); ((void)mask);
 
@@ -331,7 +338,9 @@ static void redisAeCleanup(void *privdata) {
     redisAeDelWrite(privdata);
     zfree(e);
 }
-
+/**
+* 设置回调函数处理
+*/
 static int redisAeAttach(aeEventLoop *loop, redisAsyncContext *ac) {
     redisContext *c = &(ac->c);
     redisAeEvents *e;
@@ -2001,6 +2010,7 @@ void sentinelReconnectInstance(sentinelRedisInstance *ri) {
             link->pending_commands = 0;
             link->cc_conn_time = mstime();
             link->cc->data = link;
+			// 设置回调函数处理
             redisAeAttach(server.el,link->cc);
             redisAsyncSetConnectCallback(link->cc,
                     sentinelLinkEstablishedCallback);

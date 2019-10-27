@@ -51,6 +51,9 @@ static void *createNilObject(const redisReadTask *task);
 
 /* Default set of functions to build the reply. Keep in mind that such a
  * function returning NULL is interpreted as OOM. */
+/**
+* 回调函数
+*/
 static redisReplyObjectFunctions defaultFunctions = {
     createStringObject,
     createArrayObject,
@@ -584,7 +587,9 @@ void __redisSetError(redisContext *c, int type, const char *str) {
         __redis_strerror_r(errno, c->errstr, sizeof(c->errstr));
     }
 }
-
+/**
+* 读取数据回调数据解析数据
+*/
 redisReader *redisReaderCreate(void) {
     return redisReaderCreateWithFunctions(&defaultFunctions);
 }
@@ -599,6 +604,7 @@ static redisContext *redisContextInit(void) {
     c->err = 0;
     c->errstr[0] = '\0';
     c->obuf = sdsempty();
+	// 回调函数的设置解析 prase
     c->reader = redisReaderCreate();
     c->tcp.host = NULL;
     c->tcp.source_addr = NULL;
