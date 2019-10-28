@@ -357,6 +357,7 @@ static int redisAeAttach(aeEventLoop *loop, redisAsyncContext *ac) {
     e->reading = e->writing = 0;
 
     /* Register functions to start/stop listening for events */
+	// 什么调用呢 ？？？？？？？ 一直没有找到
     ac->ev.addRead = redisAeAddRead;
     ac->ev.delRead = redisAeDelRead;
     ac->ev.addWrite = redisAeAddWrite;
@@ -2011,11 +2012,11 @@ void sentinelReconnectInstance(sentinelRedisInstance *ri) {
             link->cc_conn_time = mstime();
             link->cc->data = link;
 			// 设置回调函数处理
+			// 这里相当于 net init的操作  --> 现在要找到startup net的函数
             redisAeAttach(server.el,link->cc);
-            redisAsyncSetConnectCallback(link->cc,
-                    sentinelLinkEstablishedCallback);
-            redisAsyncSetDisconnectCallback(link->cc,
-                    sentinelDisconnectCallback);
+			//连接上回函数
+			redisAsyncSetConnectCallback(link->cc, sentinelLinkEstablishedCallback);
+            redisAsyncSetDisconnectCallback(link->cc, sentinelDisconnectCallback);
             sentinelSendAuthIfNeeded(ri,link->cc);
             sentinelSetClientName(ri,link->cc,"cmd");
 

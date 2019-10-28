@@ -114,7 +114,7 @@ static int redisSetBlocking(redisContext *c, int blocking) {
     if (blocking)
         flags &= ~O_NONBLOCK;
     else
-        flags |= O_NONBLOCK;
+        flags |= O_NONBLOCK; //·Ç×èÈûÊÂ¼þ
 
     if (fcntl(c->fd, F_SETFL, flags) == -1) {
         __redisSetErrorFromErrno(c,REDIS_ERR_IO,"fcntl(F_SETFL)");
