@@ -301,7 +301,7 @@ static void redisAeAddRead(void *privdata) {
     aeEventLoop *loop = e->loop;
     if (!e->reading) {
         e->reading = 1;
-        aeCreateFileEvent(loop,e->fd,AE_READABLE,redisAeReadEvent,e);
+        aeCreateFileEvent(loop, e->fd, AE_READABLE, redisAeReadEvent, e);
     }
 }
 
@@ -319,7 +319,7 @@ static void redisAeAddWrite(void *privdata) {
     aeEventLoop *loop = e->loop;
     if (!e->writing) {
         e->writing = 1;
-        aeCreateFileEvent(loop,e->fd,AE_WRITABLE,redisAeWriteEvent,e);
+        aeCreateFileEvent(loop, e->fd, AE_WRITABLE, redisAeWriteEvent, e);
     }
 }
 
@@ -356,7 +356,7 @@ static int redisAeAttach(aeEventLoop *loop, redisAsyncContext *ac) {
     e->fd = c->fd;
     e->reading = e->writing = 0;
 
-    /* Register functions to start/stop listening for events */
+    /* Register functions to startup / stop listening for events */
 	// 什么调用呢 ？？？？？？？ 一直没有找到
     ac->ev.addRead = redisAeAddRead;
     ac->ev.delRead = redisAeDelRead;
@@ -947,9 +947,8 @@ void sentinelCallClientReconfScript(sentinelRedisInstance *master, int role, cha
     if (master->client_reconfig_script == NULL) return;
     ll2string(fromport,sizeof(fromport),from->port);
     ll2string(toport,sizeof(toport),to->port);
-    sentinelScheduleScriptExecution(master->client_reconfig_script,
-        master->name,
-        (role == SENTINEL_LEADER) ? "leader" : "observer",
+    sentinelScheduleScriptExecution(master->client_reconfig_script, master->name, 
+		(role == SENTINEL_LEADER) ? "leader" : "observer",
         state, from->ip, fromport, to->ip, toport, NULL);
 }
 
@@ -2014,7 +2013,7 @@ void sentinelReconnectInstance(sentinelRedisInstance *ri) {
 			// 设置回调函数处理
 			// 这里相当于 net init的操作  --> 现在要找到startup net的函数
             redisAeAttach(server.el,link->cc);
-			//连接上回函数
+			//连接上回函数  注册写入事件 hiredis
 			redisAsyncSetConnectCallback(link->cc, sentinelLinkEstablishedCallback);
             redisAsyncSetDisconnectCallback(link->cc, sentinelDisconnectCallback);
             sentinelSendAuthIfNeeded(ri,link->cc);

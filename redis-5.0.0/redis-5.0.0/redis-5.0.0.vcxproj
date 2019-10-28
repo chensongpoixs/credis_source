@@ -104,6 +104,7 @@
     <ClCompile Include="src\zmalloc.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="deps\hiredis\adapters\ae.h" />
     <ClInclude Include="deps\hiredis\async.h" />
     <ClInclude Include="deps\hiredis\dict.h" />
     <ClInclude Include="deps\hiredis\fmacros.h" />
