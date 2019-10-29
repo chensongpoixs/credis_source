@@ -534,6 +534,7 @@ void redisAsyncHandleRead(redisAsyncContext *ac) {
         __redisAsyncDisconnect(ac);
     } else {
         /* Always re-schedule reads */
+		printf("[%s][%s][%d][sentinel recv ][redisBufferRead][_EL_ADD_READ]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__);
         _EL_ADD_READ(ac);
         redisProcessCallbacks(ac);
     }
@@ -562,6 +563,7 @@ void redisAsyncHandleWrite(redisAsyncContext *ac) {
             _EL_DEL_WRITE(ac);
 
         /* Always schedule reads after writes */
+		printf("[%s][%s][%d][sentinel recv ][redisBufferWrite][_EL_ADD_READ]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__);
         _EL_ADD_READ(ac);
     }
 }

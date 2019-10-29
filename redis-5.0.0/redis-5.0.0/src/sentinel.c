@@ -2680,7 +2680,7 @@ int sentinelSendPing(sentinelRedisInstance *ri) {
 /* Send periodic PING, INFO, and PUBLISH to the Hello channel to
  * the specified master or slave instance. */
 /**
-* sentinel 服务的推送信息的处理
+* sentinel 服务的推送信息的处理   master slave sentinel 操作
 * @param ri
 */
 void sentinelSendPeriodicCommands(sentinelRedisInstance *ri) {

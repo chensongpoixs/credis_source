@@ -817,6 +817,7 @@ int redisBufferRead(redisContext *c) {
         __redisSetError(c,REDIS_ERR_EOF,"Server closed the connection");
         return REDIS_ERR;
     } else {
+		printf("[%s][%s][%d][sentinel recv data = %s ]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__, buf);
         if (redisReaderFeed(c->reader,buf,nread) != REDIS_OK) {
             __redisSetError(c,c->reader->err,c->reader->errstr);
             return REDIS_ERR;
