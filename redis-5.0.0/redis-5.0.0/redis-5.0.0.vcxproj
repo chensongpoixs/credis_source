@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="deps\hiredis\async.c" />
     <ClCompile Include="deps\hiredis\dict.c" />
+    <ClCompile Include="deps\hiredis\examples\example-ae.c" />
     <ClCompile Include="deps\hiredis\hiredis.c" />
     <ClCompile Include="deps\hiredis\net.c" />
     <ClCompile Include="deps\hiredis\read.c" />

@@ -13,6 +13,9 @@
     <Filter Include="deps\hiredis\adapters">
       <UniqueIdentifier>{53e05ace-18d5-4ded-98e4-76bc809e6eec}</UniqueIdentifier>
     </Filter>
+    <Filter Include="deps\hiredis\examples">
+      <UniqueIdentifier>{31237bf9-8292-4835-8eed-2b61475a076a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\adlist.c">
@@ -263,6 +266,9 @@
     </ClCompile>
     <ClCompile Include="deps\hiredis\test.c">
       <Filter>deps\hiredis</Filter>
+    </ClCompile>
+    <ClCompile Include="deps\hiredis\examples\example-ae.c">
+      <Filter>deps\hiredis\examples</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
