@@ -2433,6 +2433,7 @@ void sentinelProcessHelloMessage(char *hello, int hello_len) {
      * 5=master_ip,6=master_port,7=master_config_epoch. */
     int numtokens, port, removed, master_port;
     uint64_t current_epoch, master_config_epoch;
+	// 127.0.0.1,26380,ba056b537690d37c699f4b482154a684ed6b4d4b,4,mymaster,127.0.0.1,6379,0 
     char **token = sdssplitlen(hello, hello_len, ",", 1, &numtokens);
     sentinelRedisInstance *si, *master;
 
