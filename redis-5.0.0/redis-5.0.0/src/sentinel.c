@@ -2141,7 +2141,9 @@ void sentinelRefreshInstanceInfo(sentinelRedisInstance *ri, const char *info) {
 
             /* Check if we already have this slave into our table,
              * otherwise add it. */
+			// 检查slave服务是否在sentinel服务中哈希中保持了ri->slaves 格式 [ip:port]
             if (sentinelRedisInstanceLookupSlave(ri,ip,atoi(port)) == NULL) {
+				// 放到slave哈希表中
                 if ((slave = createSentinelRedisInstance(NULL,SRI_SLAVE,ip,
                             atoi(port), ri->quorum, ri)) != NULL)
                 {
@@ -2681,7 +2683,8 @@ int sentinelSendPing(sentinelRedisInstance *ri) {
 /* Send periodic PING, INFO, and PUBLISH to the Hello channel to
  * the specified master or slave instance. */
 /**
-* sentinel 服务的推送信息的处理   master slave sentinel 操作
+* sentinel 服务的推送信息的处理   master slave 操作
+* sentinel服务回去master的的信息 info的操作
 * @param ri
 */
 void sentinelSendPeriodicCommands(sentinelRedisInstance *ri) {
@@ -2726,8 +2729,7 @@ void sentinelSendPeriodicCommands(sentinelRedisInstance *ri) {
     if (ping_period > SENTINEL_PING_PERIOD) ping_period = SENTINEL_PING_PERIOD;
 
     /* Send INFO to masters and slaves, not sentinels. */
-    if ((ri->flags & SRI_SENTINEL) == 0 &&
-        (ri->info_refresh == 0 ||
+    if ((ri->flags & SRI_SENTINEL) == 0 && (ri->info_refresh == 0 ||
         (now - ri->info_refresh) > info_period))
     {
         retval = redisAsyncCommand(ri->link->cc,
@@ -4443,7 +4445,9 @@ void sentinelAbortFailover(sentinelRedisInstance *ri) {
 void sentinelHandleRedisInstance(sentinelRedisInstance *ri) {
     /* ========== MONITORING HALF ============ */
     /* Every kind of instance */
+	// 连接master 和slave的操作
     sentinelReconnectInstance(ri);
+	// 发送 master， slave --> info 获取信息的处理
     sentinelSendPeriodicCommands(ri);
 
     /* ============== ACTING HALF ============= */
