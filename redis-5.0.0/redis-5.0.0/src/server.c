@@ -309,6 +309,7 @@ struct redisCommand redisCommandTable[] = {
 	{"geopos",geoposCommand,-2,"r",0,NULL,1,1,1,0,0},
 	{"geodist",geodistCommand,-4,"r",0,NULL,1,1,1,0,0},
 	{"pfselftest",pfselftestCommand,1,"a",0,NULL,0,0,0,0,0},
+	//²¼Â¡¹ýÂËÆ÷api
 	{"pfadd",pfaddCommand,-2,"wmF",0,NULL,1,1,1,0,0},
 	{"pfcount",pfcountCommand,-2,"r",0,NULL,1,-1,1,0,0}, //subscribe
 	{"pfmerge",pfmergeCommand,-2,"wm",0,NULL,1,-1,1,0,0},
