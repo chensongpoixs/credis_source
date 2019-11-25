@@ -194,7 +194,7 @@ struct hllhdr {
 #define HLL_P 14 /* The greater is P, the smaller the error. */
 #define HLL_Q (64-HLL_P) /* The number of bits of the hash value used for
                             determining the number of leading zeros. */
-#define HLL_REGISTERS (1<<HLL_P) /* With P=14, 16384 registers. */
+#define HLL_REGISTERS (1<<HLL_P) /* 0X4000 With P=14, 16384 registers. */
 #define HLL_P_MASK (HLL_REGISTERS-1) /* Mask to index register. */
 #define HLL_BITS 6 /* Enough to count up to 63 leading zeroes. */
 #define HLL_REGISTER_MAX ((1<<HLL_BITS)-1)
@@ -374,7 +374,7 @@ static char *invalid_hll_err = "-INVALIDOBJ Corrupted HLL object detected\r\n";
 #define HLL_SPARSE_VAL_MAX_VALUE 32
 #define HLL_SPARSE_VAL_MAX_LEN 4
 #define HLL_SPARSE_ZERO_MAX_LEN 64
-#define HLL_SPARSE_XZERO_MAX_LEN 16384
+#define HLL_SPARSE_XZERO_MAX_LEN 16384  // 0X4000
 #define HLL_SPARSE_VAL_SET(p,val,len) do { \
     *(p) = (((val)-1)<<2|((len)-1))|HLL_SPARSE_VAL_BIT; \
 } while(0)
@@ -464,12 +464,13 @@ int hllPatLen(unsigned char *ele, size_t elesize, long *regp) {
      * This may sound like inefficient, but actually in the average case
      * there are high probabilities to find a 1 after a few iterations. */
     hash = MurmurHash64A(ele,elesize,0xadc83b19ULL);
-    index = hash & HLL_P_MASK; /* Register index. */
+    index = hash & HLL_P_MASK/*‭0011 1111 1111 1111‬*/; /* Register index. */
     hash >>= HLL_P; /* Remove bits used to address the register. */
     hash |= ((uint64_t)1<<HLL_Q); /* Make sure the loop terminates
                                      and count will be <= Q+1. */
-    bit = 1;
+    bit = 1; // 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0001
     count = 1; /* Initialized to 1 since we count the "00000...1" pattern. */
+	//
     while((hash & bit) == 0) {
         count++;
         bit <<= 1;
@@ -777,42 +778,55 @@ int hllSparseSet(robj *o, long index, uint8_t count) {
     int last = first+span-1; /* Last register covered by the sequence. */
     int len;
 
-    if (is_zero || is_xzero) {
+    if (is_zero || is_xzero) 
+	{
         /* Handle splitting of ZERO / XZERO. */
-        if (index != first) {
+        if (index != first) 
+		{
             len = index-first;
-            if (len > HLL_SPARSE_ZERO_MAX_LEN) {
+            if (len > HLL_SPARSE_ZERO_MAX_LEN) 
+			{
                 HLL_SPARSE_XZERO_SET(n,len);
                 n += 2;
-            } else {
+            }
+			else 
+			{
                 HLL_SPARSE_ZERO_SET(n,len);
                 n++;
             }
         }
         HLL_SPARSE_VAL_SET(n,count,1);
         n++;
-        if (index != last) {
+        if (index != last) 
+		{
             len = last-index;
-            if (len > HLL_SPARSE_ZERO_MAX_LEN) {
+            if (len > HLL_SPARSE_ZERO_MAX_LEN) 
+			{
                 HLL_SPARSE_XZERO_SET(n,len);
                 n += 2;
-            } else {
+            } 
+			else 
+			{
                 HLL_SPARSE_ZERO_SET(n,len);
                 n++;
             }
         }
-    } else {
+    } 
+	else 
+	{
         /* Handle splitting of VAL. */
         int curval = HLL_SPARSE_VAL_VALUE(p);
 
-        if (index != first) {
+        if (index != first) 
+		{
             len = index-first;
             HLL_SPARSE_VAL_SET(n,curval,len);
             n++;
         }
         HLL_SPARSE_VAL_SET(n,count,1);
         n++;
-        if (index != last) {
+        if (index != last) 
+		{
             len = last-index;
             HLL_SPARSE_VAL_SET(n,curval,len);
             n++;
@@ -900,7 +914,7 @@ promote: /* Promote to dense representation. */
  * This function is actually a wrapper for hllSparseSet(), it only performs
  * the hashshing of the elmenet to obtain the index and zeros run length. */
 int hllSparseAdd(robj *o, unsigned char *ele, size_t elesize) {
-    long index;
+    long index;   //下标索引
     uint8_t count = hllPatLen(ele,elesize,&index);
     /* Update the register if this element produced a longer run of zeroes. */
     return hllSparseSet(o,index,count);
