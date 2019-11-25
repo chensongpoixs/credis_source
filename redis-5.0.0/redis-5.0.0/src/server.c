@@ -309,11 +309,7 @@ struct redisCommand redisCommandTable[] = {
 	{"geopos",geoposCommand,-2,"r",0,NULL,1,1,1,0,0},
 	{"geodist",geodistCommand,-4,"r",0,NULL,1,1,1,0,0},
 	{"pfselftest",pfselftestCommand,1,"a",0,NULL,0,0,0,0,0},
-<<<<<<< .mine
 	//布隆过滤器api
-=======
-	//布隆过滤器
->>>>>>> .theirs
 	{"pfadd",pfaddCommand,-2,"wmF",0,NULL,1,1,1,0,0},
 	{"pfcount",pfcountCommand,-2,"r",0,NULL,1,-1,1,0,0}, //subscribe
 	{"pfmerge",pfmergeCommand,-2,"wm",0,NULL,1,-1,1,0,0},
