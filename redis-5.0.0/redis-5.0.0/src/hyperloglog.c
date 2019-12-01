@@ -338,12 +338,12 @@ static char *invalid_hll_err = "-INVALIDOBJ Corrupted HLL object detected\r\n";
  * 'p' is an array of unsigned bytes. */
 #define HLL_DENSE_GET_REGISTER(target,p,regnum) do { \
     uint8_t *_p = (uint8_t*) p; \
-    unsigned long _byte = regnum*HLL_BITS/8; \
+    unsigned long _byte = regnum*HLL_BITS/8; \  // 8 = 2 ^ 3 ==>    操作数 >> 3
     unsigned long _fb = regnum*HLL_BITS&7; \
     unsigned long _fb8 = 8 - _fb; \
     unsigned long b0 = _p[_byte]; \
     unsigned long b1 = _p[_byte+1]; \
-    target = ((b0 >> _fb) | (b1 << _fb8)) & HLL_REGISTER_MAX; \
+    target = ((b0 >> _fb) | (b1 << _fb8)) & HLL_REGISTER_MAX; \// HLL_REGISTER_MAX ==> 0011 1111
 } while(0)
 
 /* Set the value of the register at position 'regnum' to 'val'.
@@ -351,7 +351,7 @@ static char *invalid_hll_err = "-INVALIDOBJ Corrupted HLL object detected\r\n";
 #define HLL_DENSE_SET_REGISTER(p,regnum,val) do { \
     uint8_t *_p = (uint8_t*) p; \
     unsigned long _byte = regnum*HLL_BITS/8; \
-    unsigned long _fb = regnum*HLL_BITS&7; \
+    unsigned long _fb = regnum*HLL_BITS&7; \ // 只有regnum的个位上是2和7可以 _fd != 0的操作
     unsigned long _fb8 = 8 - _fb; \
     unsigned long _v = val; \
     _p[_byte] &= ~(HLL_REGISTER_MAX << _fb); \
@@ -364,10 +364,10 @@ static char *invalid_hll_err = "-INVALIDOBJ Corrupted HLL object detected\r\n";
  * The macros parameter is expected to be an uint8_t pointer. */
 #define HLL_SPARSE_XZERO_BIT 0x40 /* 01xxxxxx */
 #define HLL_SPARSE_VAL_BIT 0x80 /* 1vvvvvxx */
-#define HLL_SPARSE_IS_ZERO(p) (((*(p)) & 0xc0) == 0) /* 00xxxxxx */
-#define HLL_SPARSE_IS_XZERO(p) (((*(p)) & 0xc0) == HLL_SPARSE_XZERO_BIT)
+#define HLL_SPARSE_IS_ZERO(p) (((*(p)) & 0xc0) == 0) // ‭1100 0000‬ /* 00xxxxxx */
+#define HLL_SPARSE_IS_XZERO(p) (((*(p)) & 0xc0) == HLL_SPARSE_XZERO_BIT) // ‭0100 0000‬
 #define HLL_SPARSE_IS_VAL(p) ((*(p)) & HLL_SPARSE_VAL_BIT)
-#define HLL_SPARSE_ZERO_LEN(p) (((*(p)) & 0x3f)+1)
+#define HLL_SPARSE_ZERO_LEN(p) (((*(p)) & 0x3f)+1) // ‭0011 1111‬ !=> 0100 0000
 #define HLL_SPARSE_XZERO_LEN(p) (((((*(p)) & 0x3f) << 8) | (*((p)+1)))+1)
 #define HLL_SPARSE_VAL_VALUE(p) ((((*(p)) >> 2) & 0x1f)+1)
 #define HLL_SPARSE_VAL_LEN(p) (((*(p)) & 0x3)+1)
@@ -464,15 +464,19 @@ int hllPatLen(unsigned char *ele, size_t elesize, long *regp) {
      * This may sound like inefficient, but actually in the average case
      * there are high probabilities to find a 1 after a few iterations. */
     hash = MurmurHash64A(ele,elesize,0xadc83b19ULL);
+	// 低的14位作为下标索引  
     index = hash & HLL_P_MASK/*‭0011 1111 1111 1111‬*/; /* Register index. */
-    hash >>= HLL_P; /* Remove bits used to address the register. */
+    //取高的50位数据作为count数据的操作
+	//00 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 
+	hash >>= HLL_P; /* 高于14位 数据保留下来 Remove bits used to address the register. */
+	// 把第50位改为1 决定count的最大值是 50
+	//10 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 
     hash |= ((uint64_t)1<<HLL_Q); /* Make sure the loop terminates
                                      and count will be <= Q+1. */
     bit = 1; // 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0001
     count = 1; /* Initialized to 1 since we count the "00000...1" pattern. */
-	//
     while((hash & bit) == 0) {
-        count++;
+        count++; //为什么要这样制定count的值
         bit <<= 1;
     }
     *regp = (int) index;
@@ -924,6 +928,30 @@ int hllSparseAdd(robj *o, unsigned char *ele, size_t elesize) {
 void hllSparseRegHisto(uint8_t *sparse, int sparselen, int *invalid, int* reghisto) {
     int idx = 0, runlen, regval;
     uint8_t *end = sparse+sparselen, *p = sparse;
+		
+	//[929][hex = 46 6C 80 74 BC 80 44 D3]
+	//[947][idx = 1645][runlen = 1645]
+	//[955][idx = 1646][runlen = 1]
+	//[947][idx = 15147][runlen = 13501]
+	//[955][idx = 15148][runlen = 1]
+	//[947][idx = 16384][runlen = 1236]
+	// |  二进制    => hex |
+	// | 0100 0110 => 46  |
+	// | 0110 1100 => 6C  |
+	// | 1000 0000 => 80  |
+
+	// | 0111 0100 => 74  |
+	// | 1011 1100 => BC  |
+	// | 1000 0000 => 80  |
+	// | 0100 0100 => 44  |
+	// | 1101 0011 => D3  |
+	/***********************************************************************   
+	1. 466C: 是一组数据 => 0100 0110 0110 1100 => 1645
+	2. 80  : 是一组数据 => 1000 0000           => 1
+	3. 74BC: 是一组数据 => 0111 0100 1011 1100 => 13501
+	4. 80  : 是一组数据 => 1000 0000           => 1
+	5. 44D3: 是一组数据 => 0100 0100 1101 0011 => 1236
+	**********************************************************************/
 
     while(p < end) {
         if (HLL_SPARSE_IS_ZERO(p)) {
@@ -1033,8 +1061,7 @@ uint64_t hllCount(struct hllhdr *hdr, int *invalid) {
     if (hdr->encoding == HLL_DENSE) {
         hllDenseRegHisto(hdr->registers,reghisto);
     } else if (hdr->encoding == HLL_SPARSE) {
-        hllSparseRegHisto(hdr->registers,
-                         sdslen((sds)hdr)-HLL_HDR_SIZE,invalid,reghisto);
+        hllSparseRegHisto(hdr->registers, sdslen((sds)hdr)-HLL_HDR_SIZE,invalid,reghisto);
     } else if (hdr->encoding == HLL_RAW) {
         hllRawRegHisto(hdr->registers,reghisto);
     } else {
@@ -1043,13 +1070,18 @@ uint64_t hllCount(struct hllhdr *hdr, int *invalid) {
 
     /* Estimate cardinality form register histogram. See:
      * "New cardinality estimation algorithms for HyperLogLog sketches"
-     * Otmar Ertl, arXiv:1702.01284 */
+     * Otmar Ertl, arXiv:1702.01284 */ 
+	// m *((16384 - [52]) /m)
+	//1. 调和平均数
+	// 调和平均数 公式 = n((1/a1 + 1/a2 + ... + 1/an)/2)
     double z = m * hllTau((m-reghisto[HLL_Q+1])/(double)m);
     for (j = HLL_Q; j >= 1; --j) {
         z += reghisto[j];
         z *= 0.5;
     }
+	//2. 标准误差 计算
     z += m * hllSigma(reghisto[0]/(double)m);
+	// 调和平均数使用
     E = llroundl(HLL_ALPHA_INF*m*m/z);
 
     return (uint64_t) E;
@@ -1133,6 +1165,7 @@ robj *createHLLObject(void) {
     aux = HLL_REGISTERS;
     s = sdsnewlen(NULL,sparselen);
     p = (uint8_t*)s + HLL_HDR_SIZE;
+	// 初始化的时候默认一个 0011 1111 的二个字节
     while(aux) {
         int xzero = HLL_SPARSE_XZERO_MAX_LEN;
         if (xzero > aux) xzero = aux;
