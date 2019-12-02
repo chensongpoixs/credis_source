@@ -338,12 +338,12 @@ static char *invalid_hll_err = "-INVALIDOBJ Corrupted HLL object detected\r\n";
  * 'p' is an array of unsigned bytes. */
 #define HLL_DENSE_GET_REGISTER(target,p,regnum) do { \
     uint8_t *_p = (uint8_t*) p; \
-    unsigned long _byte = regnum*HLL_BITS/8; \  // 8 = 2 ^ 3 ==>    操作数 >> 3
+    unsigned long _byte = regnum*HLL_BITS/8; \  /* 8 = 2 ^ 3 ==>    操作数 >> 3*/
     unsigned long _fb = regnum*HLL_BITS&7; \
     unsigned long _fb8 = 8 - _fb; \
     unsigned long b0 = _p[_byte]; \
     unsigned long b1 = _p[_byte+1]; \
-    target = ((b0 >> _fb) | (b1 << _fb8)) & HLL_REGISTER_MAX; \// HLL_REGISTER_MAX ==> 0011 1111
+    target = ((b0 >> _fb) | (b1 << _fb8)) & HLL_REGISTER_MAX; \/* HLL_REGISTER_MAX ==> 0011 1111*/
 } while(0)
 
 /* Set the value of the register at position 'regnum' to 'val'.
@@ -351,7 +351,7 @@ static char *invalid_hll_err = "-INVALIDOBJ Corrupted HLL object detected\r\n";
 #define HLL_DENSE_SET_REGISTER(p,regnum,val) do { \
     uint8_t *_p = (uint8_t*) p; \
     unsigned long _byte = regnum*HLL_BITS/8; \
-    unsigned long _fb = regnum*HLL_BITS&7; \ // 只有regnum的个位上是2和7可以 _fd != 0的操作
+    unsigned long _fb = regnum*HLL_BITS&7; \ /* 只有regnum的个位上是2和7可以 _fd != 0的操作*/
     unsigned long _fb8 = 8 - _fb; \
     unsigned long _v = val; \
     _p[_byte] &= ~(HLL_REGISTER_MAX << _fb); \
@@ -364,7 +364,7 @@ static char *invalid_hll_err = "-INVALIDOBJ Corrupted HLL object detected\r\n";
  * The macros parameter is expected to be an uint8_t pointer. */
 #define HLL_SPARSE_XZERO_BIT 0x40 /* 01xxxxxx */
 #define HLL_SPARSE_VAL_BIT 0x80 /* 1vvvvvxx */
-#define HLL_SPARSE_IS_ZERO(p) (((*(p)) & 0xc0) == 0) // ‭1100 0000‬ /* 00xxxxxx */
+#define HLL_SPARSE_IS_ZERO(p) (((*(p)) & 0xc0) == 0) /* ‭1100 0000‬*/ /* 00xxxxxx */
 #define HLL_SPARSE_IS_XZERO(p) (((*(p)) & 0xc0) == HLL_SPARSE_XZERO_BIT) // ‭0100 0000‬
 #define HLL_SPARSE_IS_VAL(p) ((*(p)) & HLL_SPARSE_VAL_BIT)
 #define HLL_SPARSE_ZERO_LEN(p) (((*(p)) & 0x3f)+1) // ‭0011 1111‬ !=> 0100 0000
