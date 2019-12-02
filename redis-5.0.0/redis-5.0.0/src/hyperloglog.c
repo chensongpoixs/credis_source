@@ -953,7 +953,7 @@ void hllSparseRegHisto(uint8_t *sparse, int sparselen, int *invalid, int* reghis
 	char * ptr = s_malloc(sparselen);
 	if (ptr)
 	{
-		byte2hex(ptr, (const unsigned char *)registers, sparselen);
+		byte2hex(ptr, (const unsigned char *)sparse, sparselen);
 		printf("[%s][%d][hex=%s]\n", __PRETTY_FUNCTION__, __LINE__, ptr);
 		s_free(ptr);
 	}
@@ -986,17 +986,20 @@ void hllSparseRegHisto(uint8_t *sparse, int sparselen, int *invalid, int* reghis
             runlen = HLL_SPARSE_ZERO_LEN(p);
             idx += runlen;
             reghisto[0] += runlen;
+			printf("[%s][%d][idx=%d][runlen = %d][reghisto[0] = %d]\n", __PRETTY_FUNCTION__, __LINE__, idx, runlen,reghisto[0]);
             p++;
         } else if (HLL_SPARSE_IS_XZERO(p)) {
             runlen = HLL_SPARSE_XZERO_LEN(p);
             idx += runlen;
             reghisto[0] += runlen;
+			printf("[%s][%d][idx=%d][runlen = %d][reghisto[0] = %d]\n", __PRETTY_FUNCTION__, __LINE__, idx, runlen, reghisto[0]);
             p += 2;
         } else {
             runlen = HLL_SPARSE_VAL_LEN(p);
             regval = HLL_SPARSE_VAL_VALUE(p);
             idx += runlen;
             reghisto[regval] += runlen;
+			printf("[%s][%d][idx=%d][runlen = %d][reghisto[%d] = %d]\n", __PRETTY_FUNCTION__, __LINE__, idx, runlen, regval, reghisto[regval]);
             p++;
         }
     }
