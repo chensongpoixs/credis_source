@@ -545,7 +545,7 @@ void hllDenseRegHisto(uint8_t *registers, int* reghisto) {
 		char * ptr = s_malloc(6);
 		if (ptr)
 		{
-			byte2hex(ptr, (const char *)registers, 6);
+			byte2hex(ptr, (const unsigned char *)registers, 6);
 			printf("[%s][%d][hex=%s]\n", __PRETTY_FUNCTION__, __LINE__, ptr);
 			s_free(ptr);
 		}
@@ -953,7 +953,7 @@ void hllSparseRegHisto(uint8_t *sparse, int sparselen, int *invalid, int* reghis
 	char * ptr = s_malloc(sparselen);
 	if (ptr)
 	{
-		byte2hex(ptr, (const char *)registers, sparselen);
+		byte2hex(ptr, (const unsigned char *)registers, sparselen);
 		printf("[%s][%d][hex=%s]\n", __PRETTY_FUNCTION__, __LINE__, ptr);
 		s_free(ptr);
 	}
