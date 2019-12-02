@@ -199,7 +199,7 @@ struct hllhdr {
 #define HLL_BITS 6 /* Enough to count up to 63 leading zeroes. */
 #define HLL_REGISTER_MAX ((1<<HLL_BITS)-1)
 #define HLL_HDR_SIZE sizeof(struct hllhdr)
-#define HLL_DENSE_SIZE (HLL_HDR_SIZE+((HLL_REGISTERS*HLL_BITS+7)/8))
+#define HLL_DENSE_SIZE (HLL_HDR_SIZE+((HLL_REGISTERS*HLL_BITS+7)/8))// [] => 86016 []
 #define HLL_DENSE 0 /* Dense encoding. */
 #define HLL_SPARSE 1 /* Sparse encoding. */
 #define HLL_RAW 255 /* Only used internally, never exposed. */
@@ -350,7 +350,7 @@ static char *invalid_hll_err = "-INVALIDOBJ Corrupted HLL object detected\r\n";
  * 'p' is an array of unsigned bytes. */
 #define HLL_DENSE_SET_REGISTER(p,regnum,val) do { \
     uint8_t *_p = (uint8_t*) p; \
-    unsigned long _byte = regnum*HLL_BITS/8; \
+    unsigned long _byte = regnum*HLL_BITS/8;/*在初始化时 内存大小计算公式 = (HLL_REGISTERS*HLL_BITS+7)/8) */ \
     unsigned long _fb = regnum*HLL_BITS&7; /* 只有regnum的个位上是2和7可以 _fd != 0的操作*/ \ 
     unsigned long _fb8 = 8 - _fb; \
     unsigned long _v = val; \
@@ -534,18 +534,15 @@ static void byte2hex(char* dst_buf, const unsigned char *src_buf, int buf_len)
 /* Compute the register histogram in the dense representation. */
 void hllDenseRegHisto(uint8_t *registers, int* reghisto) {
     int j;
-
-
-
     /* Redis default is to use 16384 registers 6 bits each. The code works
      * with other values by modifying the defines, but for our target value
      * we take a faster path with unrolled loops. */
     if (HLL_REGISTERS == 16384 && HLL_BITS == 6) {
 		
-		char * ptr = s_malloc(6);
+		char * ptr = s_malloc(86016>>2);
 		if (ptr)
 		{
-			byte2hex(ptr, (const unsigned char *)registers, 6);
+			byte2hex(ptr, (const unsigned char *)registers, 86016>>2);
 			printf("[%s][%d][hex=%s]\n", __PRETTY_FUNCTION__, __LINE__, ptr);
 			s_free(ptr);
 		}
@@ -553,9 +550,10 @@ void hllDenseRegHisto(uint8_t *registers, int* reghisto) {
         uint8_t *r = registers;
         unsigned long r0, r1, r2, r3, r4, r5, r6, r7, r8, r9,
                       r10, r11, r12, r13, r14, r15;
+		// 一共内存的大小是 86016  ---> 下面统计时使用的内存大小是 12288--->还有没有使用的内存？？怎么处理呢
         for (j = 0; j < 1024; j++) {
             /* Handle 16 registers per iteration. */
-            r0 = r[0] & 63;
+            r0 = r[0] & 63; // 63 => 0011 1111
             r1 = (r[0] >> 6 | r[1] << 2) & 63;
             r2 = (r[1] >> 4 | r[2] << 4) & 63;
             r3 = (r[2] >> 2) & 63;
@@ -588,7 +586,7 @@ void hllDenseRegHisto(uint8_t *registers, int* reghisto) {
             reghisto[r13]++;
             reghisto[r14]++;
             reghisto[r15]++;
-
+			// 指针数组增加移动
             r += 12;
         }
     } else {
@@ -1086,7 +1084,7 @@ uint64_t hllCount(struct hllhdr *hdr, int *invalid) {
     double m = HLL_REGISTERS;
     double E;
     int j;
-    int reghisto[HLL_Q+2] = {0};
+    int reghisto[HLL_Q+2] = {0};  // 52
 
     /* Compute register histogram */
     if (hdr->encoding == HLL_DENSE) {
@@ -1112,7 +1110,7 @@ uint64_t hllCount(struct hllhdr *hdr, int *invalid) {
     }
 	//2. 标准误差 计算
     z += m * hllSigma(reghisto[0]/(double)m);
-	// 调和平均数使用
+	// 调和平均数使用 0.5/ln(2)
     E = llroundl(HLL_ALPHA_INF*m*m/z);
 
     return (uint64_t) E;
