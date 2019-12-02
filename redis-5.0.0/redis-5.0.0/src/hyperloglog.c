@@ -33,7 +33,7 @@
 
 #include <stdint.h>
 #include <math.h>
-
+#include "sdsalloc.h"
 /* The Redis HyperLogLog implementation is based on the following ideas:
  *
  * * The use of a 64 bit hash function as proposed in [1], in order to don't
@@ -338,12 +338,12 @@ static char *invalid_hll_err = "-INVALIDOBJ Corrupted HLL object detected\r\n";
  * 'p' is an array of unsigned bytes. */
 #define HLL_DENSE_GET_REGISTER(target,p,regnum) do { \
     uint8_t *_p = (uint8_t*) p; \
-    unsigned long _byte = regnum*HLL_BITS/8; \  /* 8 = 2 ^ 3 ==>    操作数 >> 3*/
+    unsigned long _byte = regnum*HLL_BITS/8;/* 8 = 2 ^ 3 ==>    操作数 >> 3*/ \  
     unsigned long _fb = regnum*HLL_BITS&7; \
     unsigned long _fb8 = 8 - _fb; \
     unsigned long b0 = _p[_byte]; \
     unsigned long b1 = _p[_byte+1]; \
-    target = ((b0 >> _fb) | (b1 << _fb8)) & HLL_REGISTER_MAX; \/* HLL_REGISTER_MAX ==> 0011 1111*/
+    target = ((b0 >> _fb) | (b1 << _fb8)) & HLL_REGISTER_MAX; /* HLL_REGISTER_MAX ==> 0011 1111*/ \
 } while(0)
 
 /* Set the value of the register at position 'regnum' to 'val'.
@@ -351,7 +351,7 @@ static char *invalid_hll_err = "-INVALIDOBJ Corrupted HLL object detected\r\n";
 #define HLL_DENSE_SET_REGISTER(p,regnum,val) do { \
     uint8_t *_p = (uint8_t*) p; \
     unsigned long _byte = regnum*HLL_BITS/8; \
-    unsigned long _fb = regnum*HLL_BITS&7; \ /* 只有regnum的个位上是2和7可以 _fd != 0的操作*/
+    unsigned long _fb = regnum*HLL_BITS&7; /* 只有regnum的个位上是2和7可以 _fd != 0的操作*/ \ 
     unsigned long _fb8 = 8 - _fb; \
     unsigned long _v = val; \
     _p[_byte] &= ~(HLL_REGISTER_MAX << _fb); \
@@ -520,14 +520,36 @@ int hllDenseAdd(uint8_t *registers, unsigned char *ele, size_t elesize) {
     return hllDenseSet(registers,index,count);
 }
 
+static const char s_hex_digits[] = "0123456789ABCDEF";
+static void byte2hex(char* dst_buf, const unsigned char *src_buf, int buf_len)
+{
+	for (int i = 0; i < buf_len; ++i)
+	{
+		*dst_buf++ = s_hex_digits[src_buf[i] / 16];
+		*dst_buf++ = s_hex_digits[src_buf[i] % 16];
+	}
+	*dst_buf = '\0';
+}
+
 /* Compute the register histogram in the dense representation. */
 void hllDenseRegHisto(uint8_t *registers, int* reghisto) {
     int j;
+
+
 
     /* Redis default is to use 16384 registers 6 bits each. The code works
      * with other values by modifying the defines, but for our target value
      * we take a faster path with unrolled loops. */
     if (HLL_REGISTERS == 16384 && HLL_BITS == 6) {
+		
+		char * ptr = s_malloc(6);
+		if (ptr)
+		{
+			byte2hex(ptr, (const char *)registers, 6);
+			printf("[%s][%d][hex=%s]\n", __PRETTY_FUNCTION__, __LINE__, ptr);
+			s_free(ptr);
+		}
+		
         uint8_t *r = registers;
         unsigned long r0, r1, r2, r3, r4, r5, r6, r7, r8, r9,
                       r10, r11, r12, r13, r14, r15;
@@ -928,7 +950,13 @@ int hllSparseAdd(robj *o, unsigned char *ele, size_t elesize) {
 void hllSparseRegHisto(uint8_t *sparse, int sparselen, int *invalid, int* reghisto) {
     int idx = 0, runlen, regval;
     uint8_t *end = sparse+sparselen, *p = sparse;
-		
+	char * ptr = s_malloc(sparselen);
+	if (ptr)
+	{
+		byte2hex(ptr, (const char *)registers, sparselen);
+		printf("[%s][%d][hex=%s]\n", __PRETTY_FUNCTION__, __LINE__, ptr);
+		s_free(ptr);
+	}
 	//[929][hex = 46 6C 80 74 BC 80 44 D3]
 	//[947][idx = 1645][runlen = 1645]
 	//[955][idx = 1646][runlen = 1]
