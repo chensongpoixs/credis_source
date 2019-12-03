@@ -594,7 +594,7 @@ void hllDenseRegHisto(uint8_t *registers, int* reghisto) {
             r13 = (r[9] >> 6 | r[10] << 2) & 63;
             r14 = (r[10] >> 4 | r[11] << 4) & 63;
             r15 = (r[11] >> 2) & 63;
-
+			//  还记得在生成hash值时产生的count值的范围吗？ [1 <= count <= 51]  ?? 思考一下 
             reghisto[r0]++;
             reghisto[r1]++;
             reghisto[r2]++;
@@ -1091,15 +1091,14 @@ double hllSigma(double x) {
     double zPrime;
     double y = 1;
     double z = x;
-	double temp;
     do {
         x *= x;
 		zPrime = z;
-		temp = x * y;
-        z += temp;
+        z += x * y;
         y += y;
-		printf("[%s][%d][debug][x=%20.100f][y=%f][z=%.100f][zPrime=%.100f][temp=%.100f]\n", __PRETTY_FUNCTION__, __LINE__, x, y, z, zPrime, temp);
+		printf("[%s][%d][debug][x=%20.100f][y=%f][z=%.100f][zPrime=%.100f]\n", __PRETTY_FUNCTION__, __LINE__, x, y, z, zPrime);
     } while(zPrime != z);
+	// y = 2^n, x = x^(2n),            
 	printf("[%s][%d][debug][z=%20.100f]\n", __PRETTY_FUNCTION__, __LINE__, z);
     return z;
 }
