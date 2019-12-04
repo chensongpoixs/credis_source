@@ -336,6 +336,7 @@ static char *invalid_hll_err = "-INVALIDOBJ Corrupted HLL object detected\r\n";
 
 /* Store the value of the register at position 'regnum' into variable 'target'.
  * 'p' is an array of unsigned bytes. */
+// 它里面操作的目的是 保存 1-52的数字到6个bit位中去 这个是这个函数要达到的目的 所以怎么实现也就无所谓了
 #define HLL_DENSE_GET_REGISTER(target,p,regnum) do { \
     uint8_t *_p = (uint8_t*) p; \
     unsigned long _byte = regnum*HLL_BITS/8;/* 8 = 2 ^ 3 ==>    操作数 >> 3*/ \  
@@ -1091,14 +1092,12 @@ double hllSigma(double x) {
     double zPrime;
     double y = 1;
     double z = x;
-	double temp;
     do {
         x *= x;
 		zPrime = z;
-		temp = x * y;
-        z += temp;
+        z += x * y;
         y += y;
-		printf("[%s][%d][debug][x=%20.100f][y=%f][z=%.100f][zPrime=%.100f][temp=%.100f]\n", __PRETTY_FUNCTION__, __LINE__, x, y, z, zPrime, temp);
+		printf("[%s][%d][debug][x=%20.100f][y=%f][z=%.100f][zPrime=%.100f]\n", __PRETTY_FUNCTION__, __LINE__, x, y, z, zPrime);
     } while(zPrime != z);
 	printf("[%s][%d][debug][z=%20.100f]\n", __PRETTY_FUNCTION__, __LINE__, z);
     return z;
