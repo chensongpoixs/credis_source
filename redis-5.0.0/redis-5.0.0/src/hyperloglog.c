@@ -199,8 +199,8 @@ struct hllhdr {
 #define HLL_BITS 6 /* Enough to count up to 63 leading zeroes. */
 #define HLL_REGISTER_MAX ((1<<HLL_BITS)-1)
 #define HLL_HDR_SIZE sizeof(struct hllhdr)
-
-#define HLL_DENSE_SIZE (HLL_HDR_SIZE+((HLL_REGISTERS*HLL_BITS+7)/8))// [] => 86016 []---> 这边 3/4 一个数据使用6个位  后面为什么要加7呢是为了内存对齐的
+// redis 布隆过滤器的数组内存 98304B 约等于 96KB
+#define HLL_DENSE_SIZE (HLL_HDR_SIZE+((HLL_REGISTERS*HLL_BITS+7)/8))// [] => 98304 []---> 这边 3/4 一个数据使用6个位  后面为什么要加7呢是为了内存对齐的
 #define HLL_DENSE 0 /* Dense encoding. */
 #define HLL_SPARSE 1 /* Sparse encoding. */
 #define HLL_RAW 255 /* Only used internally, never exposed. */
@@ -710,6 +710,7 @@ int hllSparseSet(robj *o, long index, uint8_t count) {
 
     /* If the count is too big to be representable by the sparse representation
      * switch to dense representation. */
+	// spare是紧凑型的数据格式 这里大于32时   在存储在spare类型数据中误差太大了要使用数组类型的了 32 => 0010 0000
     if (count > HLL_SPARSE_VAL_MAX_VALUE) goto promote;
 
     /* When updating a sparse representation, sometimes we may need to
