@@ -262,7 +262,9 @@ static int __redisShiftCallback(redisCallbackList *list, redisCallback *target) 
     }
     return REDIS_ERR;
 }
-
+/**
+ * 取列表中回调函数处理
+ */
 static void __redisRunCallback(redisAsyncContext *ac, redisCallback *cb, redisReply *reply) {
     redisContext *c = &(ac->c);
     if (cb->fn != NULL) {
@@ -617,6 +619,7 @@ static int __redisAsyncCommand(redisAsyncContext *ac, redisCallbackFn *fn, void 
 
         /* Add every channel/pattern to the list of subscription callbacks. */
         while ((p = nextArgument(p,&astr,&alen)) != NULL) {
+            printf("[%s][%s][%d][astr-name = %s]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__, astr);
             sname = sdsnewlen(astr,alen);
             if (pvariant)
                 ret = dictReplace(ac->sub.patterns,sname,&cb);
@@ -626,6 +629,7 @@ static int __redisAsyncCommand(redisAsyncContext *ac, redisCallbackFn *fn, void 
             if (ret == 0) sdsfree(sname);
         }
     } else if (strncasecmp(cstr,"unsubscribe\r\n",13) == 0) {
+         printf("[%s][%s][%d][unsubscribe]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__);
         /* It is only useful to call (P)UNSUBSCRIBE when the context is
          * subscribed to one or more channels or patterns. */
         if (!(c->flags & REDIS_SUBSCRIBED)) return REDIS_ERR;
@@ -635,15 +639,23 @@ static int __redisAsyncCommand(redisAsyncContext *ac, redisCallbackFn *fn, void 
          * should not append a callback function for this command. */
      } else if(strncasecmp(cstr,"monitor\r\n",9) == 0) {
          /* Set monitor flag and push callback */
+          printf("[%s][%s][%d][monitor]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__);
          c->flags |= REDIS_MONITORING;
          __redisPushCallback(&ac->replies,&cb);
     } else {
+        
         if (c->flags & REDIS_SUBSCRIBED)
+        {
+            printf("[%s][%s][%d][not function]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__);
             /* This will likely result in an error reply, but it needs to be
              * received and passed to the callback. */
             __redisPushCallback(&ac->sub.invalid,&cb);
+        }
         else
+        {
+            printf("[%s][%s][%d][not function]\n", __FILE__, __PRETTY_FUNCTION__, __LINE__);
             __redisPushCallback(&ac->replies,&cb);
+        }
     }
 
     __redisAppendCommand(c,cmd,len);
