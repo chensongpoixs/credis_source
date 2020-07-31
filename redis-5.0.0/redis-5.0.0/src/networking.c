@@ -1580,7 +1580,10 @@ void readQueryFromClient(aeEventLoop *el, int fd, void *privdata, int mask) {
 
     qblen = sdslen(c->querybuf);
 	//校验接受缓冲区可用的大小
-    if (c->querybuf_peak < qblen) c->querybuf_peak = qblen;
+    if (c->querybuf_peak < qblen) 
+    {
+        c->querybuf_peak = qblen;
+    }
 	//这里如果没有使用怎么多的内存就造成了内存泄漏吗？？？怎么处理呢
 	// redis封装sds处理分配内存大小的处理
     c->querybuf = sdsMakeRoomFor(c->querybuf, readlen);

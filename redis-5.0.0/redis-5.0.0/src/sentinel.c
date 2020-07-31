@@ -1632,6 +1632,7 @@ char *sentinelHandleConfiguration(char **argv, int argc) {
         int quorum = atoi(argv[4]);
 
         if (quorum <= 0) return "Quorum must be 1 or greater.";
+        // create master ±£´æ
         if (createSentinelRedisInstance(argv[1],SRI_MASTER,argv[2],
                                         atoi(argv[3]),quorum,NULL) == NULL)
         {
@@ -4532,7 +4533,8 @@ void sentinelHandleDictOfRedisInstances(dict *instances) {
         if (ri->flags & SRI_MASTER) {
             sentinelHandleDictOfRedisInstances(ri->slaves);
             sentinelHandleDictOfRedisInstances(ri->sentinels);
-            if (ri->failover_state == SENTINEL_FAILOVER_STATE_UPDATE_CONFIG) {
+            if (ri->failover_state == SENTINEL_FAILOVER_STATE_UPDATE_CONFIG)
+            {
                 switch_to_promoted = ri;
             }
         }

@@ -1366,8 +1366,10 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 
 	/* Run the Sentinel timer if we are in sentinel mode. */
 	// sentinel 发送给 master的 hello的订阅事件计时器
-	if (server.sentinel_mode) sentinelTimer();
-
+	if (server.sentinel_mode) 
+	{
+		sentinelTimer();
+	}
 	/* Cleanup expired MIGRATE cached sockets. */
 	run_with_period(1000) {
 		migrateCloseTimedoutSockets();
@@ -2086,8 +2088,8 @@ void initServer(void) {
 	server.system_memory_size = zmalloc_get_memory_size();
 
 	createSharedObjects();
-	adjustOpenFilesLimit();
-	server.el = aeCreateEventLoop(server.maxclients + CONFIG_FDSET_INCR);
+	adjustOpenFilesLimit();   
+	server.el = aeCreateEventLoop(server.maxclients + CONFIG_FDSET_INCR/*32 +96*/); //为什么是128个文件描述符
 	if (server.el == NULL) {
 		serverLog(LL_WARNING,
 			"Failed creating the event loop. Error message: '%s'",
@@ -2223,7 +2225,10 @@ void initServer(void) {
 		server.maxmemory_policy = MAXMEMORY_NO_EVICTION;
 	}
 
-	if (server.cluster_enabled) clusterInit();
+	if (server.cluster_enabled) 
+	{
+		clusterInit();
+	}
 	replicationScriptCacheInit();
 	scriptingInit(1);
 	slowlogInit();
@@ -4287,10 +4292,16 @@ int main(int argc, char **argv) {
 
 	server.supervised = redisIsSupervised(server.supervised_mode);
 	int background = server.daemonize && !server.supervised;
-	if (background) daemonize();
+	if (background) 
+	{
+		daemonize();
+	}
 
 	initServer();
-	if (background || server.pidfile) createPidFile();
+	if (background || server.pidfile) 
+	{
+		createPidFile();
+	}
 	redisSetProcTitle(argv[0]);
 	redisAsciiArt();
 	checkTcpBacklogSettings();
