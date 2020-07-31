@@ -1194,9 +1194,18 @@ sentinelRedisInstance *createSentinelRedisInstance(char *name, int flags, char *
      * name for a master is used multiple times inside the configuration or
      * if we try to add multiple times a slave or sentinel with same ip/port
      * to a master. */
-    if (flags & SRI_MASTER) table = sentinel.masters;
-    else if (flags & SRI_SLAVE) table = master->slaves;
-    else if (flags & SRI_SENTINEL) table = master->sentinels;
+    if (flags & SRI_MASTER) 
+    {
+        table = sentinel.masters;
+    }
+    else if (flags & SRI_SLAVE) 
+    {
+        table = master->slaves;
+    }
+    else if (flags & SRI_SENTINEL) 
+    {
+        table = master->sentinels;
+    }
     sdsname = sdsnew(name);
     if (dictFind(table,sdsname)) {
         releaseSentinelAddr(addr);
@@ -2214,7 +2223,10 @@ void sentinelRefreshInstanceInfo(sentinelRedisInstance *ri, const char *info) {
     if (role != ri->role_reported) {
         ri->role_reported_time = mstime();
         ri->role_reported = role;
-        if (role == SRI_SLAVE) ri->slave_conf_change_time = mstime();
+        if (role == SRI_SLAVE) 
+        {
+            ri->slave_conf_change_time = mstime();
+        }
         /* Log the event with +role-change if the new role is coherent or
          * with -role-change if there is a mismatch with the current config. */
         sentinelEvent(LL_VERBOSE,
@@ -2227,17 +2239,22 @@ void sentinelRefreshInstanceInfo(sentinelRedisInstance *ri, const char *info) {
 
     /* None of the following conditions are processed when in tilt mode, so
      * return asap. */
-    if (sentinel.tilt) return;
+    if (sentinel.tilt) 
+    {
+        return;
+    }
 
     /* Handle master -> slave role switch. */
-    if ((ri->flags & SRI_MASTER) && role == SRI_SLAVE) {
+    if ((ri->flags & SRI_MASTER) && role == SRI_SLAVE) 
+    {
         /* Nothing to do, but masters claiming to be slaves are
          * considered to be unreachable by Sentinel, so eventually
          * a failover will be triggered. */
     }
 
     /* Handle slave -> master role switch. */
-    if ((ri->flags & SRI_SLAVE) && role == SRI_MASTER) {
+    if ((ri->flags & SRI_SLAVE) && role == SRI_MASTER) 
+    {
         /* If this is a promoted slave we can change state to the
          * failover state machine. */
         if ((ri->flags & SRI_PROMOTED) &&
@@ -2692,7 +2709,10 @@ void sentinelSendPeriodicCommands(sentinelRedisInstance *ri) {
 
     /* Return ASAP if we have already a PING or INFO already pending, or
      * in the case the instance is not properly connected. */
-    if (ri->link->disconnected) return;
+    if (ri->link->disconnected) 
+    {
+        return;
+    }
 
     /* For INFO, PING, PUBLISH that are not critical commands to send we
      * also have a limit of SENTINEL_MAX_PENDING_COMMANDS. We don't
@@ -2700,8 +2720,10 @@ void sentinelSendPeriodicCommands(sentinelRedisInstance *ri) {
      * properly (note that anyway there is a redundant protection about this,
      * that is, the link will be disconnected and reconnected if a long
      * timeout condition is detected. */
-    if (ri->link->pending_commands >=
-        SENTINEL_MAX_PENDING_COMMANDS * ri->link->refcount) return;
+    if (ri->link->pending_commands >= SENTINEL_MAX_PENDING_COMMANDS * ri->link->refcount) 
+    {
+        return;
+    }
 
     /* If this is a slave of a master in O_DOWN condition we start sending
      * it INFO every second, instead of the usual SENTINEL_INFO_PERIOD
@@ -2711,12 +2733,12 @@ void sentinelSendPeriodicCommands(sentinelRedisInstance *ri) {
      * Similarly we monitor the INFO output more often if the slave reports
      * to be disconnected from the master, so that we can have a fresh
      * disconnection time figure. */
-    if ((ri->flags & SRI_SLAVE) &&
-        ((ri->master->flags & (SRI_O_DOWN|SRI_FAILOVER_IN_PROGRESS)) ||
-         (ri->master_link_down_time != 0)))
+    if ((ri->flags & SRI_SLAVE) && ((ri->master->flags & (SRI_O_DOWN|SRI_FAILOVER_IN_PROGRESS)) || (ri->master_link_down_time != 0)))
     {
         info_period = 1000;
-    } else {
+    } 
+    else 
+    {
         info_period = SENTINEL_INFO_PERIOD;
     }
 
@@ -2724,26 +2746,33 @@ void sentinelSendPeriodicCommands(sentinelRedisInstance *ri) {
      * the configured 'down-after-milliseconds' time, but every second
      * anyway if 'down-after-milliseconds' is greater than 1 second. */
     ping_period = ri->down_after_period;
-    if (ping_period > SENTINEL_PING_PERIOD) ping_period = SENTINEL_PING_PERIOD;
+    if (ping_period > SENTINEL_PING_PERIOD) 
+    {
+        ping_period = SENTINEL_PING_PERIOD;
+    }
     //redis中处理write回调函数使用列表维护的了  需要我们可以   使用是有序的处理的
     /* Send INFO to masters and slaves, not sentinels. */
-    if ((ri->flags & SRI_SENTINEL) == 0 && (ri->info_refresh == 0 ||
-        (now - ri->info_refresh) > info_period))
+    if ((ri->flags & SRI_SENTINEL) == 0 && (ri->info_refresh == 0 ||  (now - ri->info_refresh) > info_period))
     {
         retval = redisAsyncCommand(ri->link->cc,
             sentinelInfoReplyCallback, ri, "%s",
             sentinelInstanceMapCommand(ri,"INFO"));
-        if (retval == C_OK) ri->link->pending_commands++;
+        if (retval == C_OK) 
+        {
+            ri->link->pending_commands++;
+        }
     }
 
     /* Send PING to all the three kinds of instances. */
-    if ((now - ri->link->last_pong_time) > ping_period &&
-               (now - ri->link->last_ping_time) > ping_period/2) {
+    // 网络传输时网络上耗时
+    if ((now - ri->link->last_pong_time) > ping_period && (now - ri->link->last_ping_time) > ping_period/2) 
+    {
         sentinelSendPing(ri);
     }
 
     /* PUBLISH hello messages to all the three kinds of instances. */
-    if ((now - ri->last_pub_time) > SENTINEL_PUBLISH_PERIOD) {
+    if ((now - ri->last_pub_time) > SENTINEL_PUBLISH_PERIOD) 
+    {
         sentinelSendHello(ri);
     }
 }
@@ -3602,9 +3631,13 @@ void sentinelCheckSubjectivelyDown(sentinelRedisInstance *ri) {
     mstime_t elapsed = 0;
 
     if (ri->link->act_ping_time)
+    {
         elapsed = mstime() - ri->link->act_ping_time;
+    }
     else if (ri->link->disconnected)
+    {
         elapsed = mstime() - ri->link->last_avail_time;
+    }
 
     /* Check if we are in need for a reconnection of one of the
      * links, because we are detecting low activity.
@@ -3612,9 +3645,7 @@ void sentinelCheckSubjectivelyDown(sentinelRedisInstance *ri) {
      * 1) Check if the command link seems connected, was connected not less
      *    than SENTINEL_MIN_LINK_RECONNECT_PERIOD, but still we have a
      *    pending ping for more than half the timeout. */
-    if (ri->link->cc &&
-        (mstime() - ri->link->cc_conn_time) >
-        SENTINEL_MIN_LINK_RECONNECT_PERIOD &&
+    if (ri->link->cc &&  (mstime() - ri->link->cc_conn_time) > SENTINEL_MIN_LINK_RECONNECT_PERIOD &&
         ri->link->act_ping_time != 0 && /* There is a pending ping... */
         /* The pending ping is delayed, and we did not receive
          * error replies as well. */
@@ -4394,7 +4425,7 @@ void sentinelFailoverSwitchToPromotedSlave(sentinelRedisInstance *master) {
 
 void sentinelFailoverStateMachine(sentinelRedisInstance *ri) {
     serverAssert(ri->flags & SRI_MASTER);
-
+    
     if (!(ri->flags & SRI_FAILOVER_IN_PROGRESS)) return;
 
     switch(ri->failover_state) {
@@ -4453,7 +4484,10 @@ void sentinelHandleRedisInstance(sentinelRedisInstance *ri) {
      * TILT happens when we find something odd with the time, like a
      * sudden change in the clock. */
     if (sentinel.tilt) {
-        if (mstime()-sentinel.tilt_start_time < SENTINEL_TILT_PERIOD) return;
+        if (mstime()-sentinel.tilt_start_time < SENTINEL_TILT_PERIOD) 
+        {
+            return;
+        }
         sentinel.tilt = 0;
         sentinelEvent(LL_WARNING,"-tilt",NULL,"#tilt mode exited");
     }
