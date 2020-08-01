@@ -253,7 +253,7 @@ long long aeCreateTimeEvent(aeEventLoop *eventLoop, long long milliseconds,
     if (te == NULL) return AE_ERR;
     te->id = id;
     aeAddMillisecondsToNow(milliseconds,&te->when_sec,&te->when_ms);
-    te->timeProc = proc;
+    te->timeProc = proc;  //hz
     te->finalizerProc = finalizerProc;
     te->clientData = clientData;
     te->prev = NULL;

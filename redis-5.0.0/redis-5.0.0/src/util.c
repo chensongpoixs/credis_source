@@ -42,10 +42,62 @@
 
 #include "util.h"
 #include "sha1.h"
+/**
+ * 四个字符是所有语言都支持的正则表达式，所以这四个是基础的正则表达式。正则难理解因为里面有一个等价的概念，这个概念大大增加了理解难度，让很多初学者看起来会懵，如果把等价都恢复成原始写法，自己书写正则就超级简单了，就像说话一样去写你的正则了：
 
+　　等价：
+等价是等同于的意思，表示同样的功能，用不同符号来书写。
+?,*,+,\d,\w 都是等价字符
+　　?等价于匹配长度{0,1}
+　　*等价于匹配长度{0,}
+　　+等价于匹配长度{1,}
+　　\d等价于[0-9]
+\D等价于[^0-9]
+　　\w等价于[A-Za-z_0-9]
+\W等价于[^A-Za-z_0-9]。
+常用运算符与表达式：
+　　^ 开始
+　　（） 域段
+　　[] 包含,默认是一个字符长度
+　　[^] 不包含,默认是一个字符长度
+　　{n,m} 匹配长度
+　　. 任何单个字符(\. 字符点)
+　　| 或
+　　\ 转义
+　　$ 结尾
+　　[A-Z] 26个大写字母
+　　[a-z] 26个小写字母
+　　[0-9] 0至9数字
+[A-Za-z0-9] 26个大写字母、26个小写字母和0至9数字
+　　， 分割
+　　.
+　　
+　　分割语法：
+　　[A,H,T,W] 包含A或H或T或W字母
+　　[a,h,t,w] 包含a或h或t或w字母
+　　[0,3,6,8] 包含0或3或6或8数字
+
+　　语法与释义：
+　　基础语法 "^([]{})([]{})([]{})$"
+　　正则字符串 = "开始（[包含内容]{长度}）（[包含内容]{长度}）（[包含内容]{长度}）结束"
+　　
+　　?,*,+,\d,\w 这些都是简写的,完全可以用[]和{}代替，在(?:)(?=)(?!)(?<=)(?<!)(?i)(*?)(+?)这种特殊组合情况下除外。
+　　初学者可以忽略?,*,+,\d,\w一些简写标示符，学会了基础使用再按表自己去等价替换
+
+　　
+　　实例：
+　　字符串；tel:086-0666-88810009999
+　　原始正则："^tel:[0-9]{1,3}-[0][0-9]{2,3}-[0-9]{8,11}$"
+　　速记理解：开始 "tel:普通文本"[0-9数字]{1至3位}"-普通文本"[0数字][0-9数字]{2至3位}"-普通文本"[0-9数字]{8至11位} 结束"
+　　等价简写后正则写法："^tel:\d{1,3}-[0]\d{2,3}-\d{8,11}$" ，简写语法不是所有语言都支持。
+ * 
+ */
 /* Glob-style pattern matching. */
-int stringmatchlen(const char *pattern, int patternLen,
-        const char *string, int stringLen, int nocase)
+/// 1. *
+//  2. ?
+//  3. []
+//  4. \\
+int stringmatchlen(const char *pattern, int patternLen, const char *string, int stringLen, int nocase)
 {
     while(patternLen) {
         switch(pattern[0]) {
@@ -56,10 +108,12 @@ int stringmatchlen(const char *pattern, int patternLen,
             }
             if (patternLen == 1)
                 return 1; /* match */
-            while(stringLen) {
-                if (stringmatchlen(pattern+1, patternLen-1,
-                            string, stringLen, nocase))
-                    return 1; /* match */
+            while(stringLen) 
+            {
+                if (stringmatchlen(pattern+1, patternLen-1, string, stringLen, nocase))
+                {
+                     return 1; /* match */
+                }
                 string++;
                 stringLen--;
             }
@@ -83,8 +137,10 @@ int stringmatchlen(const char *pattern, int patternLen,
                 patternLen--;
             }
             match = 0;
-            while(1) {
-                if (pattern[0] == '\\' && patternLen >= 2) {
+            while(1) 
+            {
+                if (pattern[0] == '\\' && patternLen >= 2) 
+                {
                     pattern++;
                     patternLen--;
                     if (pattern[0] == string[0])

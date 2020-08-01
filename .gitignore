@@ -1,0 +1,6 @@
+.idea/*
+./vscode/*
+redis-5.0.0/.vs/*
+redis-5.0.0/bin/*
+redis-5.0.0/vsout/*
+redis-5.0.0/redis-5.0.0.VC.db
