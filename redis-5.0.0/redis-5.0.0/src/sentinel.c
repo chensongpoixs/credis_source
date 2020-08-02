@@ -2181,8 +2181,14 @@ void sentinelRefreshInstanceInfo(sentinelRedisInstance *ri, const char *info) {
         }
 
         /* role:<role> */
-        if (!memcmp(l,"role:master",11)) role = SRI_MASTER;
-        else if (!memcmp(l,"role:slave",10)) role = SRI_SLAVE;
+        if (!memcmp(l,"role:master",11))
+        {
+            role = SRI_MASTER;
+        }
+        else if (!memcmp(l,"role:slave",10)) 
+        {
+            role = SRI_SLAVE;
+        }
 
         if (role == SRI_SLAVE) {
             /* master_host:<host> */
@@ -2195,7 +2201,7 @@ void sentinelRefreshInstanceInfo(sentinelRedisInstance *ri, const char *info) {
                     ri->slave_conf_change_time = mstime();
                 }
             }
-
+            //这边是slave服务上同步master服务的ip地址和端口的信息   下面会去比较salve服务同步master服务ip和端口是否最新的 不是最新master服务会同步 发送salve服务slaveof ip port的信息同步master
             /* master_port:<port> */
             if (sdslen(l) >= 12 && !memcmp(l,"master_port:",12)) {
                 int slave_master_port = atoi(l+12);
@@ -2240,11 +2246,7 @@ void sentinelRefreshInstanceInfo(sentinelRedisInstance *ri, const char *info) {
         }
         /* Log the event with +role-change if the new role is coherent or
          * with -role-change if there is a mismatch with the current config. */
-        sentinelEvent(LL_VERBOSE,
-            ((ri->flags & (SRI_MASTER|SRI_SLAVE)) == role) ?
-            "+role-change" : "-role-change",
-            ri, "%@ new reported role is %s",
-            role == SRI_MASTER ? "master" : "slave",
+        sentinelEvent(LL_VERBOSE, ((ri->flags & (SRI_MASTER|SRI_SLAVE)) == role) ? "+role-change" : "-role-change", ri, "%@ new reported role is %s", role == SRI_MASTER ? "master" : "slave",
             ri->flags & SRI_MASTER ? "master" : "slave");
     }
 
@@ -2268,10 +2270,7 @@ void sentinelRefreshInstanceInfo(sentinelRedisInstance *ri, const char *info) {
     {
         /* If this is a promoted slave we can change state to the
          * failover state machine. */
-        if ((ri->flags & SRI_PROMOTED) &&
-            (ri->master->flags & SRI_FAILOVER_IN_PROGRESS) &&
-            (ri->master->failover_state ==
-                SENTINEL_FAILOVER_STATE_WAIT_PROMOTION))
+        if ((ri->flags & SRI_PROMOTED) && (ri->master->flags & SRI_FAILOVER_IN_PROGRESS) && (ri->master->failover_state == SENTINEL_FAILOVER_STATE_WAIT_PROMOTION))
         {
             /* Now that we are sure the slave was reconfigured as a master
              * set the master configuration epoch to the epoch we won the
@@ -2283,13 +2282,12 @@ void sentinelRefreshInstanceInfo(sentinelRedisInstance *ri, const char *info) {
             ri->master->failover_state_change_time = mstime();
             sentinelFlushConfig();
             sentinelEvent(LL_WARNING,"+promoted-slave",ri,"%@");
-            if (sentinel.simfailure_flags &
-                SENTINEL_SIMFAILURE_CRASH_AFTER_PROMOTION)
+            if (sentinel.simfailure_flags & SENTINEL_SIMFAILURE_CRASH_AFTER_PROMOTION)
+            {
                 sentinelSimFailureCrash();
-            sentinelEvent(LL_WARNING,"+failover-state-reconf-slaves",
-                ri->master,"%@");
-            sentinelCallClientReconfScript(ri->master,SENTINEL_LEADER,
-                "start",ri->master->addr,ri->addr);
+            }
+            sentinelEvent(LL_WARNING,"+failover-state-reconf-slaves", ri->master,"%@");
+            sentinelCallClientReconfScript(ri->master,SENTINEL_LEADER, "start",ri->master->addr,ri->addr);
             sentinelForceHelloUpdateForMaster(ri->master);
         } else {
             /* A slave turned into a master. We want to force our view and
@@ -2297,53 +2295,40 @@ void sentinelRefreshInstanceInfo(sentinelRedisInstance *ri, const char *info) {
              * going forward, to receive new configs if any. */
             mstime_t wait_time = SENTINEL_PUBLISH_PERIOD*4;
 
-            if (!(ri->flags & SRI_PROMOTED) &&
-                 sentinelMasterLooksSane(ri->master) &&
-                 sentinelRedisInstanceNoDownFor(ri,wait_time) &&
-                 mstime() - ri->role_reported_time > wait_time)
+            if (!(ri->flags & SRI_PROMOTED) && sentinelMasterLooksSane(ri->master) && sentinelRedisInstanceNoDownFor(ri,wait_time) && mstime() - ri->role_reported_time > wait_time)
             {
-                int retval = sentinelSendSlaveOf(ri,
-                        ri->master->addr->ip,
-                        ri->master->addr->port);
+                int retval = sentinelSendSlaveOf(ri,  ri->master->addr->ip, ri->master->addr->port);
                 if (retval == C_OK)
+                {
                     sentinelEvent(LL_NOTICE,"+convert-to-slave",ri,"%@");
+                }
             }
         }
     }
-     //master已经改变了了   哈哈    slave已经切换master啊啊
+     //master已经改变了了   哈哈    sentinel服务通知slave服务同步新master服务的信息
     /* Handle slaves replicating to a different master address. */
-    if ((ri->flags & SRI_SLAVE) &&
-        role == SRI_SLAVE &&
-        (ri->slave_master_port != ri->master->addr->port ||
-         strcasecmp(ri->slave_master_host,ri->master->addr->ip)))
+    if ((ri->flags & SRI_SLAVE) &&  role == SRI_SLAVE && (ri->slave_master_port != ri->master->addr->port || strcasecmp(ri->slave_master_host,ri->master->addr->ip)))
     {
         mstime_t wait_time = ri->master->failover_timeout;
 
         /* Make sure the master is sane before reconfiguring this instance
          * into a slave. */
-        if (sentinelMasterLooksSane(ri->master) &&
-            sentinelRedisInstanceNoDownFor(ri,wait_time) &&
-            mstime() - ri->slave_conf_change_time > wait_time)
+        if (sentinelMasterLooksSane(ri->master) && sentinelRedisInstanceNoDownFor(ri,wait_time) && mstime() - ri->slave_conf_change_time > wait_time)
         {
-            int retval = sentinelSendSlaveOf(ri,
-                    ri->master->addr->ip,
-                    ri->master->addr->port);
+            int retval = sentinelSendSlaveOf(ri, ri->master->addr->ip, ri->master->addr->port);
             if (retval == C_OK)
+            {
                 sentinelEvent(LL_NOTICE,"+fix-slave-config",ri,"%@");
+            }
         }
     }
 
     /* Detect if the slave that is in the process of being reconfigured
      * changed state. */
-    if ((ri->flags & SRI_SLAVE) && role == SRI_SLAVE &&
-        (ri->flags & (SRI_RECONF_SENT|SRI_RECONF_INPROG)))
+    if ((ri->flags & SRI_SLAVE) && role == SRI_SLAVE && (ri->flags & (SRI_RECONF_SENT|SRI_RECONF_INPROG)))
     {
         /* SRI_RECONF_SENT -> SRI_RECONF_INPROG. */
-        if ((ri->flags & SRI_RECONF_SENT) &&
-            ri->slave_master_host &&
-            strcmp(ri->slave_master_host,
-                    ri->master->promoted_slave->addr->ip) == 0 &&
-            ri->slave_master_port == ri->master->promoted_slave->addr->port)
+        if ((ri->flags & SRI_RECONF_SENT) && ri->slave_master_host && strcmp(ri->slave_master_host, ri->master->promoted_slave->addr->ip) == 0 && ri->slave_master_port == ri->master->promoted_slave->addr->port)
         {
             ri->flags &= ~SRI_RECONF_SENT;
             ri->flags |= SRI_RECONF_INPROG;
@@ -2351,8 +2336,7 @@ void sentinelRefreshInstanceInfo(sentinelRedisInstance *ri, const char *info) {
         }
 
         /* SRI_RECONF_INPROG -> SRI_RECONF_DONE */
-        if ((ri->flags & SRI_RECONF_INPROG) &&
-            ri->slave_master_link_status == SENTINEL_MASTER_LINK_STATUS_UP)
+        if ((ri->flags & SRI_RECONF_INPROG) && ri->slave_master_link_status == SENTINEL_MASTER_LINK_STATUS_UP)
         {
             ri->flags &= ~SRI_RECONF_INPROG;
             ri->flags |= SRI_RECONF_DONE;
@@ -2682,7 +2666,9 @@ void sentinelForceHelloUpdateDictOfRedisInstances(dict *instances) {
 int sentinelForceHelloUpdateForMaster(sentinelRedisInstance *master) {
     if (!(master->flags & SRI_MASTER)) return C_ERR;
     if (master->last_pub_time >= (SENTINEL_PUBLISH_PERIOD+1))
-        master->last_pub_time -= (SENTINEL_PUBLISH_PERIOD+1);
+    {
+         master->last_pub_time -= (SENTINEL_PUBLISH_PERIOD+1);
+    }
     sentinelForceHelloUpdateDictOfRedisInstances(master->sentinels);
     sentinelForceHelloUpdateDictOfRedisInstances(master->slaves);
     return C_OK;
@@ -4038,9 +4024,7 @@ int sentinelSendSlaveOf(sentinelRedisInstance *ri, char *host, int port) {
     if (retval == C_ERR) return retval;
     ri->link->pending_commands++;
 
-    retval = redisAsyncCommand(ri->link->cc,
-        sentinelDiscardReplyCallback, ri, "%s",
-        sentinelInstanceMapCommand(ri,"EXEC"));
+    retval = redisAsyncCommand(ri->link->cc, sentinelDiscardReplyCallback, ri, "%s", sentinelInstanceMapCommand(ri,"EXEC"));
     if (retval == C_ERR) return retval;
     ri->link->pending_commands++;
 
@@ -4208,7 +4192,7 @@ void sentinelFailoverWaitStart(sentinelRedisInstance *ri) {
     int isleader;
 
     /* Check if we are the leader for the failover epoch. */
-    leader = sentinelGetLeader(ri, ri->failover_epoch);
+    leader = sentinelGetLeader(ri, ri->failover_epoch); // 故障纪元?????
     isleader = leader && strcasecmp(leader,sentinel.myid) == 0;
     sdsfree(leader);
 
@@ -4254,8 +4238,7 @@ void sentinelFailoverSelectSlave(sentinelRedisInstance *ri) {
         ri->promoted_slave = slave;
         ri->failover_state = SENTINEL_FAILOVER_STATE_SEND_SLAVEOF_NOONE;
         ri->failover_state_change_time = mstime();
-        sentinelEvent(LL_NOTICE,"+failover-state-send-slaveof-noone",
-            slave, "%@");
+        sentinelEvent(LL_NOTICE,"+failover-state-send-slaveof-noone", slave, "%@");
     }
 }
 
@@ -4388,9 +4371,7 @@ void sentinelFailoverReconfNextSlave(sentinelRedisInstance *master) {
          * the next state, consider it reconfigured even if it is not.
          * Sentinels will detect the slave as misconfigured and fix its
          * configuration later. */
-        if ((slave->flags & SRI_RECONF_SENT) &&
-            (mstime() - slave->slave_reconf_sent_time) >
-            SENTINEL_SLAVE_RECONF_TIMEOUT)
+        if ((slave->flags & SRI_RECONF_SENT) && (mstime() - slave->slave_reconf_sent_time) > SENTINEL_SLAVE_RECONF_TIMEOUT)
         {
             sentinelEvent(LL_NOTICE,"-slave-reconf-sent-timeout",slave,"%@");
             slave->flags &= ~SRI_RECONF_SENT;
@@ -4401,11 +4382,9 @@ void sentinelFailoverReconfNextSlave(sentinelRedisInstance *master) {
          * in RECONF_SENT state. */
         if (slave->flags & (SRI_RECONF_SENT|SRI_RECONF_INPROG)) continue;
         if (slave->link->disconnected) continue;
-
+        // 同步master 
         /* Send SLAVEOF <new master>. */
-        retval = sentinelSendSlaveOf(slave,
-                master->promoted_slave->addr->ip,
-                master->promoted_slave->addr->port);
+        retval = sentinelSendSlaveOf(slave, master->promoted_slave->addr->ip, master->promoted_slave->addr->port);
         if (retval == C_OK) {
             slave->flags |= SRI_RECONF_SENT;
             slave->slave_reconf_sent_time = mstime();
@@ -4430,9 +4409,7 @@ void sentinelFailoverSwitchToPromotedSlave(sentinelRedisInstance *master) {
     sentinelRedisInstance *ref = master->promoted_slave ?
                                  master->promoted_slave : master;
 
-    sentinelEvent(LL_WARNING,"+switch-master",master,"%s %s %d %s %d",
-        master->name, master->addr->ip, master->addr->port,
-        ref->addr->ip, ref->addr->port);
+    sentinelEvent(LL_WARNING,"+switch-master",master,"%s %s %d %s %d", master->name, master->addr->ip, master->addr->port, ref->addr->ip, ref->addr->port);
 	// sentienl服务更新master服务和slave服务的信息的操作
     sentinelResetMasterAndChangeAddress(master,ref->addr->ip,ref->addr->port);
 }
@@ -4455,7 +4432,7 @@ void sentinelFailoverStateMachine(sentinelRedisInstance *ri) {
         case SENTINEL_FAILOVER_STATE_WAIT_PROMOTION:
             sentinelFailoverWaitPromotion(ri);
             break;
-        case SENTINEL_FAILOVER_STATE_RECONF_SLAVES:
+        case SENTINEL_FAILOVER_STATE_RECONF_SLAVES: //通知其他slave服务同步新的master
             sentinelFailoverReconfNextSlave(ri);
             break;
     }

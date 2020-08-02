@@ -1120,7 +1120,10 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 
 	/* Software watchdog: deliver the SIGALRM that will reach the signal
 	 * handler if we don't return here fast enough. */
-	if (server.watchdog_period) watchdogScheduleSignal(server.watchdog_period);
+	if (server.watchdog_period) 
+	{
+		watchdogScheduleSignal(server.watchdog_period);
+	}
 
 	/* Update the time cache. */
 	updateCachedTime();
@@ -1128,9 +1131,9 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 	server.hz = server.config_hz;
 	/* Adapt the server.hz value to the number of configured clients. If we have
 	 * many clients, we want to call serverCron() with an higher frequency. */
-	if (server.dynamic_hz) {
-		while (listLength(server.clients) / server.hz >
-			MAX_CLIENTS_PER_CLOCK_TICK)   // tick----> 处理数据- 数量大于200时
+	if (server.dynamic_hz) 
+	{
+		while (listLength(server.clients) / server.hz > MAX_CLIENTS_PER_CLOCK_TICK)   // tick----> 处理数据- 数量大于200时
 		{
 			server.hz *= 2;
 			if (server.hz > CONFIG_MAX_HZ) {
@@ -1142,10 +1145,8 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 
 	run_with_period(100) {
 		trackInstantaneousMetric(STATS_METRIC_COMMAND, server.stat_numcommands);
-		trackInstantaneousMetric(STATS_METRIC_NET_INPUT,
-			server.stat_net_input_bytes);
-		trackInstantaneousMetric(STATS_METRIC_NET_OUTPUT,
-			server.stat_net_output_bytes);
+		trackInstantaneousMetric(STATS_METRIC_NET_INPUT, server.stat_net_input_bytes);
+		trackInstantaneousMetric(STATS_METRIC_NET_OUTPUT, server.stat_net_output_bytes);
 	}
 
 	/* We have just LRU_BITS bits per object for LRU information.
@@ -1164,7 +1165,9 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 
 	/* Record the max memory used since the server was started. */
 	if (zmalloc_used_memory() > server.stat_peak_memory)
+	{
 		server.stat_peak_memory = zmalloc_used_memory();
+	}
 
 	run_with_period(100) {
 		/* Sample the RSS and other metrics here since this is a relatively slow call.
@@ -1245,8 +1248,7 @@ int serverCron(struct aeEventLoop *eventLoop, long long id, void *clientData) {
 
 	/* Check if a background saving or AOF rewrite in progress terminated. */
 	//检查是否有子进程在写入数据aof或者rdb
-	if (server.rdb_child_pid != -1 || server.aof_child_pid != -1 ||
-		ldbPendingChildren())
+	if (server.rdb_child_pid != -1 || server.aof_child_pid != -1 || ldbPendingChildren())
 	{
 		int statloc;
 		pid_t pid;
@@ -3566,6 +3568,7 @@ sds genRedisInfoString(char *section) {
 	}
 
 	/* Replication */
+	// 这边把 slave服务改变了 server.masterhost==NULL就是master服务  是在 slaveof on one命令时修改的  然后在其他的sentinel服务请求info命令获取是否是最新的master的服务
 	if (allsections || defsections || !strcasecmp(section, "replication")) {
 		if (sections++) info = sdscat(info, "\r\n");
 		info = sdscatprintf(info,

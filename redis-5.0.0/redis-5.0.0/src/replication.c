@@ -1945,8 +1945,7 @@ write_error: /* Handle sendSynchronousCommand(SYNC_CMD_WRITE) errors. */
 int connectWithMaster(void) {
     int fd;
 	// 1. 创建socket异步连接master服务
-    fd = anetTcpNonBlockBestEffortBindConnect(NULL,
-        server.masterhost,server.masterport,NET_FIRST_BIND_ADDR);
+    fd = anetTcpNonBlockBestEffortBindConnect(NULL, server.masterhost,server.masterport,NET_FIRST_BIND_ADDR);
     if (fd == -1) {
         serverLog(LL_WARNING,"Unable to connect to MASTER: %s",
             strerror(errno));
@@ -2046,7 +2045,10 @@ void replicationUnsetMaster(void) {
      * used as secondary ID up to the current offset, and a new replication
      * ID is created to continue with a new replication history. */
     shiftReplicationId();
-    if (server.master) freeClient(server.master);
+    if (server.master) 
+    {
+        freeClient(server.master);
+    }
     replicationDiscardCachedMaster();
     cancelReplicationHandshake();
     /* Disconnecting all the slaves is required: we need to inform slaves
@@ -2095,24 +2097,26 @@ void replicaofCommand(client *c) {
     /* The special host/port combination "NO" "ONE" turns the instance
      * into a master. Otherwise the new master address is set. */
 	// sentinel 服务设置主服务器master ,把slave从服务   故障转移的操作的    
-    if (!strcasecmp(c->argv[1]->ptr,"no") &&
-        !strcasecmp(c->argv[2]->ptr,"one")) {
-        if (server.masterhost) {
+    if (!strcasecmp(c->argv[1]->ptr,"no") && !strcasecmp(c->argv[2]->ptr,"one")) 
+    {
+        if (server.masterhost) 
+        {    // 这边把slave服务改变成master服务了  只要设置server.masterhost==NULL就可以了
             replicationUnsetMaster();
             sds client = catClientInfoString(sdsempty(),c);
-            serverLog(LL_NOTICE,"MASTER MODE enabled (user request from '%s')",
-                client);
+            serverLog(LL_NOTICE,"MASTER MODE enabled (user request from '%s')", client);
             sdsfree(client);
         }
-    } else {
+    } 
+    else 
+    {
+        // 其它sentinel服务通知slave服务同步新的master服务
         long port;
 
         if ((getLongFromObjectOrReply(c, c->argv[2], &port, NULL) != C_OK))
             return;
 
         /* Check if we are already attached to the specified slave */
-        if (server.masterhost && !strcasecmp(server.masterhost,c->argv[1]->ptr)
-            && server.masterport == port) {
+        if (server.masterhost && !strcasecmp(server.masterhost, c->argv[1]->ptr) && server.masterport == port) {
             serverLog(LL_NOTICE,"REPLICAOF would result into synchronization with the master we are already connected with. No operation performed.");
             addReplySds(c,sdsnew("+OK Already connected to specified master\r\n"));
             return;
@@ -2121,8 +2125,7 @@ void replicaofCommand(client *c) {
          * we can continue. */
         replicationSetMaster(c->argv[1]->ptr, port);
         sds client = catClientInfoString(sdsempty(),c);
-        serverLog(LL_NOTICE,"REPLICAOF %s:%d enabled (user request from '%s')",
-            server.masterhost, server.masterport, client);
+        serverLog(LL_NOTICE,"REPLICAOF %s:%d enabled (user request from '%s')", server.masterhost, server.masterport, client);
         sdsfree(client);
     }
     addReply(c,shared.ok);
