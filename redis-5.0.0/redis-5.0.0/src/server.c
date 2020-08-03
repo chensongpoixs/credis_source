@@ -4196,7 +4196,8 @@ int main(int argc, char **argv) {
 	/* We need to init sentinel right now as parsing the configuration file
 	 * in sentinel mode will have the effect of populating the sentinel
 	 * data structures with master nodes to monitor. */
-	if (server.sentinel_mode) {
+	if (server.sentinel_mode) 
+	{
 		initSentinelConfig();
 		initSentinel();
 	}

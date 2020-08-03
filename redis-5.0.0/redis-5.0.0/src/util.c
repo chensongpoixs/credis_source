@@ -96,7 +96,7 @@
 /// 1. *
 //  2. ?
 //  3. []
-//  4. \\
+//  4. 
 int stringmatchlen(const char *pattern, int patternLen, const char *string, int stringLen, int nocase)
 {
     while(patternLen) {
