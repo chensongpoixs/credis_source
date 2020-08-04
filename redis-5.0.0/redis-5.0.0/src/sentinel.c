@@ -3163,8 +3163,7 @@ void sentinelCommand(client *c) {
             addReplySds(c,sdsnew("-NOGOODSLAVE No suitable replica to promote\r\n"));
             return;
         }
-        serverLog(LL_WARNING,"Executing user requested FAILOVER of '%s'",
-            ri->name);
+        serverLog(LL_WARNING,"Executing user requested FAILOVER of '%s'", ri->name);
         sentinelStartFailover(ri);
         ri->flags |= SRI_FORCE_FAILOVER;
         addReply(c,shared.ok);
@@ -3332,17 +3331,12 @@ void sentinelCommand(client *c) {
 
         sentinel.simfailure_flags = SENTINEL_SIMFAILURE_NONE;
         for (j = 2; j < c->argc; j++) {
-            if (!strcasecmp(c->argv[j]->ptr,"crash-after-election")) {
-                sentinel.simfailure_flags |=
-                    SENTINEL_SIMFAILURE_CRASH_AFTER_ELECTION;
-                serverLog(LL_WARNING,"Failure simulation: this Sentinel "
-                    "will crash after being successfully elected as failover "
-                    "leader");
+            if (!strcasecmp(c->argv[j]->ptr,"crash-after-election")) { 
+                sentinel.simfailure_flags |= SENTINEL_SIMFAILURE_CRASH_AFTER_ELECTION;
+                serverLog(LL_WARNING,"Failure simulation: this Sentinel will crash after being successfully elected as failover leader");
             } else if (!strcasecmp(c->argv[j]->ptr,"crash-after-promotion")) {
-                sentinel.simfailure_flags |=
-                    SENTINEL_SIMFAILURE_CRASH_AFTER_PROMOTION;
-                serverLog(LL_WARNING,"Failure simulation: this Sentinel "
-                    "will crash after promoting the selected replica to master");
+                sentinel.simfailure_flags |= SENTINEL_SIMFAILURE_CRASH_AFTER_PROMOTION;
+                serverLog(LL_WARNING,"Failure simulation: this Sentinel  will crash after promoting the selected replica to master");
             } else if (!strcasecmp(c->argv[j]->ptr,"help")) {
                 addReplyMultiBulkLen(c,2);
                 addReplyBulkCString(c,"crash-after-election");
@@ -3826,8 +3820,7 @@ void sentinelAskMasterStateToOtherSentinels(sentinelRedisInstance *master, int f
 
         /* Ask */  // 当maser宕机的时才会发送 myid 其它的sentinel服务才会处理
         ll2string(port,sizeof(port),master->addr->port);
-        retval = redisAsyncCommand(ri->link->cc, sentinelReceiveIsMasterDownReply, ri, "%s is-master-down-by-addr %s %s %llu %s", sentinelInstanceMapCommand(ri,"SENTINEL"),
-                    master->addr->ip, port,
+        retval = redisAsyncCommand(ri->link->cc, sentinelReceiveIsMasterDownReply, ri, "%s is-master-down-by-addr %s %s %llu %s", sentinelInstanceMapCommand(ri,"SENTINEL")     , master->addr->ip, port,
                     sentinel.current_epoch,
                     (master->failover_state > SENTINEL_FAILOVER_STATE_NONE) ?
                     sentinel.myid : "*");
@@ -3840,8 +3833,7 @@ void sentinelAskMasterStateToOtherSentinels(sentinelRedisInstance *master, int f
 
 /* Crash because of user request via SENTINEL simulate-failure command. */
 void sentinelSimFailureCrash(void) {
-    serverLog(LL_WARNING,
-        "Sentinel CRASH because of SENTINEL simulate-failure");
+    serverLog(LL_WARNING, "Sentinel CRASH because of SENTINEL simulate-failure");
     exit(99);
 }
 
@@ -3859,6 +3851,7 @@ char *sentinelVoteLeader(sentinelRedisInstance *master, uint64_t req_epoch, char
 
     if (master->leader_epoch < req_epoch && sentinel.current_epoch <= req_epoch)
     {
+        //
         sdsfree(master->leader);
         master->leader = sdsnew(req_runid);
         master->leader_epoch = sentinel.current_epoch;
@@ -4146,9 +4139,12 @@ int compareSlavesForPromotion(const void *a, const void *b) {
     return strcasecmp(sa_runid, sb_runid);
 }
 
+/**
+ * 从slave服务中选择一个作为master服务
+ * 
+ */
 sentinelRedisInstance *sentinelSelectSlave(sentinelRedisInstance *master) {
-    sentinelRedisInstance **instance =
-        zmalloc(sizeof(instance[0])*dictSize(master->slaves));
+    sentinelRedisInstance **instance = zmalloc(sizeof(instance[0])*dictSize(master->slaves));
     sentinelRedisInstance *selected = NULL;
     int instances = 0;
     dictIterator *di;
@@ -4156,7 +4152,9 @@ sentinelRedisInstance *sentinelSelectSlave(sentinelRedisInstance *master) {
     mstime_t max_master_down_time = 0;
 
     if (master->flags & SRI_S_DOWN)
+    {
         max_master_down_time += mstime() - master->s_down_since_time;
+    }
     max_master_down_time += master->down_after_period * 10;
 
     di = dictGetIterator(master->slaves);
@@ -4164,26 +4162,47 @@ sentinelRedisInstance *sentinelSelectSlave(sentinelRedisInstance *master) {
         sentinelRedisInstance *slave = dictGetVal(de);
         mstime_t info_validity_time;
 
-        if (slave->flags & (SRI_S_DOWN|SRI_O_DOWN)) continue;
-        if (slave->link->disconnected) continue;
-        if (mstime() - slave->link->last_avail_time > SENTINEL_PING_PERIOD*5) continue;
-        if (slave->slave_priority == 0) continue;
+        if (slave->flags & (SRI_S_DOWN|SRI_O_DOWN))
+        {
+            continue;
+        }
+        if (slave->link->disconnected) 
+        {
+            continue;
+        }
+        if (mstime() - slave->link->last_avail_time > SENTINEL_PING_PERIOD*5) 
+        {
+            continue;
+        }
+        if (slave->slave_priority == 0) 
+        {
+            continue;
+        }
 
         /* If the master is in SDOWN state we get INFO for slaves every second.
          * Otherwise we get it with the usual period so we need to account for
          * a larger delay. */
         if (master->flags & SRI_S_DOWN)
+        {
             info_validity_time = SENTINEL_PING_PERIOD*5;
+        }
         else
+        {
             info_validity_time = SENTINEL_INFO_PERIOD*3;
-        if (mstime() - slave->info_refresh > info_validity_time) continue;
-        if (slave->master_link_down_time > max_master_down_time) continue;
+        }
+        if (mstime() - slave->info_refresh > info_validity_time) 
+        {
+            continue;
+        }
+        if (slave->master_link_down_time > max_master_down_time) 
+        {
+            continue;
+        }
         instance[instances++] = slave;
     }
     dictReleaseIterator(di);
     if (instances) {
-        qsort(instance,instances,sizeof(sentinelRedisInstance*),
-            compareSlavesForPromotion);
+        qsort(instance,instances,sizeof(sentinelRedisInstance*), compareSlavesForPromotion);
         selected = instance[0];
     }
     zfree(instance);
@@ -4202,15 +4221,18 @@ void sentinelFailoverWaitStart(sentinelRedisInstance *ri) {
 
     /* If I'm not the leader, and it is not a forced failover via
      * SENTINEL FAILOVER, then I can't continue with the failover. */
+    // 这里的SRI_FORCE_FAILOVER变量 是使用命令强制更新master的非常好的?的设计 --->>>>>  人工继续更新的使用的   人工更新的时候就不需要检测timeout延迟的问题了选举leader直接切换成master
     if (!isleader && !(ri->flags & SRI_FORCE_FAILOVER)) {
         int election_timeout = SENTINEL_ELECTION_TIMEOUT;
 
         /* The election timeout is the MIN between SENTINEL_ELECTION_TIMEOUT
          * and the configured failover timeout. */
+        //1. 选举延迟 大于3分钟说明该sentinel服务有问题使用要退出
         if (election_timeout > ri->failover_timeout)
         {
             sentinelSimFailureCrash();
         }
+        // 2. 选举延迟 在固定时间内 没有选举出leader 使用要从新再选举  ， 改变状态
         /* Abort the failover if I'm not the leader after some time. */
         if (mstime() - ri->failover_start_time > election_timeout) {
             sentinelEvent(LL_WARNING,"-failover-abort-not-elected",ri,"%@");
@@ -4219,8 +4241,11 @@ void sentinelFailoverWaitStart(sentinelRedisInstance *ri) {
         return;
     }
     sentinelEvent(LL_WARNING,"+elected-leader",ri,"%@");
+    // redis中sentinel服务simfailure 为什么在这边呢？？？？？？？   大家是不是和有一样的疑问
     if (sentinel.simfailure_flags & SENTINEL_SIMFAILURE_CRASH_AFTER_ELECTION)
+    {
         sentinelSimFailureCrash();
+    }
     ri->failover_state = SENTINEL_FAILOVER_STATE_SELECT_SLAVE;
     ri->failover_state_change_time = mstime();
     sentinelEvent(LL_WARNING,"+failover-state-select-slave",ri,"%@");
@@ -4421,7 +4446,10 @@ void sentinelFailoverSwitchToPromotedSlave(sentinelRedisInstance *master) {
 void sentinelFailoverStateMachine(sentinelRedisInstance *ri) {
     serverAssert(ri->flags & SRI_MASTER);
     
-    if (!(ri->flags & SRI_FAILOVER_IN_PROGRESS)) return;
+    if (!(ri->flags & SRI_FAILOVER_IN_PROGRESS)) 
+    {
+        return;
+    }
 
     switch(ri->failover_state) {
         case SENTINEL_FAILOVER_STATE_WAIT_START:
