@@ -2741,11 +2741,11 @@ void sentinelSendPeriodicCommands(sentinelRedisInstance *ri) {
      * disconnection time figure. */
     if ((ri->flags & SRI_SLAVE) && ((ri->master->flags & (SRI_O_DOWN|SRI_FAILOVER_IN_PROGRESS)) || (ri->master_link_down_time != 0)))
     {
-        info_period = 1000;
+        info_period = 1000; // master没有宕机就每隔一秒发送一次info
     } 
     else 
     {
-        info_period = SENTINEL_INFO_PERIOD;
+        info_period = SENTINEL_INFO_PERIOD; // master宕机就每隔十秒发送一次info
     }
 
     /* We ping instances every time the last received pong is older than
@@ -3674,6 +3674,10 @@ void sentinelCheckSubjectivelyDown(sentinelRedisInstance *ri) {
      * 2) We believe it is a master, it reports to be a slave for enough time
      *    to meet the down_after_period, plus enough time to get two times
      *    INFO report from the instance. */
+    /**
+     * 1. 是否超时  down_after_period
+     * 2. slave切换到master的时候 是否超出故障切换的时间 需要从新选举leader sentinel 选择slave作为master服务
+     */
     if (elapsed > ri->down_after_period ||  (ri->flags & SRI_MASTER && ri->role_reported == SRI_SLAVE && mstime() - ri->role_reported_time > (ri->down_after_period+SENTINEL_INFO_PERIOD*2)))
     {
         // 有slave服务宕机了就会调用
