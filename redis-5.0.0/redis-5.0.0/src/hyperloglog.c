@@ -355,6 +355,11 @@ static char *invalid_hll_err = "-INVALIDOBJ Corrupted HLL object detected\r\n";
 1. 线性探测 ([这里使用线性探测])
 2. 二次探测 ()
 3. 开链 (STL中哈希表和Java哈希表冲突)
+
+这里就是说
+
+1. 布隆过滤器中不存在就一定不存在
+2. 存在就一定存在的依据
 ***********************************************************************/
 #define HLL_DENSE_SET_REGISTER(p,regnum,val) do { \
     uint8_t *_p = (uint8_t*) p; \

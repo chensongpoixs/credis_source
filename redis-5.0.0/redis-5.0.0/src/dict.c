@@ -996,9 +996,7 @@ static int _dictExpandIfNeeded(dict *d)
      * elements/buckets is over the "safe" threshold, we resize doubling
      * the number of buckets. */
     //判断是否需要扩容   ？？ 有一点想不通 --> 就是used / size > 5 有一点不可能啊 只有在哈希冲突时会发生的这种情况
-	if (d->ht[0].used >= d->ht[0].size &&
-        (dict_can_resize ||
-         d->ht[0].used / d->ht[0].size > dict_force_resize_ratio))
+	if (d->ht[0].used >= d->ht[0].size && (dict_can_resize || d->ht[0].used / d->ht[0].size > dict_force_resize_ratio))
     {
         return dictExpand(d, d->ht[0].used * 2);
     }
@@ -1010,7 +1008,10 @@ static unsigned long _dictNextPower(unsigned long size)
 {
     unsigned long i = DICT_HT_INITIAL_SIZE;
 	//生成hash的mask的值4的倍数
-    if (size >= LONG_MAX) return LONG_MAX + 1LU;
+	if (size >= LONG_MAX)
+	{
+		return LONG_MAX + 1LU;
+	}
     while(1)
 	{
 		if (i >= size)
@@ -1035,8 +1036,10 @@ static long _dictKeyIndex(dict *d, const void *key, uint64_t hash, dictEntry **e
     if (existing) *existing = NULL;
 
     /* Expand the hash table if needed */
-    if (_dictExpandIfNeeded(d) == DICT_ERR)
-        return -1;
+	if (_dictExpandIfNeeded(d) == DICT_ERR)
+	{
+		return -1;
+	}
     for (table = 0; table <= 1; table++) 
 	{
         idx = hash & d->ht[table].sizemask;   // 这边hash & mask 
@@ -1053,6 +1056,7 @@ static long _dictKeyIndex(dict *d, const void *key, uint64_t hash, dictEntry **e
                 return -1;
             }
 			// 这里已经把哈希表中索引的节点向后移动了， 得到链表中最后一个节点的指针
+			// 这边使用是开链法 
             he = he->next;
         }
         if (!dictIsRehashing(d)) break;
