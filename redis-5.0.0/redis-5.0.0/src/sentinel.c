@@ -4361,10 +4361,8 @@ void sentinelFailoverDetectEnd(sentinelRedisInstance *master) {
 
             if (slave->flags & (SRI_RECONF_DONE|SRI_RECONF_SENT)) continue;
             if (slave->link->disconnected) continue;
-
-            retval = sentinelSendSlaveOf(slave,
-                    master->promoted_slave->addr->ip,
-                    master->promoted_slave->addr->port);
+            // sentinel服务发送更新slave服务上最新的master服务的信息
+            retval = sentinelSendSlaveOf(slave, master->promoted_slave->addr->ip, master->promoted_slave->addr->port);
             if (retval == C_OK) {
                 sentinelEvent(LL_NOTICE,"+slave-reconf-sent-be",slave,"%@");
                 slave->flags |= SRI_RECONF_SENT;

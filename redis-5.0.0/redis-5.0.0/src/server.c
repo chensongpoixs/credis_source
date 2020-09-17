@@ -2235,6 +2235,7 @@ void initServer(void) {
 	scriptingInit(1);
 	slowlogInit();
 	latencyMonitorInit();
+	// 开启的三个线程数
 	bioInit();
 	server.initial_memory_usage = zmalloc_used_memory();
 }
@@ -2710,7 +2711,8 @@ int processCommand(client *c) {
 	 * condition, to avoid mixing the propagation of scripts with the propagation
 	 * of DELs due to eviction. */
 	// 内存淘汰机制更新 在配置是否redis的内存的大小
-	if (server.maxmemory && !server.lua_timedout) {
+	if (server.maxmemory && !server.lua_timedout) 
+	{
 		int out_of_memory = freeMemoryIfNeeded() == C_ERR;
 		/* freeMemoryIfNeeded may flush slave output buffers. This may result
 		 * into a slave, that may be the active client, to be freed. */
@@ -2718,6 +2720,7 @@ int processCommand(client *c) {
 
 		/* It was impossible to free enough memory, and the command the client
 		 * is trying to execute is denied during OOM conditions? Error. */
+		// 服务使用内存超出使用范围  命令的q'x
 		if ((c->cmd->flags & CMD_DENYOOM) && out_of_memory) {
 			flagTransaction(c);
 			addReply(c, shared.oomerr);
@@ -2891,6 +2894,7 @@ int prepareForShutdown(int flags) {
 		serverLog(LL_NOTICE, "Saving the final RDB snapshot before exiting.");
 		/* Snapshotting. Perform a SYNC SAVE and exit */
 		rdbSaveInfo rsi, *rsiptr;
+		// master 服务的信息--> 服务宕机时的处理的流程？？？？？？？？？？？？ 是不是有点？？？？我们一起来看一下
 		rsiptr = rdbPopulateSaveInfo(&rsi);
 		if (rdbSave(server.rdb_filename, rsiptr) != C_OK) {
 			/* Ooops.. error saving! The best we can do is to continue

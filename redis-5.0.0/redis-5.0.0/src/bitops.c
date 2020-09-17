@@ -33,7 +33,122 @@
 /* -----------------------------------------------------------------------------
  * Helpers and low level bit functions.
  * -------------------------------------------------------------------------- */
+/////////////////////////////////////////////////////////////////////////
+// 4.这个新的方法叫shift and add,正如名字一样，该算法用的就是shift 和add（移位和加法）：
 
+// 对于n位二进制数，最多有n个1，而n必定能由n位二进制数来表示，因此我们在求出某k位中1的个数后，可以将结果直接存储在这k位中，不需要额外的空间。
+// 以4位二进制数abcd为例，最终结果是a+b+c+d，循环的话需要4步加法
+
+// 那么我们让abcd相邻的两个数相加，也就是 a+b+c+d=[a+b]+[c+d]
+
+// [0 b 0 d]
+
+// [0 a 0 c]
+
+// --------
+
+// [e f] [ g h]
+
+// ef=a+b   gh=c+d 而 0b0d=(abcd)&0101,0a0c=(abcd)>>1 &0101
+
+// [ef]  [gh]再相邻的两组相加
+
+// [00 ef]
+
+//     [gh]
+
+// --------
+
+// i j k l
+
+// ijkl=ef+gh  gh=(efgh)&& 0011 ,ef=(efgh)>>2 & 0011
+
+// 依次入次递推。需要log(N)次
+
+// 代码如下：
+
+// /* ===========================================================================
+// * Problem: 
+// *   The fastest way to count how many 1s in a 32-bits integer.
+// *
+// * Algorithm:
+// *   The problem equals to calculate the Hamming weight of a 32-bits integer,
+// *   or the Hamming distance between a 32-bits integer and 0. In binary cases,
+// *   it is also called the population count, or popcount.[1]
+// *
+// *   The best solution known are based on adding counts in a tree pattern
+// *   (divide and conquer). Due to space limit, here is an example for a
+// *   8-bits binary number A=01101100:[1]
+// * | Expression            | Binary   | Decimal | Comment                    |
+// * | A                     | 01101100 |         | the original number        |
+// * | B = A & 01010101      | 01000100 | 1,0,1,0 | every other bit from A     |
+// * | C = (A>>1) & 01010101 | 00010100 | 0,1,1,0 | remaining bits from A      |
+// * | D = B + C             | 01011000 | 1,1,2,0 | # of 1s in each 2-bit of A | 
+// * | E = D & 00110011      | 00010000 | 1,0     | every other count from D   |
+// * | F = (D>>2) & 00110011 | 00010010 | 1,2     | remaining counts from D    |
+// * | G = E + F             | 00100010 | 2,2     | # of 1s in each 4-bit of A |
+// * | H = G & 00001111      | 00000010 | 2       | every other count from G   |
+// * | I = (G>>4) & 00001111 | 00000010 | 2       | remaining counts from G    |
+// * | J = H + I             | 00000100 | 4       | No. of 1s in A             |
+// * Hence A have 4 1s.
+// *
+// * [1] http://en.wikipedia.org/wiki/Hamming_weight
+// *
+// * ===========================================================================
+// */
+// #include <stdio.h>
+
+// typedef unsigned int UINT32;
+// const UINT32 m1  = 0x55555555;  // 01010101010101010101010101010101
+// const UINT32 m2  = 0x33333333;  // 00110011001100110011001100110011
+// const UINT32 m4  = 0x0f0f0f0f;  // 00001111000011110000111100001111
+// const UINT32 m8  = 0x00ff00ff;  // 00000000111111110000000011111111
+// const UINT32 m16 = 0x0000ffff;  // 00000000000000001111111111111111
+// const UINT32 h01 = 0x01010101;  // the sum of 256 to the power of 0, 1, 2, 3
+
+// /* This is a naive implementation, shown for comparison, and to help in 
+// * understanding the better functions. It uses 20 arithmetic operations
+// * (shift, add, and). */
+// int popcount_1(UINT32 x)
+// {
+//   x = (x & m1) + ((x >> 1) & m1);
+//   x = (x & m2) + ((x >> 2) & m2);
+//   x = (x & m4) + ((x >> 4) & m4);
+//   x = (x & m8) + ((x >> 8) & m8);
+//   x = (x & m16) + ((x >> 16) & m16);
+//   return x;
+// }
+
+// 5.对shift and add的优化
+
+// /* This uses fewer arithmetic operations than any other known implementation
+// * on machines with slow multiplication. It uses 15 arithmetic operations. */
+// int popcount_2(UINT32 x)
+// {
+//   x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
+//   x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
+//   x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
+//   x += x >> 8;           //put count of each 16 bits into their lowest 8 bits
+//   x += x >> 16;          //put count of each 32 bits into their lowest 8 bits
+//   return x & 0x1f;
+// }
+
+// /* This uses fewer arithmetic operations than any other known implementation
+// * on machines with fast multiplication. It uses 12 arithmetic operations, 
+// * one of which is a multiply. */
+// int popcount_3(UINT32 x)
+// {
+//   x -= (x >> 1) & m1;             //put count of each 2 bits into those 2 bits
+//   x = (x & m2) + ((x >> 2) & m2); //put count of each 4 bits into those 4 bits 
+//   x = (x + (x >> 4)) & m4;        //put count of each 8 bits into those 8 bits 
+//   return (x * h01) >> 24;  // left 8 bits of x + (x<<8) + (x<<16) + (x<<24)
+// }
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
 /* Count number of bits set in the binary array pointed by 's' and long
  * 'count' bytes. The implementation of this function is required to
  * work with a input string length up to 512 MB. */
@@ -41,6 +156,9 @@ size_t redisPopcount(void *s, long count) {
     size_t bits = 0;
     unsigned char *p = s;
     uint32_t *p4;
+    /**
+     * 这边8个比特位对应"1"个数罗列出来了  char = > 256   使用空间换时间的做法
+     */
     static const unsigned char bitsinbyte[256] = {0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,4,5,5,6,5,6,6,7,5,6,6,7,6,7,7,8};
 
     /* Count initial bytes not aligned to 32 bit. */
@@ -87,7 +205,10 @@ size_t redisPopcount(void *s, long count) {
     }
     /* Count the remaining bytes. */
     p = (unsigned char*)p4;
-    while(count--) bits += bitsinbyte[*p++];
+    while(count--) 
+    {
+        bits += bitsinbyte[*p++];
+    }
     return bits;
 }
 
@@ -483,7 +604,10 @@ robj *lookupStringForBitCommand(client *c, size_t maxbit) {
         o = createObject(OBJ_STRING,sdsnewlen(NULL, byte+1));
         dbAdd(c->db,c->argv[1],o);
     } else {
-        if (checkType(c,o,OBJ_STRING)) return NULL;
+        if (checkType(c,o,OBJ_STRING)) 
+        {
+            return NULL;
+        }
         o = dbUnshareStringValue(c->db,c->argv[1],o);
         o->ptr = sdsgrowzero(o->ptr,byte+1);
     }
@@ -529,7 +653,7 @@ void setbitCommand(client *c) {
     ssize_t byte, bit;
     int byteval, bitval;
     long on;
-
+    // 得到偏移量 offset的值
     if (getBitOffsetFromArgument(c,c->argv[2],&bitoffset,0,0) != C_OK)
         return;
 
@@ -537,6 +661,7 @@ void setbitCommand(client *c) {
         return;
 
     /* Bits can only be set or cleared... */
+    //设置一个比特位  on不是退出
     if (on & ~1) {
         addReplyError(c,err);
         return;
@@ -545,10 +670,11 @@ void setbitCommand(client *c) {
     if ((o = lookupStringForBitCommand(c,bitoffset)) == NULL) return;
 
     /* Get current values */
-    byte = bitoffset >> 3;
+    // 这里有一个定义就是  什么要 >> 是3 ->>> 它是一个字节4个比特位, 一个数组向右移动三个比特位就 大约定位到4个比特位上了， 再使用低三位定位到4个比特位中具体的的比特位上是不是好完美啊
+    byte = bitoffset >> 3;     //  例子: 53   --> 0011 0101 => 0000 0011
     byteval = ((uint8_t*)o->ptr)[byte];
-    bit = 7 - (bitoffset & 0x7);
-    bitval = byteval & (1 << bit);
+    bit = 7 - (bitoffset & 0x7); // 底的3位拿到 -> 
+    bitval = byteval & (1 << bit); // 0001 ====> 1000, 0100, 0010
 
     /* Update byte with new bit value and return original value */
     byteval &= ~(1 << bit);

@@ -216,6 +216,7 @@ static int loadline (lua_State *L) {
 static void dotty (lua_State *L) {
   int status;
   const char *oldprogname = progname;
+  printf("[progname = %s]\n", progname);
   progname = NULL;
   while ((status = loadline(L)) != -1) {
     if (status == 0) status = docall(L, 0, 0);
@@ -343,7 +344,11 @@ static int pmain (lua_State *L) {
   int script;
   int has_i = 0, has_v = 0, has_e = 0;
   globalL = L;
-  if (argv[0] && argv[0][0]) progname = argv[0];
+  if (argv[0] && argv[0][0]) 
+  {
+    progname = argv[0];
+  }
+  printf("[%d][name = %s]\n", __LINE__, progname);
   lua_gc(L, LUA_GCSTOP, 0);  /* stop collector during initialization */
   luaL_openlibs(L);  /* open libraries */
   lua_gc(L, LUA_GCRESTART, 0);
@@ -377,6 +382,7 @@ static int pmain (lua_State *L) {
 int main (int argc, char **argv) {
   int status;
   struct Smain s;
+  printf("lua main -->\n");
   lua_State *L = lua_open();  /* create state */
   if (L == NULL) {
     l_message(argv[0], "cannot create state: not enough memory");

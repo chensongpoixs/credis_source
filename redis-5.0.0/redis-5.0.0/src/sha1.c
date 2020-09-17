@@ -71,6 +71,7 @@ void SHA1Transform(uint32_t state[5], const unsigned char buffer[64])
      */
     CHAR64LONG16* block = (const CHAR64LONG16*)buffer;
 #endif
+
     /* Copy context->state[] to working vars */
     a = state[0];
     b = state[1];
