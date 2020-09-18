@@ -965,10 +965,10 @@ error:
 
 
 
-### 4. 统计字符串中"1"的个数
+### 4. 计算字符串中"1"的个数
 
 1. 查表法
-2. 字节宽度处理(28byte) hamming weight算法
+2. 汉明重量(28byte) hamming weight算法
 
 ```
 /* Count number of bits set in the binary array pointed by 's' and long
