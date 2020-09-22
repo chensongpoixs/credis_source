@@ -157,7 +157,9 @@ size_t redisPopcount(void *s, long count) {
     unsigned char *p = s;
     uint32_t *p4;
     /**
+     * 查表法
      * 这边8个比特位对应"1"个数罗列出来了  char = > 256   使用空间换时间的做法
+     * 
      */
     static const unsigned char bitsinbyte[256] = {0,1,1,2,1,2,2,3,1,2,2,3,2,3,3,4,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,1,2,2,3,2,3,3,4,2,3,3,4,3,4,4,5,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,2,3,3,4,3,4,4,5,3,4,4,5,4,5,5,6,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,3,4,4,5,4,5,5,6,4,5,5,6,5,6,6,7,4,5,5,6,5,6,6,7,5,6,6,7,6,7,7,8};
 
@@ -608,7 +610,7 @@ int getBitfieldTypeFromArgument(client *c, robj *o, int *sign, int *bits) {
  * returned. Otherwise if the key holds a wrong type NULL is returned and
  * an error is sent to the client. */
 robj *lookupStringForBitCommand(client *c, size_t maxbit) {
-    size_t byte = maxbit >> 3;
+    size_t byte = maxbit >> 3; // 这里就相当于除以8得到必然是字节数的位数
     robj *o = lookupKeyWrite(c->db,c->argv[1]);
 
     if (o == NULL) {
@@ -682,7 +684,7 @@ void setbitCommand(client *c) {
 
     /* Get current values */
     // 这里有一个定义就是  什么要 >> 是3 ->>> 它是一个字节4个比特位, 一个数组向右移动三个比特位就 大约定位到4个比特位上了， 再使用低三位定位到4个比特位中具体的的比特位上是不是好完美啊
-    byte = bitoffset >> 3;     //  例子: 53   --> 0011 0101 => 0000 0011
+    byte = bitoffset >> 3; //这里就相当于除以8得到必然是字节数的位数   //  例子: 53   --> 0011 0101 => 0000 0011
     byteval = ((uint8_t*)o->ptr)[byte];
     bit = 7 - (bitoffset & 0x7); // 底的3位拿到 -> 
     bitval = byteval & (1 << bit); // 0001 ====> 1000, 0100, 0010
