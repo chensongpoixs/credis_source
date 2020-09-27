@@ -1,5 +1,9 @@
+#define test_crc 1
+#if !test_crc
 #include "server.h"
-
+#endif 
+#include <stdio.h>
+#include <stdlib.h>
 /*
  * Copyright 2001-2010 Georges Menie (www.menie.org)
  * Copyright 2010-2012 Salvatore Sanfilippo (adapted to Redis coding style)
@@ -36,7 +40,7 @@
  *
  * Name                       : "XMODEM", also known as "ZMODEM", "CRC-16/ACORN"
  * Width                      : 16 bit
- * Poly                       : 1021 (That is actually x^16 + x^12 + x^5 + 1)  ==>Poly_src 1 0001 0000 0010 0001 -->Poly  1000 1000 0001 0000 
+ * Poly                       : 1021 (That is actually x^16 + x^12 + x^5 + 1)  ==>Poly_src 1 0001 0000 0010 0001 
  * Initialization             : 0000
  * Reflect Input byte         : False
  * Reflect Output CRC         : False
@@ -47,8 +51,399 @@
 // 12 => 0000 1100
 //  5 => 0000 0101  ----> 0000 0001
 /**
+ *    CRC编码的基本思想是：将二进制位串的操作被解释为多项式算法运算。
+ * 二进制数据可以看作是一个k-1 次多项式的系数列表，该多项式共有k项，从x^(k-1)到x^0。这样的多项式被认为是k-1阶多项式。高次(左边)位是x^(k-1)项的系数，接下来的位是x(k-2)项的系数，以此类推。例如： 100101有6位，因此代表了一个有6项的多项式，其系数分别是1、0、0、1、0和1, 即1x^5 + 0x^4 + 0x^3 + 1x^2 + 0x^1 + 1x^0 == x^5 + x^2 + 1。
  * 
- * 
+ * 几种CRC16计算公式、初始值、标志位等参数汇总
+ * 一、CRC16/IBM 或 CRC16/ARC 或 CRC16/LHA：
+
+    公式：x16+x15+x2+1
+
+    宽度：16
+
+    Poly值：0x8005
+
+    初始值：0x0000
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0x0000
+
+ 
+
+ 
+
+二、CRC16/MAXIM：
+
+    公式：x16+x15+x2+1
+
+    宽度：16
+
+    Poly值：0x8005
+
+    初始值：0x0000
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0xFFFF
+
+ 
+
+三、CRC16/USB：
+
+    公式：x16+x15+x2+1
+
+    宽度：16
+
+    Poly值：0x8005
+
+    初始值：0xFFFF
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0xFFFF
+
+ 
+
+四、CRC16/MODBUS(最常见)：
+
+    公式：x16+x15+x2+1
+
+    宽度：16
+
+    Poly值：0x8005
+
+    初始值：0x0000
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0x0000
+
+ 
+
+五、CRC16/CCITT 或 CRC-CCITT 或CRC16/CCITT-TRUE或 CRC16/KERMIT：
+
+    公式：x16+x15+x5+1
+
+    宽度：16
+
+    Poly值：0x1021
+
+    初始值：0x0000
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0x0000
+
+ 
+
+六、 CRC16/CCITT-FALSE：
+
+    公式：x16+x15+x5+1
+
+    宽度：16
+
+    Poly值：0x1021
+
+    初始值：0xFFFF
+
+    基准输入：false
+
+    基准输出：false
+
+    标志位：0x0000
+
+ 
+
+七、CRC16/X25：
+
+    公式：x16+x15+x5+1
+
+    宽度：16
+
+    Poly值：0x1021
+
+    初始值：0x0000
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0xFFFF
+
+ 
+
+八、CRC16/XMODEM 或 CRC16/ZMODEM 或 CRC16/ACORN：
+
+    公式：x16+x15+x5+1
+
+    宽度：16
+
+    Poly值：0x1021
+
+    初始值：0x0000
+
+    基准输入：false
+
+    基准输出：false
+
+    标志位：0x0000
+
+ 
+
+九、CRC16/DNP：
+
+    公式：x16+x13+x12+x11+x10+x8+x6+x5+x2+1
+
+    宽度：16
+
+    Poly值：0x3D65
+
+    初始值：0x0000
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0xFFFF
+
+   使用：M-Bus, ect
+
+ 
+
+ 
+
+附加其它：
+
+ 
+
+一、CRC4/ITU：
+
+    公式：x4+x+1
+
+    宽度：4
+
+    Poly值：0x03
+
+    初始值：0x00
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0x00
+
+ 
+
+ 
+
+二、CRC5/EPC：
+
+    公式：x5+x3+1
+
+    宽度：5
+
+    Poly值：0x09
+
+    初始值：0x09
+
+    基准输入：false
+
+    基准输出：false
+
+    标志位：0x00
+
+ 
+
+ 
+
+三、CRC5/ITU：
+
+    公式：x5+x4+x2+1
+
+    宽度：5
+
+    Poly值：0x15
+
+    初始值：0x00
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0x00
+
+ 
+
+ 
+
+四、CRC5/USB：
+
+    公式：x5+x2+1
+
+    宽度：5
+
+    Poly值：0x05
+
+    初始值：0x1F
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0x1F
+
+ 
+
+ 
+
+四、CRC6/ITU：
+
+    公式：x6+x+1
+
+    宽度：6
+
+    Poly值：0x03
+
+    初始值：0x00
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0x00
+
+ 
+
+ 
+
+五、CRC6/MMC：
+
+    公式：x7+x3+1
+
+    宽度：7
+
+    Poly值：0x09
+
+    初始值：0x00
+
+    基准输入：false
+
+    基准输出：false
+
+    标志位：0x00
+
+    使用：MutiMediaCard,SD卡， ect
+
+ 
+
+ 
+
+六、CRC-8：
+
+    公式：x8+x2+x+1
+
+    宽度：8
+
+    Poly值：0x07
+
+    初始值：0x00
+
+    基准输入：false
+
+    基准输出：false
+
+    标志位：0x00
+
+ 
+
+ 
+
+七、CRC8/ITU：
+
+    公式：x8+x2+x+1
+
+    宽度：8
+
+    Poly值：0x07
+
+    初始值：0x00
+
+    基准输入：false
+
+    基准输出：false
+
+    标志位：0x55
+
+ 
+
+ 
+
+八、CRC-8：
+
+    公式：x8+x2+x+1
+
+    宽度：8
+
+    Poly值：0x07
+
+    初始值：0x00
+
+    基准输入：false
+
+    基准输出：false
+
+    标志位：0x00
+
+ 
+
+ 
+
+九、CRC8/ROHC：
+
+    公式：x8+x2+x+1
+
+    宽度：8
+
+    Poly值：0x07
+
+    初始值：0xFF
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0x00
+
+ 
+
+ 
+
+九、CRC8/ROHC 或 DOW-CRC：
+
+    公式：x8+x5+x4+1
+
+    宽度：8
+
+    Poly值：0x31
+
+    初始值：0x00
+
+    基准输入：true
+
+    基准输出：true
+
+    标志位：0x00
  * CRC-8       x8+x5+x4+1              0x31（0x131）
 CRC-8       x8+x2+x1+1              0x07（0x107）
 CRC-8       x8+x6+x4+x3+x2+x1       0x5E（0x15E）
@@ -130,7 +525,7 @@ static const uint16_t crc16tab[256]= {
     0xfd2e,0xed0f,0xdd6c,0xcd4d,0xbdaa,0xad8b,0x9de8,0x8dc9,
     0x7c26,0x6c07,0x5c64,0x4c45,0x3ca2,0x2c83,0x1ce0,0x0cc1,
     0xef1f,0xff3e,0xcf5d,0xdf7c,0xaf9b,0xbfba,0x8fd9,0x9ff8,
-    0x6e17,0x7e36,0x4e55,0x5e74,0x2e93,0x3eb2,0x0ed1 /*111011010001*/,0x1ef0 /*1111011110000*/
+    0x6e17,0x7e36,0x4e55,0x5e74,0x2e93,0x3eb2,0x0ed1 /*1110 1101 0001*/,0x1ef0 /*1 1110 1111 0000*/
 };
 /**
  *   0110
@@ -147,3 +542,55 @@ uint16_t crc16(const char *buf, int len)
     }
     return crc;
 }
+
+
+
+#if test_crc
+uint16_t table[256] ={0};
+uint16_t byte_crc(uint16_t value)
+{
+    uint16_t crc = value; 
+    for (int i = 16; i > 0; --i)
+    {
+        if (crc & 0x01)
+        {
+            crc = (crc >> 1) ^ 0X1021;
+        }
+        else 
+        {
+            crc = (crc >> 1);
+        }
+    }
+    return crc;
+}
+void show_crc16_table()
+{
+
+    static int ploy = 0X1021;// 1 0001 0000 0010 0001
+    int i = 0;
+    for ( i = 0; i < 256; ++i) // 256
+    {
+        table[i] = i;
+    }
+    for ( i = 0; i < 256; ++i)
+    {
+        table[i] = byte_crc(table[i]);
+        // table[i] <<= 16; //crc16 算法是以16bit一计算的 
+        // table[i] &=ploy;
+    }
+    for ( i = 0; i < 256; ++i) // 256
+    {
+        printf("table[%u]=0x%.2x\n", i, table[i]);
+    }
+}
+
+
+int main(int argc, char **argv)
+{
+    char num = 'b' -'a';
+    uint16_t crc_num = crc16(&num, 1);
+    printf("[ a -b ]crc16 =  %u\n", crc_num);
+    show_crc16_table();
+    return 0;
+}
+#endif 
