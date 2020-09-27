@@ -1,4 +1,4 @@
-#define test_crc 0
+#define test_crc16_table 0
 #if !test_crc
 #include "server.h"
 #endif 
@@ -546,52 +546,88 @@ uint16_t crc16(const char *buf, int len)
 
 
 
-#if test_crc
-uint16_t table[256] ={0};
-uint16_t byte_crc(uint16_t value)
+#if test_crc16_table
+/**
+ *获取value二进制的位数
+ */
+int byte_size(unsigned int value)
 {
-    uint16_t crc = value; 
-    for (int i = 16; i > 0; --i)
-    {
-        if (crc & 0x01)
-        {
-            crc = (crc >> 1) ^ 0X1021;
-        }
-        else 
-        {
-            crc = (crc >> 1);
-        }
-    }
-    return crc;
+	int byte = 0;
+	if (value == 0)
+	{
+		return byte;
+	}
+	
+	while (value >>= 1)
+	{
+		++byte;
+	}
+	return byte;
 }
 void show_crc16_table()
 {
 
-    static int ploy = 0X1021;// 1 0001 0000 0010 0001
     int i = 0;
-    for ( i = 0; i < 256; ++i) // 256
+	
+	int poly = 0X11021;//
+	
+
+	//start of calculating the CRC8 table
+	for (i = 0;i < 256; ++i) 
     {
-        table[i] = i;
-    }
-    for ( i = 0; i < 256; ++i)
+		table[i] = i;
+	}
+	FILE * fp = NULL;
+	fp = fopen("crc16_table.txt", "w+");
+	if (!fp)
+	{
+        printf("not open file !!!\n");
+		return -1;
+	}
+	
+	for (i = 0;i < 256; ++i) 
+	{
+		
+		// 把下标的数向左移动16位
+		unsigned int table1 = table[i] << 16;
+		int byte = byte_size(table1);
+		while (byte > 15)
+		{
+			byte = byte_size(table1);
+			//fprintf(fp, "table1 = %u, byte = %u\n", table1, byte);
+			if (byte > 15)
+			{  //进行差错计算 [x^16 + x^12 + x^5 + 1]
+				table1 = ((((table1 >> (byte - 16)) ) ^ poly) &0XFFFF)<< (byte - 16);
+			}
+			byte = byte_size(table1);
+		}
+		table[i] = table1 ;
+		
+	}
+
+	for (i = 0; i < 256; ++i) // 256
+	{
+        if (i % 10)
+        {
+            fprintf(fp, "table[%u]=0x%.2x\n", i, table[i]);
+            printf( "table[%u]=0x%.2x\n", i, table[i]);
+	
+        }
+        else 
+        {
+           fprintf(fp, "table[%u]=0x%.2x\n", i, table[i]);
+            printf( "table[%u]=0x%.2x\n", i, table[i]); 
+        }
+    }	
+	if (fp)
     {
-        table[i] = byte_crc(table[i]);
-        // table[i] <<= 16; //crc16 算法是以16bit一计算的 
-        // table[i] &=ploy;
-    }
-    for ( i = 0; i < 256; ++i) // 256
-    {
-        printf("table[%u]=0x%.2x\n", i, table[i]);
+        fclose(fp);
+        fp = NULL;
     }
 }
-
-
 int main(int argc, char **argv)
 {
-    char num = 'b' -'a';
-    uint16_t crc_num = crc16(&num, 1);
-    printf("[ a -b ]crc16 =  %u\n", crc_num);
-    show_crc16_table();
+   show_crc16_table();
     return 0;
 }
 #endif 
