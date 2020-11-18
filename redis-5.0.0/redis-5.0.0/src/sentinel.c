@@ -3960,6 +3960,9 @@ char *sentinelGetLeader(sentinelRedisInstance *master, uint64_t epoch) {
             winner = myvote;
         }
     }
+    //摩尔选举法    大于一半问题
+    //时间复杂度O(n)
+    //空间复杂度O(1)
     // 查看局部leader选举数是否大于所有sentinel服务数 v/2 +1 
     voters_quorum = voters/2+1;
     if (winner && (max_votes < voters_quorum || max_votes < master->quorum))
